@@ -5,6 +5,7 @@ import Context from "../context";
 import LoadingData from "../components/LoadingData";
 
 import Login from "../pages/Login";
+import Employees from "../pages/Employees";
 
 
 const ProjectRoutes = () => {
@@ -25,8 +26,8 @@ const ProjectRoutes = () => {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
-                {/* <Route path="" element={<Navigate to="/a" />} /> */}
-               
+                <Route path="employees" element={<Employees />} />
+
             </Route>
         </Routes>
     )

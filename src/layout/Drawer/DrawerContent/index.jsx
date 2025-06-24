@@ -19,8 +19,8 @@ const DrawerContent = () => {
         // { title: "לוח הבקרה", to: "", icon: <DashboardIcon color='primary' /> },
         // { title: "תשלומים", to: "payments", icon: <AttachMoneyIcon color='primary' /> },
         // { title: "סדרים", to: "sdarim", icon: <MenuBookIcon color='primary' /> },
-        { title: "נרשמים", to: "subscribers", icon: <GroupsIcon color='primary' /> },
-        { title: "נמחקו", to: "deleted-subscribers", icon: <DeleteIcon color='primary' /> },
+        { title: "עובדים", to: "employees", icon: <GroupsIcon color='primary' /> },
+        { title: "הזמנות", to: "orders", icon: <DeleteIcon color='primary' /> },
         // { title: "מוצרים", to: "prodacts", icon: <CardGiftcardIcon color='primary' />, disabled: true },
         // { title: "דרגות", to: "levels", icon: <StairsIcon color='primary' /> },
 

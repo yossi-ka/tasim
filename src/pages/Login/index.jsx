@@ -33,23 +33,6 @@ const Login = () => {
         });
     }, [])
 
-    const getData = () => {
-        const q = query(collection(db, "users"));
-        getDocs(q).then((querySnapshot) => console.log(querySnapshot))
-    }
-
-    const updateData = () => {
-        const washingtonRef = doc(db, 'test', "a");
-        updateDoc(washingtonRef, {
-            test: 1
-        })
-    }
-
-    const getFunc = async () => {
-        const getAllFamilies = httpsCallable(functions, 'netfree2');
-        return (await getAllFamilies({})).data;
-
-    }
 
 
     return <Grid container component="main" sx={{
@@ -83,15 +66,8 @@ const Login = () => {
                 <Typography component="h1" variant="h3" color="primary.dark">
                     כניסה למערכת
                 </Typography>
-                <Typography component="h1" variant="h3" color="primary.dark">מערכת ניהול</Typography>
+                <Typography component="h1" variant="h3" color="primary.dark">כנפי נשרים</Typography>
             </Stack>
-
-            <Button
-                onClick={() => {
-                    getData()
-                    updateData()
-                }}
-            >קבלת מידע</Button>
             <Button
                 size="large"
                 onClick={() => login()

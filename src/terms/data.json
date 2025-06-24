@@ -1,1 +1,193 @@
-{}
+{
+    "employeesTable": [
+        {
+            "name": "firstName",
+            "label": "שם",
+            "type": "text"
+        },
+        {
+            "name": "lastName",
+            "label": "משפחה",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "isActive",
+            "label": "פעיל",
+            "type": "boolean"
+        },
+        {
+            "name": "username",
+            "label": "שם משתמש",
+            "type": "text"
+        }
+    ],
+    "employeesUpdate": [
+        {
+            "name": "firstName",
+            "label": "שם",
+            "type": "text"
+        },
+        {
+            "name": "lastName",
+            "label": "משפחה",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "startDate",
+            "label": "תאריך תחילת עבודה",
+            "type": "date"
+        },
+        {
+            "name": "isActive",
+            "label": "פעיל",
+            "type": "checkbox"
+        },
+        {
+            "name": "username",
+            "label": "שם משתמש",
+            "type": "text"
+        },
+        {
+            "name": "password",
+            "label": "סיסמא",
+            "type": "password"
+        },
+        {
+            "name": "cardNumber",
+            "label": "כרטיס",
+            "type": "text"
+        }
+    ],
+    "ordersTable": [
+        {
+            "name": "id",
+            "label": "מספר הזמנה",
+            "type": "text"
+        },
+        {
+            "name": "status",
+            "label": "מצב",
+            "type": "text"
+        },
+        {
+            "name": "lastName",
+            "label": "שם משפחה",
+            "type": "text"
+        },
+        {
+            "name": "firstName",
+            "label": "שם פרטי",
+            "type": "text"
+        },
+        {
+            "name": "openedAt",
+            "label": "נפתחה ב",
+            "type": "date"
+        },
+        {
+            "name": "closedAt",
+            "label": "אושרה/נסגרה/בוטלה",
+            "type": "date"
+        },
+        {
+            "name": "totalPrice",
+            "label": "סכום",
+            "type": "number"
+        },
+        {
+            "name": "balance",
+            "label": "יתרה",
+            "type": "number"
+        },
+        {
+            "name": "idNumber",
+            "label": "תז",
+            "type": "text"
+        },
+        {
+            "name": "partnerIdNumber",
+            "label": "תז בן זוג",
+            "type": "text"
+        },
+        {
+            "name": "city",
+            "label": "עיר",
+            "type": "text"
+        },
+        {
+            "name": "street",
+            "label": "רחוב",
+            "type": "text"
+        },
+        {
+            "name": "houseNumber",
+            "label": "בית",
+            "type": "text"
+        },
+        {
+            "name": "entrance",
+            "label": "כניסה",
+            "type": "text"
+        },
+        {
+            "name": "apartment",
+            "label": "דירה",
+            "type": "text"
+        },
+        {
+            "name": "floor",
+            "label": "קומה",
+            "type": "text"
+        },
+        {
+            "name": "zipCode",
+            "label": "מיקוד",
+            "type": "text"
+        },
+        {
+            "name": "addressNumber",
+            "label": "מספר כתובת",
+            "type": "text"
+        },
+        {
+            "name": "customerNote",
+            "label": "הערת לקוח",
+            "type": ""
+        },
+        {
+            "name": "orderNote",
+            "label": "הערת הזמנה",
+            "type": ""
+        },
+        {
+            "name": "paymentMethod",
+            "label": "אמצעי תשלום",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "email",
+            "label": "אמייל",
+            "type": "text"
+        },
+        {
+            "name": "additionalInfo",
+            "label": "מידע נוסף",
+            "type": "text"
+        }
+    ]
+}
