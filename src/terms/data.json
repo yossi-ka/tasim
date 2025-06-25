@@ -70,12 +70,12 @@
     ],
     "ordersTable": [
         {
-            "name": "id",
+            "name": "nbsOrderId",
             "label": "מספר הזמנה",
             "type": "text"
         },
         {
-            "name": "status",
+            "name": "nbsOrderStatus",
             "label": "מצב",
             "type": "text"
         },
@@ -162,12 +162,12 @@
         {
             "name": "customerNote",
             "label": "הערת לקוח",
-            "type": ""
+            "type": "text"
         },
         {
             "name": "orderNote",
             "label": "הערת הזמנה",
-            "type": ""
+            "type": "text"
         },
         {
             "name": "paymentMethod",

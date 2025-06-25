@@ -2,17 +2,23 @@ import React from "react";
 import { useQuery } from "react-query";
 
 import http from "../../../api/http";
-import { data } from './data'
+import { getLookupData } from "../../../api/services/global";
+// import { data } from './data'
 
-function useLookup() {
+function useLookup(user) {
 
-    // const isError = false, isLoading = false;
+    console.log(user, "userlookup")
 
-    // const { data, isError, isLoading } = useQuery(
-    //     ['lookup'],
-    //     async () => await http.get("getLookup"),
-    // );
+    const { data, isError, isLoading } = useQuery(
+        ['lookup'],
+        async () => getLookupData(),
+        {
+            enabled: user !== 'loading' && user !== null,
+            // refetchOnWindowFocus: false,
+        }
+    );
 
+    console.log(data, "datadlookup")
 
     // console.log("Lookup", lookup.status, lookup.data, lookup.error)
     // if (isError) {

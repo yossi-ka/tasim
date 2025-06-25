@@ -6,6 +6,7 @@ import LoadingData from "../components/LoadingData";
 
 import Login from "../pages/Login";
 import Employees from "../pages/Employees";
+import Orders from "../pages/Orders";
 
 
 const ProjectRoutes = () => {
@@ -27,6 +28,7 @@ const ProjectRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
                 <Route path="employees" element={<Employees />} />
+                <Route path="orders" element={<Orders />} />
 
             </Route>
         </Routes>

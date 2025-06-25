@@ -12,7 +12,7 @@ const StatusFilter = ({ statuses, statusBarHandleChange, title, isData, count, a
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
-    statusBarHandleChange(newValue);
+    statusBarHandleChange(newValue, list[newValue].key);
   };
 
   React.useEffect(() => {

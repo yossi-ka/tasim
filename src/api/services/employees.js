@@ -34,29 +34,3 @@ export const updateEmployee = async (id, data, userId) => {
 
     return { id, ...data }
 }
-
-/*
-export const addSapak = async (data, userId) => {
-    const docRef = await addDoc(collection(db, 'sapakim'), {
-        ...data,
-        createdBy: userId,
-        createdDate: Timestamp.now(),
-        updateBy: userId,
-        updateDate: Timestamp.now(),
-        isActive: true,
-    });
-
-    return { id: docRef.id, ...data }
-}
-
-export const updateSapak = async (id, data, userId) => {
-    const docRef = doc(db, 'sapakim', id);
-    await updateDoc(docRef, {
-        ...data,
-        updateBy: userId,
-        updateDate: Timestamp.now(),
-    });
-
-    return { id, ...data }
-}
-*/

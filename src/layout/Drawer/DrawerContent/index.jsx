@@ -4,7 +4,7 @@ import React from 'react';
 import { Box, MenuList, MenuItem, ListItemText, ListItemIcon, Collapse, Typography } from '@mui/material';
 
 import GroupsIcon from '@mui/icons-material/Groups';
-import DeleteIcon from '@mui/icons-material/Delete';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 
 // project imports
@@ -20,7 +20,7 @@ const DrawerContent = () => {
         // { title: "תשלומים", to: "payments", icon: <AttachMoneyIcon color='primary' /> },
         // { title: "סדרים", to: "sdarim", icon: <MenuBookIcon color='primary' /> },
         { title: "עובדים", to: "employees", icon: <GroupsIcon color='primary' /> },
-        { title: "הזמנות", to: "orders", icon: <DeleteIcon color='primary' /> },
+        { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
         // { title: "מוצרים", to: "prodacts", icon: <CardGiftcardIcon color='primary' />, disabled: true },
         // { title: "דרגות", to: "levels", icon: <StairsIcon color='primary' /> },
 

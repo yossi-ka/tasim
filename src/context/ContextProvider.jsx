@@ -24,7 +24,7 @@ const ContextProvider = ({ children }) => {
     const { user, restartUser } = useAuth();
     const [selectdeKupa, setSelectedKupa] = React.useState(null);
 
-    const { getLookup, lookupIsLoading, getLookupName, getLookupCode, convertArray } = useLookup();
+    const { getLookup, lookupIsLoading, getLookupName, getLookupCode, convertArray } = useLookup(user);
     const popups = usePopups();
 
     const store = {
