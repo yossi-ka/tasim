@@ -5,6 +5,7 @@ import { Box, MenuList, MenuItem, ListItemText, ListItemIcon, Collapse, Typograp
 
 import GroupsIcon from '@mui/icons-material/Groups';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PermPhoneMsgIcon from '@mui/icons-material/PermPhoneMsg';
 
 
 // project imports
@@ -19,8 +20,9 @@ const DrawerContent = () => {
         // { title: "לוח הבקרה", to: "", icon: <DashboardIcon color='primary' /> },
         // { title: "תשלומים", to: "payments", icon: <AttachMoneyIcon color='primary' /> },
         // { title: "סדרים", to: "sdarim", icon: <MenuBookIcon color='primary' /> },
-        { title: "עובדים", to: "employees", icon: <GroupsIcon color='primary' /> },
         { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
+        { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
+        { title: "עובדים", to: "employees", icon: <GroupsIcon color='primary' /> },
         // { title: "מוצרים", to: "prodacts", icon: <CardGiftcardIcon color='primary' />, disabled: true },
         // { title: "דרגות", to: "levels", icon: <StairsIcon color='primary' /> },
 

@@ -189,5 +189,17 @@
             "label": "מידע נוסף",
             "type": "text"
         }
+    ],
+    "addContacts": [
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "customerName",
+            "label": "שם לקוח",
+            "type": "text"
+        }
     ]
 }

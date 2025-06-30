@@ -20,6 +20,16 @@ function formatDateTime(_date = null) {
     return [day, month, year].join('/') + ' ' + [hour, minute, second].join(':');
 }
 
+const fixText = (text) => {
+    let newText = text;
+    const arrToReplace = [",", "'", '"', '-', '.', '?', '!', ',', ';', ':']
+    arrToReplace.forEach(char => {
+        newText = newText.replace(char, '')
+    })
+    return newText;
+}
+
 module.exports = {
-    formatDateTime
+    formatDateTime,
+    fixText
 }

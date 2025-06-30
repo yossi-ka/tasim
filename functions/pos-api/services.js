@@ -77,6 +77,7 @@ const getOrders = async (userId) => {
             floor: docData.floor || "",
             apartment: docData.apartment || "",
             phone: docData.phone || "",
+            note: docData.note || "",
         }
 
         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();

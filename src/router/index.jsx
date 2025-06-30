@@ -7,6 +7,7 @@ import LoadingData from "../components/LoadingData";
 import Login from "../pages/Login";
 import Employees from "../pages/Employees";
 import Orders from "../pages/Orders";
+import VoiceMsg from "../pages/VoiceMsg";
 
 
 const ProjectRoutes = () => {
@@ -29,6 +30,7 @@ const ProjectRoutes = () => {
             <Route path="/" element={<Layout />} >
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
+                <Route path="voice-msg" element={<VoiceMsg />} />
 
             </Route>
         </Routes>
