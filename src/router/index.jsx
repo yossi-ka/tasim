@@ -7,6 +7,7 @@ import LoadingData from "../components/LoadingData";
 import Login from "../pages/Login";
 import Employees from "../pages/Employees";
 import Orders from "../pages/Orders";
+import Customers from "../pages/Customers";
 import VoiceMsg from "../pages/VoiceMsg";
 
 
@@ -30,6 +31,7 @@ const ProjectRoutes = () => {
             <Route path="/" element={<Layout />} >
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
+                <Route path="customers" element={<Customers />} />
                 <Route path="voice-msg" element={<VoiceMsg />} />
 
             </Route>

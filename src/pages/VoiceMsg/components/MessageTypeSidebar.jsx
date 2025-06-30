@@ -1,10 +1,10 @@
 import React from "react";
-import { 
-    List, 
-    ListItemButton, 
-    ListItemIcon, 
-    ListItemText, 
-    ListSubheader 
+import {
+    List,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    ListSubheader
 } from "@mui/material";
 import SendIcon from '@mui/icons-material/Send';
 import DraftsIcon from '@mui/icons-material/Drafts';
@@ -18,7 +18,8 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
         {
             id: 'incoming',
             label: 'הודעות נכנסות',
-            icon: <InboxIcon />
+            icon: <InboxIcon />,
+            disabled: true
         },
         {
             id: 'outgoing',
@@ -28,29 +29,33 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
         {
             id: 'pending',
             label: 'הודעות לטיפול',
-            icon: <PendingActionsIcon />
+            icon: <PendingActionsIcon />,
+            disabled: true
         },
         {
             id: 'drafts',
             label: 'טיוטות',
-            icon: <DraftsIcon />
+            icon: <DraftsIcon />,
+            disabled: true
         },
         {
             id: 'contacts',
             label: 'אנשי קשר',
-            icon: <ContactPhoneIcon />
+            icon: <ContactPhoneIcon />,
+            disabled: true
         },
         {
             id: 'voice',
             label: 'הודעות קוליות',
-            icon: <RecordVoiceOverIcon />
+            icon: <RecordVoiceOverIcon />,
+            disabled: true
         }
     ];
 
     return (
         <List
-            sx={{ 
-                width: '100%', 
+            sx={{
+                width: '100%',
                 height: '100%',
                 bgcolor: 'background.paper',
                 borderRight: 1,
@@ -59,8 +64,8 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
             component="nav"
             aria-labelledby="message-type-subheader"
             subheader={
-                <ListSubheader 
-                    component="div" 
+                <ListSubheader
+                    component="div"
                     id="message-type-subheader"
                     sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}
                 >
@@ -73,6 +78,7 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
                     key={type.id}
                     selected={selectedType === type.id}
                     onClick={() => onTypeSelect(type.id)}
+                    disabled={type.disabled}
                     sx={{
                         '&.Mui-selected': {
                             bgcolor: 'primary.lighter',

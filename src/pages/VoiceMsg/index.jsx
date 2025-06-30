@@ -5,7 +5,7 @@ import ContactsList from './components/ContactsList';
 import ChatWindow from './components/ChatWindow';
 
 const VoiceMsg = () => {
-    const [selectedType, setSelectedType] = useState('incoming');
+    const [selectedType, setSelectedType] = useState('outgoing');
     const [selectedContact, setSelectedContact] = useState(null);
 
     const handleTypeSelect = (typeId) => {
