@@ -69,7 +69,7 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
                     id="message-type-subheader"
                     sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}
                 >
-                    סוגי הודעות
+                    שירות לקוחות
                 </ListSubheader>
             }
         >

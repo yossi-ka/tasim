@@ -3,7 +3,7 @@ const auth = require('./auth');
 const posApi = require('./pos-api');
 const autoProsses = require('./pos-api/autoProsses');
 const yemotMsg = require('./yemot-msg');
-// const backgroundProcesses = require('./background-processes');
+const backgroundProcesses = require('./background-processes');
 
 exports.beforeSignIn = auth.beforeSignIn;
 exports.beforecreated = auth.beforecreated;
@@ -21,5 +21,5 @@ exports.autoProsses = autoProsses;
 exports.yemotMsg = yemotMsg;
 
 // תהליכי רקע
-// exports.onMessageCreated = backgroundProcesses.messages.onMessageCreated;
+exports.backgroundProcesses = backgroundProcesses;
 // exports.onMessageUpdated = backgroundProcesses.messages.onMessageUpdated;

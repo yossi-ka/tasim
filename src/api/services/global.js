@@ -3,7 +3,7 @@ import { getDocs, query, collection, orderBy, where, updateDoc, doc, addDoc, Tim
 
 
 export const getLookupData = async () => {
-    console.log("Fetching lookup data...");
+
     const employeesQ = query(collection(db, 'employees'), orderBy("lastName"));
     const employeesActiveQ = query(collection(db, 'employees'), where("isActive", "==", true), orderBy("lastName"));
 
@@ -27,8 +27,6 @@ export const getLookupData = async () => {
             }
         })),
     ])
-
-    console.log("Lookup data fetched successfully", res);
 
     return res.reduce((acc, val) => acc.concat(val), []);
 

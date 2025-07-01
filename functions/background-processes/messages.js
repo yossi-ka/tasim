@@ -1,5 +1,6 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { db } = require("../firebase-config");
+const { addToListAndSend } = require("../yemot-msg/services");
 
 /**
  * תהליך רקע שרץ כשנוצרת הודעה חדשה
@@ -18,10 +19,34 @@ const onMessageCreated = onDocumentCreated("messages/{messageId}", async (event)
     console.log(`תהליך רקע: נוצרה הודעה חדשה ${messageId}`);
 
     try {
+        if (!messageData.conversationId) {
+            //בשלב זה חייבים לצרף הודעה בשיחה,
+            //לבדוק אם להסיר מהקוד את הקטעים של יצירת שיחה חדשה
+            console.error(`הודעה ${messageId} חסרה מזהה שיחה`);
+            throw new Error(`הודעה ${messageId} חסרה מזהה שיחה`);
+        }
+
+        // בדיקה אם השיחה קיימת
+        const conversationRef = await db.collection('conversations').doc(messageData.conversationId).get();
+
+        const conversationDoc = conversationRef.data();
+        if (!conversationDoc) {
+            console.error(`הודעה ${messageId} חסרה מזהה שיחה`);
+            throw new Error(`הודעה ${messageId} חסרה מזהה שיחה`);
+        }
+
+        const phone = conversationDoc.phone;
+
         // הרצת טרנזקציה לעדכון השיחה
         await db.runTransaction(async (transaction) => {
             await updateConversationOnNewMessage(transaction, messageData, messageId);
         });
+
+        if (messageData.role == "system") {
+            const baseM = "שלום וברכה, להלן הודעה חדשה שהתקבלה, ";
+            const yRes = await addToListAndSend(baseM + messageData.message, phone)
+            console.log(yRes)
+        }
 
         console.log(`עדכון השיחה הושלם בהצלחה עבור הודעה ${messageId}`);
 
@@ -59,7 +84,7 @@ const onMessageUpdated = onDocumentUpdated("messages/{messageId}", async (event)
 async function updateConversationOnNewMessage(transaction, messageData, messageId) {
     const { conversationId, role, message, timestamp, fileType, fileName } = messageData;
 
-    // בדיקה אם השיחה קיימת
+    //בשלב קודם מוודאים שהשיחה קיימת
     const conversationRef = db.collection('conversations').doc(conversationId);
     const conversationDoc = await transaction.get(conversationRef);
 
@@ -69,7 +94,7 @@ async function updateConversationOnNewMessage(transaction, messageData, messageI
     if (!conversationDoc.exists) {
         // יצירת שיחה חדשה אם לא קיימת
         console.log(`יצירת שיחה חדשה: ${conversationId}`);
-        
+
         conversationData = await createNewConversation(messageData);
         isNewConversation = true;
     } else {
@@ -122,10 +147,10 @@ async function updateConversationOnNewMessage(transaction, messageData, messageI
  */
 async function createNewConversation(messageData) {
     const { conversationId } = messageData;
-    
+
     // ניסיון לקבל פרטים נוספים על הלקוח לפי הטלפון (אם יש)
     // TODO: להוסיף לוגיקה לחיפוש פרטי לקוח במערכת
-    
+
     return {
         id: conversationId,
         customerId: "", // יעודכן בהמשך כשיהיה מידע על הלקוח

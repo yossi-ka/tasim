@@ -1,3 +1,5 @@
+const { storage } = require("../firebase-config");
+
 function formatDateTime(_date = null) {
 
     const date = _date ? new Date(_date) : new Date();
@@ -24,12 +26,54 @@ const fixText = (text) => {
     let newText = text;
     const arrToReplace = [",", "'", '"', '-', '.', '?', '!', ',', ';', ':']
     arrToReplace.forEach(char => {
-        newText = newText.replace(char, '')
+        newText = newText.replaceAll(char, '')
     })
     return newText;
 }
 
+function isDST(date) {
+    const year = date.getFullYear();
+
+    // קביעת התאריכים של תחילת וסיום שעון הקיץ
+    const lastFridayMarch = new Date(year, 2, 31);
+    while (lastFridayMarch.getDay() !== 5) {
+        lastFridayMarch.setDate(lastFridayMarch.getDate() - 1);
+    }
+
+    const lastSundayOctober = new Date(year, 9, 31);
+    while (lastSundayOctober.getDay() !== 0) {
+        lastSundayOctober.setDate(lastSundayOctober.getDate() - 1);
+    }
+
+    const dstStart = new Date(year, 2, lastFridayMarch.getDate(), 2, 0, 0); // שעון קיץ מתחיל בשעה 02:00
+    const dstEnd = new Date(year, 9, lastSundayOctober.getDate(), 2, 0, 0); // שעון קיץ מסתיים בשעה 02:00
+
+    return date >= dstStart && date < dstEnd;
+}
+
+async function uploadFileBufferToStorage(buffer, destination) {
+    try {
+        if (!buffer || !destination) throw new Error("buffer or destination is missing");
+
+
+        const fileRef = storage.file(destination);
+
+        // Upload the buffer
+        await fileRef.save(buffer);
+
+        return {
+            success: true
+        };
+
+    } catch (error) {
+        console.log(error, "uploadFileBufferToStorage");
+        return { error, success: false, message: error.message };
+    }
+}
+
 module.exports = {
     formatDateTime,
-    fixText
+    fixText,
+    isDST,
+    uploadFileBufferToStorage
 }

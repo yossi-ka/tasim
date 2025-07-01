@@ -1,7 +1,11 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { fixText } = require("../utils");
+const { fixText, isDST, uploadFileBufferToStorage } = require("../utils");
 const { db } = require("../firebase-config");
 const { Timestamp } = require("firebase-admin/firestore");
+const { removeFromList } = require("./services");
+const { yemotRequest } = require("../api");
+const uuid = require("uuid").v4;
+
 
 
 /**
@@ -57,7 +61,9 @@ const getMessagesForYemot = onRequest(async (req, res) => {
             unreadCountByUser: 0, // איפוס ספירת הודעות שלא נק
         });
 
-        return res.send("id_list_message=" + resText);
+        await removeFromList(apiPhone);
+
+        return res.send("id_list_message=" + resText + "m-1005.");
 
     } catch (error) {
         console.error('שגיאה בפונקציית getMessagesForYemot:', error);
@@ -68,6 +74,113 @@ const getMessagesForYemot = onRequest(async (req, res) => {
     }
 });
 
+const addMessageFromYemot = onRequest(async (req, res) => {
+    const { Phone, Booking } = req.query;
+
+    // בדיקה בסיסית ותגובה מיידית
+    if (!Phone || !Booking) {
+        return res.status(400).send({
+            status: "error",
+            message: "Phone and Booking parameters are required"
+        });
+    }
+
+    // שליחת תגובה מיידית למשתמש
+    res.status(200).send({
+        status: "success",
+        message: "הבקשה התקבלה ומתעבדת"
+    });
+
+    // עיבוד אסינכרוני ברקע
+    processVoiceMessage(Phone, Booking).catch(error => {
+        console.error('שגיאה בעיבוד הודעה קולית ברקע:', error);
+    });
+})
+
+// פונקציה נפרדת לעיבוד ההודעה ברקע
+async function processVoiceMessage(Phone, Booking) {
+    try {
+        const fileName = Booking + ".wav";
+        console.log(`[BACKGROUND] מנסה להוריד קובץ: ${fileName} עבור טלפון: ${Phone}`);
+
+        const fileData = await yemotRequest("DownloadFile", `path=ivr2:voicemail/${fileName}`);
+        console.log('[BACKGROUND] תגובה מ-yemotRequest:', typeof fileData);
+
+        // בדיקה אם התשובה מכילה שגיאה
+        if (fileData && fileData.success === false) {
+            throw new Error(`שגיאה בהורדת הקובץ: ${fileData.message || 'לא ידוע'}`);
+        }
+
+        // המרת ArrayBuffer ל-Buffer
+        const fileBuffer = Buffer.from(fileData, 'binary');
+        const id = uuid();
+        const destination = `voicemail/${id}.wav`;
+
+        console.log(`[BACKGROUND] מנסה להעלות קובץ ליעד: ${destination}`);
+        const result = await uploadFileBufferToStorage(fileBuffer, destination);
+        if (result.success === false) {
+            throw new Error(`שגיאה בהעלאת קובץ: ${result.message}`);
+        }
+
+        console.log(`[BACKGROUND] הקובץ ${fileName} הועלה בהצלחה ליעד: ${destination}`);
+
+        let conversationId = "";
+        // מציאת שיחה לפי הטלפון
+        let conversation = await findConversationByPhone(Phone);
+        if (!conversation) {
+            // יצירת שיחה חדשה אם לא קיימת
+            const customer = await findCustomerByPhone(Phone);
+            const customerName = customer ? ((customer.lastName || "") + " " + (customer.firstName || "")) : null;
+            conversation = await db.collection('conversations').add({
+                customerId: "",
+                phone: Phone,
+                customerName: customerName,
+                lastMessageTime: Timestamp.now(),
+                lastMessage: null,
+                lastReadBySystem: "",
+                lastReadByUser: "",
+                unreadCountBySystem: 0,
+                unreadCountByUser: 0,
+                hasPendingMessages: false,
+                isActive: true,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            });
+            conversationId = conversation.id;
+            console.log(`[BACKGROUND] שיחה חדשה נוצרה עבור טלפון: ${Phone}`);
+        } else {
+            conversationId = conversation.id;
+            console.log(`[BACKGROUND] שיחה קיימת נמצאה עבור טלפון: ${Phone}`);
+        }
+
+        // יצירת הודעה חדשה
+        const messageData = {
+            conversationId: conversationId,
+            role: "user",
+            message: "הודעה קולית",
+            fileId: id,
+            fileType: "audio",
+            fileName: fileName,
+            filePath: destination,
+            fileSize: fileBuffer.length,
+            transcription: "",
+            isForFollowUp: false,
+            tags: [],
+            timestamp: Timestamp.now(),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+        };
+
+        // הוספת הודעה למסד הנתונים
+        await db.collection('messages').add(messageData);
+        console.log(`[BACKGROUND] הודעה חדשה נוספה לשיחה ${conversationId} עבור טלפון: ${Phone} - קובץ: ${fileName}`);
+
+    } catch (error) {
+        console.error(`[BACKGROUND ERROR] שגיאה בעיבוד הודעה קולית עבור טלפון ${Phone}, קובץ ${Booking}:`, error);
+        // כאן אפשר להוסיף לוגיקה נוספת כמו שליחת התראה או שמירה בטבלת שגיאות
+    }
+}
+
 /**
  * חיפוש שיחה לפי מספר טלפון
  */
@@ -76,7 +189,7 @@ async function findConversationByPhone(phone) {
         const conversationsRef = db.collection('conversations');
         const q = conversationsRef
             .where('phone', '==', phone)
-            .where('isActive', '==', true)
+            // .where('isActive', '==', true)
             .limit(1);
 
         const querySnapshot = await q.get();
@@ -93,6 +206,29 @@ async function findConversationByPhone(phone) {
     } catch (error) {
         console.error('שגיאה בחיפוש שיחה לפי טלפון:', error);
         throw error;
+    }
+}
+
+async function findCustomerByPhone(phone) {
+    try {
+        const customersRef = db.collection('customers');
+        const q = customersRef
+            .where('phone', 'array-contains', phone)
+            .limit(1);
+
+        const querySnapshot = await q.get();
+
+        if (querySnapshot.empty) {
+            return null;
+        }
+
+        const doc = querySnapshot.docs[0];
+        return {
+            id: doc.id,
+            ...doc.data()
+        };
+    } catch (error) {
+        console.error('שגיאה בחיפוש לקוח לפי טלפון:', error);
     }
 }
 
@@ -158,7 +294,13 @@ function formatDate(firebaseTimestamp) {
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
-    const hours = dateObj.getHours().toString().padStart(2, '0');
+    let ilHour = dateObj.getHours() + 2;
+    //שעון קיץ
+    if (isDST(dateObj)) ilHour = ilHour + 1;
+
+    if (ilHour > 23) ilHour = ilHour - 24;
+
+    const hours = ilHour.toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
     const timeStr = `t-בשעה.n-${hours}.n-${minutes}.`;
 
@@ -202,5 +344,6 @@ function formatDate(firebaseTimestamp) {
 
 
 module.exports = {
-    getMessagesForYemot
+    getMessagesForYemot,
+    addMessageFromYemot
 };

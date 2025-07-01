@@ -7,7 +7,6 @@ import { getLookupData } from "../../../api/services/global";
 
 function useLookup(user) {
 
-    console.log(user, "userlookup")
 
     const { data, isError, isLoading } = useQuery(
         ['lookup'],
@@ -17,8 +16,6 @@ function useLookup(user) {
             // refetchOnWindowFocus: false,
         }
     );
-
-    console.log(data, "datadlookup")
 
     // console.log("Lookup", lookup.status, lookup.data, lookup.error)
     // if (isError) {

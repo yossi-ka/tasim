@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import {
     Box,
@@ -22,11 +22,8 @@ import SendIcon from '@mui/icons-material/Send';
 import PersonIcon from '@mui/icons-material/Person';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-import AudioFileIcon from '@mui/icons-material/AudioFile';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
     getMessagesByConversation,
     addMessage,
@@ -35,15 +32,24 @@ import {
     updateMessageForFollowUp
 } from '../../../api/services/messages';
 import { getConversationById } from '../../../api/services/conversations';
+import AudioMessage from './AudioMessage';
 
 const ChatWindow = ({ selectedContact, selectedType }) => {
     const [message, setMessage] = useState('');
-    const [editingTranscription, setEditingTranscription] = useState(null);
-    const [transcriptionText, setTranscriptionText] = useState('');
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedMessage, setSelectedMessage] = useState(null);
+    const [copySuccess, setCopySuccess] = useState(false);
+
+    // רפרנס לאזור ההודעות לגלילה אוטומטית
+    const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
     const queryClient = useQueryClient();
+
+    // פונקציה לגלילה להודעה האחרונה
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     // קבלת פרטי השיחה
     const { data: conversation } = useQuery(
@@ -83,6 +89,30 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
         }
     }, [selectedContact, messages]);
 
+    // גלילה אוטומטית כשמשתנה איש הקשר הנבחר
+    useEffect(() => {
+        if (selectedContact) {
+            // איפוס מצב העתקה בעת מעבר לשיחה אחרת
+            setCopySuccess(false);
+            // השהיה קטנה כדי לוודא שההודעות נטענו
+            const timer = setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [selectedContact]);
+
+    // גלילה אוטומטית כשמגיעות הודעות חדשות
+    useEffect(() => {
+        if (messages.length > 0) {
+            // השהיה קטנה כדי לוודא שה-DOM התעדכן
+            const timer = setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [messages.length]);
+
     // מוטציה לשליחת הודעה
     const sendMessageMutation = useMutation(
         (messageData) => addMessage(messageData),
@@ -94,6 +124,11 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                 queryClient.invalidateQueries(['conversation', selectedContact]);
                 queryClient.invalidateQueries('allConversations');
                 queryClient.invalidateQueries('pendingConversations');
+
+                // גלילה להודעה החדשה אחרי שליחה
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 200);
             },
             onError: (error) => {
                 console.error('Error sending message:', error);
@@ -106,8 +141,6 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
         ({ messageId, transcription }) => updateMessageTranscription(messageId, transcription),
         {
             onSuccess: () => {
-                setEditingTranscription(null);
-                setTranscriptionText('');
                 queryClient.invalidateQueries(['messages', selectedContact]);
             },
             onError: (error) => {
@@ -162,25 +195,6 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
             isForFollowUp: !currentStatus
         });
         closeMessageMenu();
-    };
-
-    const handleEditTranscription = (messageId, currentTranscription) => {
-        setEditingTranscription(messageId);
-        setTranscriptionText(currentTranscription || '');
-    };
-
-    const handleSaveTranscription = (messageId) => {
-        if (transcriptionText.trim()) {
-            updateTranscriptionMutation.mutate({
-                messageId,
-                transcription: transcriptionText.trim()
-            });
-        }
-    };
-
-    const handleCancelTranscription = () => {
-        setEditingTranscription(null);
-        setTranscriptionText('');
     };
 
     const openMessageMenu = (event, messageId) => {
@@ -255,12 +269,38 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                             {conversation?.customerName || 'לא ידוע'}
                         </Typography>
                         {conversation?.phone && (
-                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                {conversation.phone}
-                            </Typography>
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                    {conversation.phone}
+                                </Typography>
+                                <Tooltip title={copySuccess ? "הועתק!" : "העתק מספר טלפון"}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(conversation.phone);
+                                                setCopySuccess(true);
+                                                setTimeout(() => setCopySuccess(false), 2000);
+                                            } catch (err) {
+                                                console.error('Failed to copy phone number:', err);
+                                            }
+                                        }}
+                                        sx={{ 
+                                            color: copySuccess ? 'success.main' : 'inherit',
+                                            opacity: 0.8,
+                                            '&:hover': {
+                                                opacity: 1,
+                                                bgcolor: 'rgba(255, 255, 255, 0.1)'
+                                            }
+                                        }}
+                                    >
+                                        <ContentCopyIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
                         )}
                         {/* <Chip 
-                            label={conversation?.isActive ? "פעיל" : "לא פעיל"} 
+                            label={conversation?.isActive ? "פעיל" : "לא </Box>פעיל"} 
                             size="small" 
                             color={conversation?.isActive ? "success" : "default"}
                             variant="outlined"
@@ -285,6 +325,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                 </Box>
             ) : (
                 <Box
+                    ref={messagesContainerRef}
                     sx={{
                         flexGrow: 1,
                         overflow: 'auto',
@@ -327,91 +368,19 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                     >
                                         {/* תוכן ההודעה */}
                                         {msg.fileType === 'audio' ? (
-                                            <Box>
-                                                {/* קובץ אודיו */}
-                                                <Box
-                                                    sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 1,
-                                                        p: 1,
-                                                        bgcolor: 'action.hover',
-                                                        borderRadius: 1,
-                                                        mb: msg.transcription || editingTranscription === msg.id ? 1 : 0
-                                                    }}
-                                                >
-                                                    <AudioFileIcon color="primary" />
-                                                    <Typography variant="body2">
-                                                        {msg.fileName || 'הקלטה קולית'}
-                                                    </Typography>
-                                                    {!isSystemMessage && (
-                                                        <Tooltip title="עריכת תמלול">
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleEditTranscription(msg.id, msg.transcription)}
-                                                            >
-                                                                <EditIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    )}
-                                                </Box>
-
-                                                {/* תמלול קיים */}
-                                                {msg.transcription && editingTranscription !== msg.id && (
-                                                    <Box sx={{
-                                                        p: 1,
-                                                        bgcolor: 'grey.50',
-                                                        borderRadius: 1,
-                                                        border: '1px solid',
-                                                        borderColor: 'grey.200'
-                                                    }}>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                                                            תמלול:
-                                                        </Typography>
-                                                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                                            {msg.transcription}
-                                                        </Typography>
-                                                    </Box>
-                                                )}
-
-                                                {/* עריכת תמלול */}
-                                                {editingTranscription === msg.id && (
-                                                    <Box sx={{ mt: 1 }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            multiline
-                                                            maxRows={3}
-                                                            placeholder="הקלד תמלול..."
-                                                            value={transcriptionText}
-                                                            onChange={(e) => setTranscriptionText(e.target.value)}
-                                                            size="small"
-                                                            sx={{ mb: 1 }}
-                                                            disabled={updateTranscriptionMutation.isLoading}
-                                                        />
-                                                        <Box sx={{ display: 'flex', gap: 1 }}>
-                                                            <IconButton
-                                                                size="small"
-                                                                color="primary"
-                                                                onClick={() => handleSaveTranscription(msg.id)}
-                                                                disabled={updateTranscriptionMutation.isLoading}
-                                                            >
-                                                                {updateTranscriptionMutation.isLoading ? (
-                                                                    <CircularProgress size={16} />
-                                                                ) : (
-                                                                    <CheckIcon fontSize="small" />
-                                                                )}
-                                                            </IconButton>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={handleCancelTranscription}
-                                                                disabled={updateTranscriptionMutation.isLoading}
-                                                            >
-                                                                <CloseIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    </Box>
-                                                )}
-                                            </Box>
+                                            <AudioMessage
+                                                messageId={msg.id}
+                                                audioFile={msg.filePath}
+                                                fileName={msg.fileName}
+                                                transcription={msg.transcription}
+                                                onTranscriptionUpdate={(messageId, transcription) => {
+                                                    updateTranscriptionMutation.mutate({
+                                                        messageId,
+                                                        transcription
+                                                    });
+                                                }}
+                                                canEdit={!isSystemMessage}
+                                            />
                                         ) : (
                                             <Typography variant="body2">
                                                 {msg.message}
@@ -483,6 +452,9 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                 </Typography>
                             </Box>
                         )}
+
+                        {/* אלמנט סמוי לגלילה אוטומטית */}
+                        <div ref={messagesEndRef} />
                     </List>
 
                     {/* תפריט פעולות הודעה */}
