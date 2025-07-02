@@ -4,52 +4,63 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    ListSubheader
+    ListSubheader,
+    Typography,
+    Box
 } from "@mui/material";
+import { useQuery } from "react-query";
 import SendIcon from '@mui/icons-material/Send';
 import DraftsIcon from '@mui/icons-material/Drafts';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import InboxIcon from '@mui/icons-material/Inbox';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import ForumIcon from '@mui/icons-material/Forum';
+import { getMessagesCounts } from '../../../api/services/conversations';
+
 
 const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
+    
+    // קבלת מספר ההודעות
+    const { data: messageCounts = { messages: 0, pending: 0 }, refetch: refetchCounts } = useQuery(
+        'messageCounts',
+        getMessagesCounts,
+        {
+            refetchInterval: 30000, // רענון כל 30 שניות
+            staleTime: 10000 // הנתונים נחשבים טריים ל-10 שניות
+        }
+    );
+
     const messageTypes = [
+
         {
-            id: 'incoming',
-            label: 'הודעות נכנסות',
-            icon: <InboxIcon />,
-            disabled: true
-        },
-        {
-            id: 'outgoing',
-            label: 'הודעות יוצאות',
-            icon: <SendIcon />
+            id: 'messages',
+            label: 'הודעות',
+            icon: <ForumIcon />
         },
         {
             id: 'pending',
             label: 'הודעות לטיפול',
-            icon: <PendingActionsIcon />,
-            disabled: true
+            icon: <PendingActionsIcon />
         },
-        {
-            id: 'drafts',
-            label: 'טיוטות',
-            icon: <DraftsIcon />,
-            disabled: true
-        },
-        {
-            id: 'contacts',
-            label: 'אנשי קשר',
-            icon: <ContactPhoneIcon />,
-            disabled: true
-        },
-        {
-            id: 'voice',
-            label: 'הודעות קוליות',
-            icon: <RecordVoiceOverIcon />,
-            disabled: true
-        }
+        // {
+        //     id: 'drafts',
+        //     label: 'טיוטות',
+        //     icon: <DraftsIcon />,
+        //     disabled: true
+        // },
+        // {
+        //     id: 'contacts',
+        //     label: 'אנשי קשר',
+        //     icon: <ContactPhoneIcon />,
+        //     disabled: true
+        // },
+        // {
+        //     id: 'voice',
+        //     label: 'הודעות קוליות',
+        //     icon: <RecordVoiceOverIcon />,
+        //     disabled: true
+        // }
     ];
 
     return (
@@ -57,9 +68,7 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
             sx={{
                 width: '100%',
                 height: '100%',
-                bgcolor: 'background.paper',
-                borderRight: 1,
-                borderColor: 'divider'
+                bgcolor: 'background.paper'
             }}
             component="nav"
             aria-labelledby="message-type-subheader"
@@ -92,6 +101,36 @@ const MessageTypeSidebar = ({ selectedType, onTypeSelect }) => {
                         {type.icon}
                     </ListItemIcon>
                     <ListItemText primary={type.label} />
+                    {/* מספר ההודעות בקצה השורה */}
+                    <Box sx={{ mr: 1 }}>
+                        {(() => {
+                            const count = type.id === 'messages' 
+                                ? messageCounts.messages 
+                                : type.id === 'pending' 
+                                    ? messageCounts.pending 
+                                    : 0;
+                            
+                            return count > 0 ? (
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        bgcolor: type.id === 'pending' && count > 0 ? 'warning.main' : 'primary.main',
+                                        color: 'white',
+                                        px: 1,
+                                        py: 0.3,
+                                        borderRadius: 2,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 'bold',
+                                        minWidth: '20px',
+                                        textAlign: 'center',
+                                        display: 'inline-block'
+                                    }}
+                                >
+                                    {count > 99 ? '99+' : count}
+                                </Typography>
+                            ) : null;
+                        })()}
+                    </Box>
                 </ListItemButton>
             ))}
         </List>

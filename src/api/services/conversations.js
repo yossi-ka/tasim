@@ -9,7 +9,10 @@ import {
     query, 
     where,
     Timestamp,
-    updateDoc
+    updateDoc,
+    getCountFromServer,
+    sum,
+    getAggregateFromServer
 } from "firebase/firestore";
 
 // ========================================
@@ -246,4 +249,41 @@ export const getAllConversationsTemp = async () => {
 export const getConversationsWithPendingMessagesTemp = async () => {
     const allConversations = await getAllConversationsTemp();
     return allConversations.filter(conv => conv.hasPendingMessages);
+};
+
+/**
+ * קבלת מספר ההודעות הכולל ומספר ההודעות לטיפול
+ */
+export const getMessagesCounts = async () => {
+    try {
+        // ספירת הודעות לא נקראות - סכום של unreadCountBySystem מכל השיחות
+        const conversationsRef = collection(db, "conversations");
+        const activeConversationsQuery = query(
+            conversationsRef,
+            where("isActive", "==", true)
+        );
+        
+        const unreadCountSnapshot = await getAggregateFromServer(activeConversationsQuery, {
+            totalUnread: sum('unreadCountBySystem')
+        });
+        
+        // ספירת הודעות לטיפול - מספר הודעות שמסומנות לטיפול
+        const messagesRef = collection(db, "messages");
+        const pendingMessagesQuery = query(
+            messagesRef,
+            where("isForFollowUp", "==", true)
+        );
+        const pendingMessagesSnapshot = await getCountFromServer(pendingMessagesQuery);
+        
+        return {
+            messages: unreadCountSnapshot.data().totalUnread || 0,
+            pending: pendingMessagesSnapshot.data().count || 0
+        };
+    } catch (error) {
+        console.error('Error getting messages counts:', error);
+        return {
+            messages: 0,
+            pending: 0
+        };
+    }
 };

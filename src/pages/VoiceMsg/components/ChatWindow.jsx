@@ -9,20 +9,18 @@ import {
     Avatar,
     TextField,
     IconButton,
+    Button,
     Divider,
     Chip,
     Stack,
     Tooltip,
-    Menu,
-    MenuItem,
     CircularProgress,
     Alert
 } from "@mui/material";
 import SendIcon from '@mui/icons-material/Send';
 import PersonIcon from '@mui/icons-material/Person';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
     getMessagesByConversation,
@@ -36,8 +34,6 @@ import AudioMessage from './AudioMessage';
 
 const ChatWindow = ({ selectedContact, selectedType }) => {
     const [message, setMessage] = useState('');
-    const [menuAnchor, setMenuAnchor] = useState(null);
-    const [selectedMessage, setSelectedMessage] = useState(null);
     const [copySuccess, setCopySuccess] = useState(false);
 
     // רפרנס לאזור ההודעות לגלילה אוטומטית
@@ -84,10 +80,16 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
             const lastMessage = messages[messages.length - 1];
             if (lastMessage && lastMessage.role === 'user') {
                 markConversationAsReadBySystem(selectedContact, lastMessage.id)
+                    .then(() => {
+                        // רענון נתונים לאחר סימון כנקרא
+                        queryClient.invalidateQueries('allConversations');
+                        queryClient.invalidateQueries('pendingConversations');
+                        queryClient.invalidateQueries('messageCounts');
+                    })
                     .catch(error => console.error('Error marking as read:', error));
             }
         }
-    }, [selectedContact, messages]);
+    }, [selectedContact, messages, queryClient]);
 
     // גלילה אוטומטית כשמשתנה איש הקשר הנבחר
     useEffect(() => {
@@ -124,6 +126,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                 queryClient.invalidateQueries(['conversation', selectedContact]);
                 queryClient.invalidateQueries('allConversations');
                 queryClient.invalidateQueries('pendingConversations');
+                queryClient.invalidateQueries('messageCounts'); // רענון ספירת ההודעות
 
                 // גלילה להודעה החדשה אחרי שליחה
                 setTimeout(() => {
@@ -158,6 +161,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                 queryClient.invalidateQueries(['conversation', selectedContact]);
                 queryClient.invalidateQueries('allConversations');
                 queryClient.invalidateQueries('pendingConversations');
+                queryClient.invalidateQueries('messageCounts'); // רענון ספירת ההודעות
             },
             onError: (error) => {
                 console.error('Error updating follow-up status:', error);
@@ -194,17 +198,36 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
             messageId,
             isForFollowUp: !currentStatus
         });
-        closeMessageMenu();
     };
 
-    const openMessageMenu = (event, messageId) => {
-        setMenuAnchor(event.currentTarget);
-        setSelectedMessage(messageId);
-    };
+    // פונקציה להצגת תאריך ושעה
+    const getDisplayDateTime = (timestamp) => {
+        if (!timestamp) return '';
 
-    const closeMessageMenu = () => {
-        setMenuAnchor(null);
-        setSelectedMessage(null);
+        const messageDate = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const messageDay = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
+
+        const timeString = messageDate.toLocaleTimeString('he-IL', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        if (messageDay.getTime() === today.getTime()) {
+            return `היום ${timeString}`;
+        } else if (messageDay.getTime() === yesterday.getTime()) {
+            return `אתמול ${timeString}`;
+        } else {
+            const dateString = messageDate.toLocaleDateString('he-IL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            });
+            return `${dateString} ${timeString}`;
+        }
     };
 
     // אם אין שיחה נבחרת, הצג הודעה
@@ -285,7 +308,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                                 console.error('Failed to copy phone number:', err);
                                             }
                                         }}
-                                        sx={{ 
+                                        sx={{
                                             color: copySuccess ? 'success.main' : 'inherit',
                                             opacity: 0.8,
                                             '&:hover': {
@@ -336,12 +359,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                     <List sx={{ py: 0 }}>
                         {messages.map((msg) => {
                             const isSystemMessage = msg.role === 'system';
-                            const displayTime = msg.timestamp?.toDate ?
-                                msg.timestamp.toDate().toLocaleTimeString('he-IL', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) :
-                                msg.timestamp;
+                            const displayTime = getDisplayDateTime(msg.timestamp);
 
                             return (
                                 <ListItem
@@ -349,7 +367,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                     sx={{
                                         display: 'flex',
                                         justifyContent: isSystemMessage ? 'flex-end' : 'flex-start',
-                                        mb: 1,
+                                        mb: 0.75,
                                         px: 1
                                     }}
                                 >
@@ -359,30 +377,72 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                             maxWidth: '70%',
                                             bgcolor: isSystemMessage ? 'primary.main' : 'background.paper',
                                             color: isSystemMessage ? 'primary.contrastText' : 'text.primary',
-                                            borderRadius: 2,
-                                            borderTopRightRadius: isSystemMessage ? 0.5 : 2,
-                                            borderTopLeftRadius: isSystemMessage ? 2 : 0.5,
-                                            position: 'relative'
+                                            borderRadius: isSystemMessage ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                                            position: 'relative',
+                                            boxShadow: isSystemMessage ? '0 2px 8px rgba(25, 118, 210, 0.25)' : '0 1px 4px rgba(0,0,0,0.1)',
+                                            border: isSystemMessage ? '1px solid' : '1px solid',
+                                            borderColor: isSystemMessage ? 'primary.dark' : 'grey.300',
+                                            lineHeight: 1.4,
+                                            background: isSystemMessage
+                                                ? 'primary.main'
+                                                : 'background.paper'
                                         }}
-                                        elevation={1}
+                                        elevation={0}
                                     >
                                         {/* תוכן ההודעה */}
                                         {msg.fileType === 'audio' ? (
-                                            <AudioMessage
-                                                messageId={msg.id}
-                                                audioFile={msg.filePath}
-                                                fileName={msg.fileName}
-                                                transcription={msg.transcription}
-                                                onTranscriptionUpdate={(messageId, transcription) => {
-                                                    updateTranscriptionMutation.mutate({
-                                                        messageId,
-                                                        transcription
-                                                    });
-                                                }}
-                                                canEdit={!isSystemMessage}
-                                            />
+                                            <Box>
+                                                <AudioMessage
+                                                    messageId={msg.id}
+                                                    audioFile={msg.filePath}
+                                                    fileName={msg.fileName}
+                                                    transcription={msg.transcription}
+                                                    onTranscriptionUpdate={(messageId, transcription) => {
+                                                        updateTranscriptionMutation.mutate({
+                                                            messageId,
+                                                            transcription
+                                                        });
+                                                    }}
+                                                    canEdit={!isSystemMessage}
+                                                />
+                                                {/* הצגת תמלול נפרד עבור הודעות קוליות */}
+                                                {msg.transcription && (
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            mt: 1,
+                                                            p: 1,
+                                                            backgroundColor: isSystemMessage
+                                                                ? 'rgba(255,255,255,0.15)'
+                                                                : 'grey.100',
+                                                            borderRadius: 1.5,
+                                                            fontStyle: 'italic',
+                                                            lineHeight: 1.4,
+                                                            fontSize: '0.8rem',
+                                                            border: isSystemMessage
+                                                                ? '1px solid rgba(255,255,255,0.2)'
+                                                                : '1px solid',
+                                                            borderColor: isSystemMessage
+                                                                ? 'rgba(255,255,255,0.2)'
+                                                                : 'grey.300',
+                                                            color: isSystemMessage
+                                                                ? 'rgba(255,255,255,0.9)'
+                                                                : 'text.secondary'
+                                                        }}
+                                                    >
+                                                        📝 {msg.transcription}
+                                                    </Typography>
+                                                )}
+                                            </Box>
                                         ) : (
-                                            <Typography variant="body2">
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    lineHeight: 1.5,
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: isSystemMessage ? 500 : 400
+                                                }}
+                                            >
                                                 {msg.message}
                                             </Typography>
                                         )}
@@ -390,38 +450,77 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                                         {/* זמן וכפתורי פעולה */}
                                         <Box sx={{
                                             display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            mt: 0.5
+                                            justifyContent: !isSystemMessage ? 'space-between' : 'flex-start',
+                                            alignItems: 'flex-end',
+                                            mt: 0.75,
+                                            gap: 1
                                         }}>
                                             <Typography
                                                 variant="caption"
-                                                sx={{ opacity: 0.7 }}
+                                                sx={{
+                                                    opacity: 0.7,
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 500,
+                                                    whiteSpace: 'nowrap'
+                                                }}
                                             >
                                                 {displayTime}
                                             </Typography>
 
                                             {!isSystemMessage && (
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    {msg.isForFollowUp && (
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.5,
+                                                    flexShrink: 0
+                                                }}>
+                                                    {/* הצגת סטטוס טיפול או כפתור לסימון */}
+                                                    {msg.isForFollowUp ? (
                                                         <Chip
                                                             label="לטיפול"
                                                             size="small"
                                                             color="warning"
+                                                            onDelete={() => handleMarkForFollowUp(msg.id, msg.isForFollowUp)}
+                                                            deleteIcon={<CloseIcon sx={{ fontSize: '14px !important', color: 'warning.dark' }} />}
                                                             sx={{
-                                                                fontSize: '0.6rem',
+                                                                fontSize: '0.65rem',
                                                                 height: 16,
-                                                                '& .MuiChip-label': { px: 0.5 }
+                                                                '& .MuiChip-label': { px: 0.6, py: 0 },
+                                                                '& .MuiChip-deleteIcon': {
+                                                                    fontSize: '14px',
+                                                                    marginLeft: '2px',
+                                                                    marginRight: '0px',
+                                                                    color: 'error.main',
+                                                                    '&:hover': {
+                                                                        color: 'error.dark',
+                                                                    }
+                                                                }
                                                             }}
                                                         />
+                                                    ) : (
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => handleMarkForFollowUp(msg.id, msg.isForFollowUp)}
+                                                            sx={{
+                                                                fontSize: '0.65rem',
+                                                                py: 0.15,
+                                                                px: 0.7,
+                                                                minWidth: 'auto',
+                                                                lineHeight: 1.2,
+                                                                borderRadius: 1.5,
+                                                                height: 16,
+                                                                borderColor: 'grey.400',
+                                                                color: 'text.secondary',
+                                                                '&:hover': {
+                                                                    borderColor: 'primary.main',
+                                                                    bgcolor: 'action.hover'
+                                                                }
+                                                            }}
+                                                        >
+                                                            סמן לטיפול
+                                                        </Button>
                                                     )}
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={(e) => openMessageMenu(e, msg.id)}
-                                                        sx={{ opacity: 0.7 }}
-                                                    >
-                                                        <MoreVertIcon fontSize="small" />
-                                                    </IconButton>
                                                 </Box>
                                             )}
                                         </Box>
@@ -456,30 +555,6 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                         {/* אלמנט סמוי לגלילה אוטומטית */}
                         <div ref={messagesEndRef} />
                     </List>
-
-                    {/* תפריט פעולות הודעה */}
-                    <Menu
-                        anchorEl={menuAnchor}
-                        open={Boolean(menuAnchor)}
-                        onClose={closeMessageMenu}
-                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    >
-                        {(() => {
-                            const selectedMsg = messages.find(m => m.id === selectedMessage);
-                            return selectedMsg?.isForFollowUp ? (
-                                <MenuItem onClick={() => handleMarkForFollowUp(selectedMessage, true)}>
-                                    <BookmarkBorderIcon sx={{ mr: 1 }} />
-                                    בטל סימון לטיפול
-                                </MenuItem>
-                            ) : (
-                                <MenuItem onClick={() => handleMarkForFollowUp(selectedMessage, false)}>
-                                    <BookmarkIcon sx={{ mr: 1 }} />
-                                    סמן לטיפול בהמשך
-                                </MenuItem>
-                            );
-                        })()}
-                    </Menu>
                 </Box>
             )}
 
@@ -530,7 +605,7 @@ const ChatWindow = ({ selectedContact, selectedType }) => {
                         {sendMessageMutation.isLoading ? (
                             <CircularProgress size={20} color="inherit" />
                         ) : (
-                            <SendIcon />
+                            <SendIcon sx={{ transform: "rotate(180deg)" }} />
                         )}
                     </IconButton>
                 </Stack>

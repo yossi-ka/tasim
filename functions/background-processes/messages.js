@@ -43,7 +43,7 @@ const onMessageCreated = onDocumentCreated("messages/{messageId}", async (event)
         });
 
         if (messageData.role == "system") {
-            const baseM = "שלום וברכה, להלן הודעה חדשה שהתקבלה, ";
+            const baseM = "שלום, להלן הודעה חדשה שהתקבלה, ";
             const yRes = await addToListAndSend(baseM + messageData.message, phone)
             console.log(yRes)
         }

@@ -1,5 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { fixText, isDST, uploadFileBufferToStorage } = require("../utils");
+const { fixText, isDST, uploadFileBufferToStorage, createSTT } = require("../utils");
 const { db } = require("../firebase-config");
 const { Timestamp } = require("firebase-admin/firestore");
 const { removeFromList } = require("./services");
@@ -56,14 +56,16 @@ const getMessagesForYemot = onRequest(async (req, res) => {
         // הכנת פורמט ימות המשיח
         resText += formatMessagesForYemot(messages);
 
-        await db.collection('conversations').doc(conversation.id).update({
-            lastReadByUser: Timestamp.now(),
-            unreadCountByUser: 0, // איפוס ספירת הודעות שלא נק
+        // החזרת תוצאה ללקוח מיד
+        const response = "id_list_message=" + resText + "m-1005.";
+        res.send(response);
+
+        // ביצוע פעולות ברקע ללא חסימה
+        updateConversationInBackground(conversation.id, apiPhone).catch(error => {
+            console.error('שגיאה בעדכון שיחה ברקע:', error);
         });
 
-        await removeFromList(apiPhone);
-
-        return res.send("id_list_message=" + resText + "m-1005.");
+        return;
 
     } catch (error) {
         console.error('שגיאה בפונקציית getMessagesForYemot:', error);
@@ -153,6 +155,9 @@ async function processVoiceMessage(Phone, Booking) {
             console.log(`[BACKGROUND] שיחה קיימת נמצאה עבור טלפון: ${Phone}`);
         }
 
+        // const transcription = await createSTT(fileBuffer)
+        // console.log(`[BACKGROUND] תמלול הושלם עבור קובץ: ${fileName}`);
+        // console.log(transcription);
         // יצירת הודעה חדשה
         const messageData = {
             conversationId: conversationId,
@@ -342,6 +347,22 @@ function formatDate(firebaseTimestamp) {
 //     }
 // }
 
+// פונקציה לעדכון שיחה ברקע
+async function updateConversationInBackground(conversationId, apiPhone) {
+    try {
+        await db.collection('conversations').doc(conversationId).update({
+            lastReadByUser: Timestamp.now(),
+            unreadCountByUser: 0, // איפוס ספירת הודעות שלא נקראו
+        });
+
+        await removeFromList(apiPhone);
+
+        console.log(`עדכון שיחה ברקע הושלם בהצלחה עבור: ${conversationId}`);
+    } catch (error) {
+        console.error('שגיאה בעדכון שיחה ברקע:', error);
+        throw error;
+    }
+}
 
 module.exports = {
     getMessagesForYemot,

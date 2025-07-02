@@ -50,17 +50,63 @@ const ContactsList = ({ selectedContact, onContactSelect, selectedType }) => {
 
     // המרת הנתונים למבנה שהקובץ מצפה לו
     const contacts = useMemo(() => {
-        return conversations.map(conv => ({
-            id: conv.id,
-            name: conv.customerName || `טלפון ${conv.phone}`,
-            lastMessage: conv.lastMessage?.message || '',
-            timestamp: conv.timestamp,
-            unreadCount: conv.unreadCountBySystem || 0,
-            isOnline: conv.isOnline || false,
-            hasPendingMessages: conv.hasPendingMessages || false,
-            customerId: conv.customerId,
-            phone: conv.phone
-        }));
+        return conversations.map(conv => {
+            // עיבוד ההודעה האחרונה
+            let lastMessageText = '';
+            let formattedTimestamp = '';
+
+            if (conv.lastMessage) {
+                // אם זו הודעה קולית עם תמלול
+                if (conv.lastMessage.fileType === 'audio' && conv.lastMessage.transcription) {
+                    lastMessageText = `🎤 ${conv.lastMessage.transcription}`;
+                } else if (conv.lastMessage.fileType === 'audio') {
+                    // הודעה קולית ללא תמלול
+                    lastMessageText = '🎤 הודעה קולית';
+                } else if (conv.lastMessage.message) {
+                    // הודעה טקסטואלית רגילה
+                    lastMessageText = conv.lastMessage.message;
+                }
+            }
+
+            // עיבוד התאריך
+            if (conv.lastMessageTime) {
+                const messageDate = conv.lastMessageTime.toDate ?
+                    conv.lastMessageTime.toDate() :
+                    new Date(conv.lastMessageTime);
+
+                const now = new Date();
+                const diffInHours = (now - messageDate) / (1000 * 60 * 60);
+
+                if (diffInHours < 24) {
+                    // אם זה היום - הצג שעה
+                    formattedTimestamp = messageDate.toLocaleTimeString('he-IL', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } else if (diffInHours < 48) {
+                    // אם זה אתמול
+                    formattedTimestamp = 'אתמול';
+                } else {
+                    // אם זה יותר מיומיים - הצג תאריך
+                    formattedTimestamp = messageDate.toLocaleDateString('he-IL', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    });
+                }
+            }
+
+            return {
+                id: conv.id,
+                name: conv.customerName || `טלפון ${conv.phone}`,
+                lastMessage: lastMessageText,
+                timestamp: formattedTimestamp,
+                unreadCount: conv.unreadCountBySystem || 0,
+                isOnline: conv.isOnline || false,
+                hasPendingMessages: conv.hasPendingMessages || false,
+                customerId: conv.customerId,
+                phone: conv.phone
+            };
+        });
     }, [conversations]);
 
     // סינון אנשי קשר לפי סוג ההודעה וחיפוש
@@ -135,6 +181,51 @@ const ContactsList = ({ selectedContact, onContactSelect, selectedType }) => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* כותרת קבועה */}
+            <Box sx={{
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: 2,
+                borderBottom: 1,
+                borderColor: 'divider'
+            }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {getHeaderTitle()}
+                </Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                    {/* <Chip
+                        label={filteredContacts.length}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ 
+                            bgcolor: 'rgba(255, 255, 255, 0.1)',
+                            color: 'primary.contrastText',
+                            borderColor: 'rgba(255, 255, 255, 0.3)'
+                        }}
+                    /> */}
+                    <IconButton
+                        size="small"
+                        onClick={() => popup({
+                            title: "הוסף איש קשר חדש",
+                            content: <AddContacts refetch={refetch} onContactSelect={onContactSelect} />,
+                        })}
+                        sx={{
+                            color: 'primary.contrastText',
+                            '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }}
+                        title="הוסף איש קשר חדש"
+                    >
+                        <AddIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            </Box>
+
             {/* שדה חיפוש */}
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <TextField
@@ -162,48 +253,9 @@ const ContactsList = ({ selectedContact, onContactSelect, selectedType }) => {
                 sx={{
                     flexGrow: 1,
                     bgcolor: 'background.paper',
-                    borderRight: 1,
-                    borderColor: 'divider',
-                    overflow: 'auto'
+                    overflow: 'auto',
+                    pt: 0
                 }}
-                subheader={
-                    <ListSubheader
-                        component="div"
-                        sx={{
-                            bgcolor: 'secondary.main',
-                            color: 'secondary.contrastText',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}
-                    >
-                        <Typography variant="subtitle1">{getHeaderTitle()}</Typography>
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <Chip
-                                label={filteredContacts.length}
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                            />
-                            <IconButton
-                                size="small"
-                                onClick={() => popup({
-                                    title: "הוסף איש קשר חדש",
-                                    content: <AddContacts refetch={refetch} onContactSelect={onContactSelect} />,
-                                })}
-                                sx={{
-                                    color: 'secondary.contrastText',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                }}
-                                title="הוסף איש קשר חדש"
-                            >
-                                <AddIcon fontSize="small" />
-                            </IconButton>
-                        </Box>
-                    </ListSubheader>
-                }
             >
                 {filteredContacts.map((contact) => (
                     <ListItemButton
@@ -255,17 +307,23 @@ const ContactsList = ({ selectedContact, onContactSelect, selectedType }) => {
                                             {contact.timestamp}
                                         </Typography>
                                         {contact.unreadCount > 0 && (
-                                            <Badge
-                                                badgeContent={contact.unreadCount}
-                                                color="primary"
+                                            <Typography
+                                                variant="caption"
                                                 sx={{
-                                                    '& .MuiBadge-badge': {
-                                                        fontSize: '0.7rem',
-                                                        minWidth: '18px',
-                                                        height: '18px'
-                                                    }
+                                                    bgcolor: 'primary.main',
+                                                    color: 'white',
+                                                    px: 0.8,
+                                                    py: 0.2,
+                                                    borderRadius: 2,
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 'bold',
+                                                    minWidth: '18px',
+                                                    textAlign: 'center',
+                                                    display: 'inline-block'
                                                 }}
-                                            />
+                                            >
+                                                {contact.unreadCount > 99 ? '99+' : contact.unreadCount}
+                                            </Typography>
                                         )}
                                     </Box>
                                 </Box>

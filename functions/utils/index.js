@@ -1,3 +1,5 @@
+const FormData = require('form-data');
+const axios = require('axios');
 const { storage } = require("../firebase-config");
 
 function formatDateTime(_date = null) {
@@ -71,9 +73,43 @@ async function uploadFileBufferToStorage(buffer, destination) {
     }
 }
 
+
+async function createSTT(fileBuffer) {
+    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+    if (!elevenLabsApiKey) {
+        throw new Error("ELEVENLABS_API_KEY is not set");
+    }
+
+
+    const form = new FormData();
+    form.append('file', fileBuffer, 'audio.wav');
+    form.append('model_id', 'scribe_v1_experimental');
+
+    try {
+        const response = await axios.post('https://api.elevenlabs.io/v1/speech-to-text', form, {
+            headers: {
+                'xi-api-key': elevenLabsApiKey,
+                ...form.getHeaders()
+            }
+        });
+
+        return {
+            success: true,
+            text: response.data
+        };
+    } catch (error) {
+        console.error('STT Error:', error.response?.data || error.message);
+        return {
+            success: false,
+            error: error.response?.data || error.message
+        };
+    }
+}
+
 module.exports = {
     formatDateTime,
     fixText,
     isDST,
-    uploadFileBufferToStorage
+    uploadFileBufferToStorage,
+    createSTT
 }

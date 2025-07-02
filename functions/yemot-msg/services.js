@@ -56,6 +56,15 @@ const removeFromList = async (phone) => {
             blocked: 1
         });
 
+        // const data = encodeURI("\n" + phone + "\n");
+        // const remove = await yemotRequest("UploadPhoneList", {
+        //     data: data,
+        //     templateId: templateId,
+        //     updateType: "REMOVE"
+        // })
+
+        console.log("remove", remove);
+
         if (remove.responseStatus !== 'OK') {
             throw new Error(`שגיאה בהסרת הטלפון מהרשימה: ${remove.message}`);
         }
