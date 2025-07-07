@@ -4,6 +4,7 @@ const posApi = require('./pos-api');
 const autoProsses = require('./pos-api/autoProsses');
 const yemotMsg = require('./yemot-msg');
 const backgroundProcesses = require('./background-processes');
+const { refreshOrders } = require('./nbs-api');
 
 exports.beforeSignIn = auth.beforeSignIn;
 exports.beforecreated = auth.beforecreated;
@@ -12,6 +13,7 @@ exports.test = onRequest((request, response) => {
     response.send("Hello from test");
 });
 exports.test2 = onRequest((request, response) => {
+    refreshOrders()
     response.send("Hello from test");
 });
 

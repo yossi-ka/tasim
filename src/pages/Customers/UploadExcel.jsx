@@ -197,54 +197,43 @@ const UploadExcel = ({ refetch }) => {
         input.click();
     };
 
-    return (
-        <Stack spacing={2} sx={{ minWidth: 400, p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-                העלאת קובץ לקוחות
+    return (<>
+        {!message.text ? <Stack direction="column" spacing={3}>
+            <Typography color="primary.main" variant="h4">כאן ניתן לעלות קובץ לקוחות</Typography>
+            <Typography color="primary.main" variant="h5">המערכת בודקת את השורות ומעלה רק שורות שעדיין לא עלו</Typography>
+            <Typography
+                color="primary.dark"
+                variant="h5"
+                component="a"
+                href="https://sales-v2.nbs-app.net/customer/list/"
+                target="_blank"
+            >
+                למעבר למסך לקוחות
             </Typography>
-            
-            <Typography variant="body2" color="text.secondary">
-                הקובץ צריך להכיל את העמודות הבאות:
-            </Typography>
-            
-            <Typography variant="caption" component="div" sx={{ 
-                maxHeight: 200, 
-                overflow: 'auto', 
-                backgroundColor: 'grey.100', 
-                p: 1, 
-                borderRadius: 1 
-            }}>
-                {expectedHeaders.join(' | ')}
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary">
-                <strong>הערות חשובות:</strong>
-                <br />
-                • העמודה "מספר לקוח" חובה לכל רשומה
-                <br />
-                • העמודה "טלפון" יכולה להכיל כמה טלפונים מופרדים בפסיקים
-                <br />
-                • לקוחות עם מספר לקוח קיים לא יועלו
-                <br />
-                • נתמך קובץ CSV בלבד
-            </Typography>
-
-            {message.text && (
-                <Alert severity={message.type} sx={{ mt: 2 }}>
-                    {message.text}
-                </Alert>
-            )}
 
             <Button
+                color="primary"
                 variant="contained"
                 onClick={handleFileUpload}
                 disabled={loading}
-                sx={{ mt: 3 }}
                 startIcon={loading ? <CircularProgress size={20} /> : null}
             >
-                {loading ? 'מעלה קובץ...' : 'בחר קובץ CSV'}
+                {loading ? 'מעלה קובץ...' : 'העלאת קובץ (CSV/Excel)'}
             </Button>
+
+            <Typography variant="body2" color="text.secondary">
+                הכותרות הצפויות בקובץ:
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                {expectedHeaders.join(' | ')}
+            </Typography>
         </Stack>
+            :
+            <Alert severity={message.type === 'error' ? 'error' : message.type === 'warning' ? 'warning' : 'success'}>
+                {message.text}
+            </Alert>
+        }
+    </>
     );
 };
 

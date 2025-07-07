@@ -8,6 +8,7 @@ import Login from "../pages/Login";
 import Employees from "../pages/Employees";
 import Orders from "../pages/Orders";
 import Customers from "../pages/Customers";
+import Products from "../pages/Products";
 import VoiceMsg from "../pages/VoiceMsg";
 
 
@@ -32,8 +33,8 @@ const ProjectRoutes = () => {
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="customers" element={<Customers />} />
+                <Route path="products" element={<Products />} />
                 <Route path="voice-msg" element={<VoiceMsg />} />
-
             </Route>
         </Routes>
     )

@@ -7,6 +7,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PermPhoneMsgIcon from '@mui/icons-material/PermPhoneMsg';
 import EngineeringIcon from '@mui/icons-material/Engineering';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 
 // project imports
@@ -24,6 +25,7 @@ const DrawerContent = () => {
         { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
         { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
         { title: "לקוחות", to: "customers", icon: <GroupsIcon color='primary' /> },
+        { title: "מוצרים", to: "products", icon: <InventoryIcon color='primary' /> },
         { title: "עובדים", to: "employees", icon: <EngineeringIcon color='primary' /> },
         // { title: "מוצרים", to: "prodacts", icon: <CardGiftcardIcon color='primary' />, disabled: true },
         // { title: "דרגות", to: "levels", icon: <StairsIcon color='primary' /> },

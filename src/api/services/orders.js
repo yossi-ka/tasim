@@ -1,6 +1,6 @@
 import { db } from '../../firebase-config'
 
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, limit } from "firebase/firestore";
 
 export const getOrdersByStatus = async (status) => {
     console.log('Fetching orders with status:', status);
@@ -216,4 +216,30 @@ export const changeOrdersStatus = async (ids, data, userId) => {
     }
 
     return { updatedOrderIds: updatedOrders, ...data };
+}
+
+export const getLatestImportStatus = async () => {
+    try {
+        const importOrdersRef = collection(db, "importOrders");
+        const q = query(importOrdersRef, orderBy("createdAt", "desc"), limit(1));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            return null;
+        }
+        
+        const doc = querySnapshot.docs[0];
+        const data = doc.data();
+        
+        // המרת Timestamp לתאריך רגיל
+        return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate(),
+            complitedAt: data.complitedAt?.toDate()
+        };
+    } catch (error) {
+        console.error('Error fetching latest import status:', error);
+        throw error;
+    }
 }

@@ -318,5 +318,57 @@
             "label": "תיוג",
             "type": "text"
         }
+    ],
+    "productsTable": [
+        {
+            "name": "nbsProductId",
+            "label": "קוד מוצר",
+            "type": "text"
+        },
+        {
+            "name": "name",
+            "label": "שם מוצר",
+            "type": "text"
+        },
+        {
+            "name": "productPlace",
+            "label": "מיקום מוצר",
+            "type": "text"
+        },
+        {
+            "name": "category",
+            "label": "קטגוריה",
+            "type": "text"
+        },
+        {
+            "name": "phoneCode",
+            "label": "מק\"ט טלפוני",
+            "type": "text"
+        },
+        {
+            "name": "nbsStatus",
+            "label": "מצב",
+            "type": "text"
+        },
+        {
+            "name": "isByWeight",
+            "label": "לפי משקל",
+            "type": "boolean"
+        },
+        {
+            "name": "price",
+            "label": "מחיר",
+            "type": "number"
+        },
+        {
+            "name": "note",
+            "label": "הערה",
+            "type": "text"
+        },
+        {
+            "name": "isVatExempt",
+            "label": "פטור ממע\"מ",
+            "type": "boolean"
+        }
     ]
 }
