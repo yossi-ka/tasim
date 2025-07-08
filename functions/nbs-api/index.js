@@ -32,11 +32,11 @@ const getOrders = async (token) => {
         if (!token) {
             token = await getNbsToken();
         }
-        
+
         let mainOrders;
         let retryCount = 0;
         const maxRetries = 3;
-        
+
         while (retryCount < maxRetries) {
             try {
                 mainOrders = await getNbsOrders(token, filters, "basic");
@@ -44,16 +44,16 @@ const getOrders = async (token) => {
             } catch (error) {
                 retryCount++;
                 console.log(`⚠️ API call failed (attempt ${retryCount}/${maxRetries}):`, error.message);
-                
+
                 if (retryCount >= maxRetries) {
                     throw error; // Max retries reached, throw error
                 }
-                
+
                 // Wait before retry, with exponential backoff
                 const waitTime = retryCount * 2000; // 2s, 4s, 6s
                 console.log(`⏳ Waiting ${waitTime}ms before retry...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
-                
+
                 // Get new token on retry
                 token = await getNbsToken();
             }
@@ -157,7 +157,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
         let mainOrders;
         let retryCount = 0;
         const maxRetries = 3;
-        
+
         while (retryCount < maxRetries) {
             try {
                 mainOrders = await getNbsOrders(token, filters, "weights");
@@ -165,16 +165,16 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             } catch (error) {
                 retryCount++;
                 console.log(`⚠️ API call failed (attempt ${retryCount}/${maxRetries}):`, error.message);
-                
+
                 if (retryCount >= maxRetries) {
                     throw error; // Max retries reached, throw error
                 }
-                
+
                 // Wait before retry, with exponential backoff
                 const waitTime = retryCount * 2000; // 2s, 4s, 6s
                 console.log(`⏳ Waiting ${waitTime}ms before retry...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
-                
+
                 // Get new token on retry
                 token = await getNbsToken();
             }
@@ -187,6 +187,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             "משקל פריט": "weights",
             "מחיר פריט": "price"
         };
+
 
         // Row processor function for order products
         const orderProductRowProcessor = (orderData) => {
@@ -208,6 +209,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
         // Use the generic Excel parser
         const parsedData = parseExcelToJson(mainOrders, headerMapping, orderProductRowProcessor);
 
+        console.log('212');
         // If specific order IDs were provided, filter the results
         let filteredData = parsedData;
         if (specificOrderIds && specificOrderIds.length > 0) {
@@ -215,10 +217,14 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             filteredData = parsedData.filter(item => orderIdSet.has(item.nbsOrderId));
             console.log(`🔍 Filtered products from ${parsedData.length} to ${filteredData.length} based on order IDs`);
         }
+        console.log('220');
+
 
         // Normalize data - group by order and product, sum quantities/weights (optimized)
         console.log('🔄 Starting data normalization...');
         const productGroups = new Map();
+
+        console.log('227');
 
         for (let i = 0; i < filteredData.length; i++) {
             const row = filteredData[i];
@@ -259,6 +265,9 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             }
         }
 
+        console.log('269');
+
+
         // Convert map to array and clean up
         const normalizedData = [];
         productGroups.forEach(product => {
@@ -271,6 +280,8 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
         console.log('Parsed and Normalized Order Products Data:');
         // console.log(JSON.stringify(normalizedData, null, 2));
         console.log(`Total normalized products: ${normalizedData.length}`);
+
+        console.log('284');
 
         return normalizedData;
 
@@ -405,11 +416,11 @@ const refreshOrders = async () => {
         console.log('🔄 Refreshing orders...');
         const BATCH_SIZE = 500; // Maximum updates per batch
         const allNbsOrders = await getOrders(token);
-        
+
         // Limit the number of orders to process
         const nbsOrders = allNbsOrders.slice(0, MAX_ORDERS_TO_PROCESS);
         console.log(`📊 Limited processing to ${nbsOrders.length} orders out of ${allNbsOrders.length} total orders`);
-        
+
         let totalNewOrders = 0;
         let totalProductsAdded = 0;
 
@@ -429,7 +440,7 @@ const refreshOrders = async () => {
         // Load product mapping and order products in parallel for efficiency
         console.log('🔄 Loading data in parallel...');
         let productMapping, allOrderProducts;
-        
+        console.log(443)
         try {
             [productMapping, allOrderProducts] = await Promise.all([
                 loadProductMapping(),
@@ -439,13 +450,15 @@ const refreshOrders = async () => {
             console.log('⚠️ Parallel loading failed, trying sequential loading...');
             // If parallel fails, try sequential
             productMapping = await loadProductMapping();
-            
+
             // Add delay before second call
             console.log('⏳ Waiting 5 seconds before getting order products...');
             await new Promise(resolve => setTimeout(resolve, 5000));
-            
+
             allOrderProducts = await getOrderProducts(token, nbsOrderIds); // Pass the specific order IDs
         }
+        console.log(460)
+
 
         const minOrderId = Math.min(...nbsOrderIds);
         const maxOrderId = Math.max(...nbsOrderIds);
@@ -458,6 +471,8 @@ const refreshOrders = async () => {
             .where('nbsOrderId', '>=', minOrderId)
             .where('nbsOrderId', '<=', maxOrderId)
             .get();
+
+        console.log(existingOrdersSnapshot.docs.length, 'existing orders found in Firebase');
 
         // Create a Set of existing order IDs for fast lookup
         const existingOrderIds = new Set();
@@ -476,6 +491,7 @@ const refreshOrders = async () => {
         let newOrders = [];
         let currentBatchIndex = 1;
 
+        console.log(494)
         for (let i = 0; i < nbsOrders.length; i++) {
             const order = nbsOrders[i];
 
@@ -491,6 +507,7 @@ const refreshOrders = async () => {
             );
             const operationsForThisOrder = 1 + mappedProducts.length; // 1 order + N products
 
+            console.log(510, operationsForThisOrder)
             // Special handling for orders with more than BATCH_SIZE products
             if (operationsForThisOrder > BATCH_SIZE) {
                 console.log(`⚠️ Order ${order.nbsOrderId} has ${mappedProducts.length} products (>${BATCH_SIZE}), processing in dedicated batch`);
@@ -593,6 +610,7 @@ const refreshOrders = async () => {
             newOrders.push(newOrder);
             currentBatchOperations += 1;
 
+            console.log(mappedProducts.length, 'mapped products for order', order.nbsOrderId);
             // Add products for this order to the same batch
             mappedProducts.forEach(orderProduct => {
                 const mappedProduct = productMapping.get(orderProduct.productName);

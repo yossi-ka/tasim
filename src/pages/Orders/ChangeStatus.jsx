@@ -4,12 +4,14 @@ import Context from "../../context";
 import GenericForm from "../../components/GenericForm";
 import { useMutation, useQuery } from "react-query";
 import { changeOrdersStatus } from "../../api/services/orders";
-import { addToCollectionGroup, getOpenCollectionGroups } from "../../api/services/collectionGroups";
+import { addToCollectionGroup, getOpenCollectionGroups, getProccessingCollectionGroups } from "../../api/services/collectionGroups";
 import { formatDateTime } from "../../utils/func";
 
 const ChangeStatus = ({ rows, refetch, status }) => {
+
     const { closePopup, user, snackbar, getLookupName } = React.useContext(Context);
 
+    const [initInputs, setInitInputs] = React.useState({});
     const ids = React.useMemo(() => rows.map((row) => row.id), [rows]);
     const handleSubmit = useMutation((data) => changeOrdersStatus(ids, data, user.id), {
         onSuccess: () => {
@@ -34,7 +36,13 @@ const ChangeStatus = ({ rows, refetch, status }) => {
     });
 
     const { data, isLoading } = useQuery(
-        "getOpenCollectionGroups", getOpenCollectionGroups)
+        "getOpenCollectionGroups", getProccessingCollectionGroups)
+
+
+    const isLineInProcess = React.useMemo(() => {
+        if (!initInputs.lineId || !data) return false;
+        return data.some(group => group.lineId === initInputs.lineId && group.status !== 1);
+    }, [initInputs.lineId, data]);
 
     const statusName = React.useMemo(() => {
         switch (status) {
@@ -51,7 +59,6 @@ const ChangeStatus = ({ rows, refetch, status }) => {
         }
     }, [status]);
 
-    console.log("data", data);
     return (
         <Stack direction="column" spacing={2}>
             <Typography variant="h4" color="primary.main">{rows.length == 1 ? "הזמנת משפחת " + (rows[0].lastName || "") : rows.length + " הזמנות נבחרו"}</Typography>
@@ -66,25 +73,16 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                         cb: () => <Alert severity="info">
                             <AlertTitle>קבוצות פעילות:</AlertTitle>
                             {isLoading ? "טוען קבוצות ליקוט..." : data.length > 0 ? data.map((group) => (
-                                <Typography key={group.id} variant="body2">נפתח ב: <strong>{formatDateTime(group.createdAt?.toDate?.())}</strong> מסלול: <strong>{getLookupName("collectionsGroupLines", group.lineId)}</strong></Typography>
+                                <Typography key={group.id} variant="body2">נפתח ב: <strong>{formatDateTime(group.createdAt?.toDate?.())}</strong> מסלול: <strong>{getLookupName("collectionsGroupLines", group.lineId)}</strong>
+                                    סטטוס <strong>{getLookupName("globalStatusCollectionGroups", group.status)}</strong></Typography>
                             )) : "אין קבוצות פעילות כרגע"}
                         </Alert>
                     },
-                    // {
-                    //     cb: () => <ToggleButtonGroup
-                    //         color="primary"
-                    //         // value={alignment}
-                    //         exclusive
-                    //         // onChange={handleChange}
-                    //         aria-label="Platform"
-                    //         size="small"
-                    //     >
-                    //         <ToggleButton size="small" value="1">חדש</ToggleButton>
-                    //         <ToggleButton size="small" value="2">הוספה לקבוצה</ToggleButton>
-
-                    //     </ToggleButtonGroup>,
-                    //     size: 3
-                    // },
+                    ...(isLineInProcess ? [{
+                        cb: () => <Alert severity="error">
+                            לא ניתן להוסיף הזמנות לקבוצה בתהליך
+                        </Alert>
+                    }] : []),
                     {
                         name: "lineId",
                         variant: "outlined",
@@ -96,7 +94,7 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                     },
                     {
                         variant: "contained",
-                        disabled: handleSubmit.isLoading || handleSubmitCollection.isLoading,
+                        disabled: handleSubmit.isLoading || handleSubmitCollection.isLoading || isLineInProcess,
                         type: "submit",
                         size: 6,
                         label: "אישור שיוך לקבוצה",
@@ -109,6 +107,8 @@ const ChangeStatus = ({ rows, refetch, status }) => {
 
                     handleSubmitCollection.mutate(objToSend);
                 }}
+                initInputs={initInputs}
+                setInitInput={setInitInputs}
             />}
 
             {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
