@@ -148,7 +148,8 @@ export const getSummaryByStatus = async () => {
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 2))), // likut
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 3))), // mamtinLemishloach
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 4))), // mishloach
-        getCountFromServer(query(ordersRef, where("orderStatus", "==", 5)))  // end
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 5))), // end
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 6)))  // kvitzat likut
     ];
 
     try {
@@ -160,7 +161,8 @@ export const getSummaryByStatus = async () => {
             likut: results[2].data().count,
             mamtinLemishloach: results[3].data().count,
             mishloach: results[4].data().count,
-            end: results[5].data().count
+            end: results[5].data().count,
+            kvitzatLikut: results[6].data().count
         };
 
         return summary;
@@ -223,14 +225,14 @@ export const getLatestImportStatus = async () => {
         const importOrdersRef = collection(db, "importOrders");
         const q = query(importOrdersRef, orderBy("createdAt", "desc"), limit(1));
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
             return null;
         }
-        
+
         const doc = querySnapshot.docs[0];
         const data = doc.data();
-        
+
         // המרת Timestamp לתאריך רגיל
         return {
             id: doc.id,

@@ -41,9 +41,9 @@ const Header = ({ open, handleDrawerToggle }) => {
                     {!open ? <MenuOpenIcon /> : <MenuIcon />}
                 </IconButton>
                 <Box sx={{ height: 1 }}>
-                    {/* <Typography variant="h4" component="div" sx={{ color: 'text.primary' }}>מערכת ניהול</Typography> */}
+                    <Typography variant="h4" component="div" sx={{ color: 'text.primary' }}>מערכת ניהול</Typography>
 
-                    <img src="/logo192.png" alt="logo" style={{ height: "50px", display: "block", margin: "auto" }} />
+                    {/* <img src="/logo192.png" alt="logo" style={{ height: "50px", display: "block", margin: "auto" }} /> */}
                 </Box>
             </Stack>
         </Toolbar>
