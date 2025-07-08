@@ -126,12 +126,13 @@ const getOrders = async (token) => {
         throw error;
     }
 }
+
 const getOrderProducts = async (token, specificOrderIds = null) => {
     try {
         // Create filters object for API request
         const filtersObject = {
             searchTerm: "",
-            saleIds: specificOrderIds || [], // Filter by specific order IDs if provided
+            saleIds: [], // Filter by specific order IDs if provided
             branchIds: [],
             paymentMethod: [],
             status: ["paid"],
@@ -209,7 +210,8 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
         // Use the generic Excel parser
         const parsedData = parseExcelToJson(mainOrders, headerMapping, orderProductRowProcessor);
 
-        console.log('212');
+        console.log('212-specificOrderIds', JSON.stringify(specificOrderIds, null, 2),
+            `Parsed Order Products Data: ${parsedData.length} items`);
         // If specific order IDs were provided, filter the results
         let filteredData = parsedData;
         if (specificOrderIds && specificOrderIds.length > 0) {
@@ -217,7 +219,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             filteredData = parsedData.filter(item => orderIdSet.has(item.nbsOrderId));
             console.log(`🔍 Filtered products from ${parsedData.length} to ${filteredData.length} based on order IDs`);
         }
-        console.log('220');
+        console.log('220-filteredData', filteredData.length, 'items');
 
 
         // Normalize data - group by order and product, sum quantities/weights (optimized)
@@ -275,7 +277,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             normalizedData.push(product);
         });
 
-        console.log('✅ Data normalization completed');
+        console.log('✅ Data normalization completed', normalizedData.length, normalizedData.length != 0 ? normalizedData[0] : 'No data');
 
         console.log('Parsed and Normalized Order Products Data:');
         // console.log(JSON.stringify(normalizedData, null, 2));
@@ -415,7 +417,9 @@ const refreshOrders = async () => {
         const token = await getNbsToken();
         console.log('🔄 Refreshing orders...');
         const BATCH_SIZE = 500; // Maximum updates per batch
+        console.log(418)
         const allNbsOrders = await getOrders(token);
+        console.log(420)
 
         // Limit the number of orders to process
         const nbsOrders = allNbsOrders.slice(0, MAX_ORDERS_TO_PROCESS);
@@ -440,7 +444,7 @@ const refreshOrders = async () => {
         // Load product mapping and order products in parallel for efficiency
         console.log('🔄 Loading data in parallel...');
         let productMapping, allOrderProducts;
-        console.log(443)
+        console.log("443")
         try {
             [productMapping, allOrderProducts] = await Promise.all([
                 loadProductMapping(),
