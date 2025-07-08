@@ -38,6 +38,7 @@ const Orders = () => {
 
             { count: calculateStatus?.start, label: "ראשוני", color: "error", key: "start", id: 1 },
             { count: calculateStatus?.likut, label: "בליקוט", color: "warning", key: "likut", id: 2 },
+            { count: calculateStatus?.kvitzatLikut, label: "בקבוצה", color: "warning", key: "kvitzatLikut", id: 6 },
             { count: calculateStatus?.mamtinLemishloach, label: "ממתין למשלוח", color: "primary", key: "mamtinLemishloach", id: 3 },
             { count: calculateStatus?.mishloach, label: "במשלוח", color: "info", key: "mishloach", id: 4 },
             { count: calculateStatus?.end, label: "הסתיים", color: "success", key: "end", id: 5 },

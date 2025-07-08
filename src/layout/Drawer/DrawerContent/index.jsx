@@ -8,7 +8,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PermPhoneMsgIcon from '@mui/icons-material/PermPhoneMsg';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import InventoryIcon from '@mui/icons-material/Inventory';
-
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
@@ -23,6 +23,7 @@ const DrawerContent = () => {
         // { title: "תשלומים", to: "payments", icon: <AttachMoneyIcon color='primary' /> },
         // { title: "סדרים", to: "sdarim", icon: <MenuBookIcon color='primary' /> },
         { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
+        { title: "קבוצות ליקוט", to: "collectionGroups", icon: <ShoppingBagIcon color='primary' /> },
         { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
         { title: "לקוחות", to: "customers", icon: <GroupsIcon color='primary' /> },
         { title: "מוצרים", to: "products", icon: <InventoryIcon color='primary' /> },
