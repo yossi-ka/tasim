@@ -21,7 +21,7 @@ const getOrders = async (token) => {
             },
             updatedRange: {
                 unit: "days",
-                amount: 7
+                amount: 1
             }
         };
 
@@ -143,7 +143,7 @@ const getOrderProducts = async (token, specificOrderIds = null) => {
             },
             updatedRange: {
                 unit: "days",
-                amount: 7
+                amount: 1
             }
         };
 
@@ -390,7 +390,7 @@ const getOrderByNbsOrderId = async (nbsOrderId) => {
 
 const refreshOrders = async () => {
     // Configuration: Limit number of orders to process for testing
-    const MAX_ORDERS_TO_PROCESS = 5; // Change this number as needed
+    const MAX_ORDERS_TO_PROCESS = 500; // Change this number as needed
 
     const newDoc = db.collection('importOrders').doc();
     await newDoc.set({
