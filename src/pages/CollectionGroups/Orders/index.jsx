@@ -34,10 +34,11 @@ import {
 import { useMutation, useQuery } from "react-query";
 import { closeCollectionGroup, getOrdersByCollectionGroup, saveCollectionGroupOrder } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
+import LoadingCloseCollection from "./LoadingCloseCollection";
 
 const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) => {
 
-    const { user, snackbar } = React.useContext(Context);
+    const { user, snackbar, confirm } = React.useContext(Context);
     const [unorganizedUsers, setUnorganizedUsers] = useState([]);
     const [organizedUsers, setOrganizedUsers] = useState([]);
     const [activeId, setActiveId] = useState(null);
@@ -51,6 +52,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
         () => getOrdersByCollectionGroup(currentCollectionGroup?.id),
         {
             enabled: !!currentCollectionGroup?.id, // רק אם יש קבוצת איסוף פעילה
+            refetchOnWindowFocus: false, // לא לרענן אוטומטית כשחלון הדפדפן מתמקד
         }
     );
     console.log("!!currentCollectionGroup?.id", !!currentCollectionGroup?.id)
@@ -120,10 +122,17 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
         unorganizedUsers,
         user.id),
         {
-            onSuccess: () => {
+            onSuccess: (res) => {
+                if (res.unorganizedCount === 0) {
+                    confirm({
+                        message: "כל ההזמנות סודרו בהצלחה. האם ברצונך לסגור את הקבוצה?",
+                        onConfirm: () => closeCollection.mutate(),
+                    })
+                }
                 refetchOrders();
                 setHasUnsavedChanges(false); // איפוס מצב השינויים אחרי שמירה מוצלחת
                 snackbar("העדכון נשמר בהצלחה")
+
             },
             onError: (error) => {
                 console.error("Error saving order:", error);
@@ -190,6 +199,9 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
         }
     };
 
+    if (closeCollection.isLoading) {
+        return <LoadingCloseCollection />
+    }
     if (currentCollectionGroup?.status === 2) {
         return (
             <Box sx={{ p: 3 }}>
@@ -272,7 +284,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                         color="text.secondary"
                     >
                         <Typography variant="h5" textAlign="center">
-                            אין הזמנות מסודרות עדיין
+                            אין הזמנות להצגה
                         </Typography>
                     </Box>
                 )}
@@ -366,6 +378,8 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                                             size="small"
                                             startIcon={<SaveIcon />}
                                             onClick={saveOrder.mutate}
+                                            disabled={saveOrder.isLoading}
+                                            
                                             sx={{
                                                 px: 2,
                                                 py: 0.5,

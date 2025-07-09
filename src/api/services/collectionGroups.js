@@ -109,10 +109,118 @@ export const saveCollectionGroupOrder = async (collectionGroupId, organized, uno
 
     await batch.commit();
 
+    const q = query(collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId),
+        where("collectionGroupOrder", "==", 0)
+    );
+
+    const unorganizedCount = await getCountFromServer(q);
+    return {
+        unorganizedCount: unorganizedCount.data().count,
+    }
+
 }
 
 export const closeCollectionGroup = async (collectionGroupId, userId) => {
+
     const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
+    await updateDoc(collectionGroupRef, {
+        status: 100, // loading 
+        updatedAt: Timestamp.now(),
+        updatedBy: userId,
+    });
+
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const orderIds = ordersSnapshot.docs.map(doc => doc.id);
+
+    const products = [];
+    const allProductRefs = [];
+
+    //אני צריך לבצע לולאות על כל קבוצה של 30 הזמנות ולקבל את המוצרים שלהם ולהוסיף למערך products
+    for (let i = 0; i < orderIds.length; i += 30) {
+        const batchOrderIds = orderIds.slice(i, i + 30);
+        const ordersQuery = query(
+            collection(db, 'orderProducts'),
+            where("orderId", "in", batchOrderIds)
+        );
+        const orderProductsSnapshot = await getDocs(ordersQuery);
+
+        orderProductsSnapshot.docs.forEach(productDoc => {
+            products.push(productDoc.data());
+            allProductRefs.push({
+                ref: productDoc.ref,
+                data: {
+                    collectionGroupId: collectionGroupId,
+                    status: 2,
+                }
+            });
+        });
+    }
+
+    const productSummary = products.reduce((acc, product) => {
+        const productId = product.productId;
+        if (!acc[productId]) {
+            acc[productId] = {
+                productId: productId,
+                productName: product.productName || '',
+                quantityOrWeight: 0
+            };
+        }
+        acc[productId].quantityOrWeight += product.quantityOrWeight || 0;
+        return acc;
+    }, {});
+
+    // יצירת רשימת כל העדכונים שצריך לבצע
+    const allUpdates = [];
+
+    // הוספת עדכוני המוצרים הקיימים
+    allProductRefs.forEach(productRef => {
+        allUpdates.push({
+            type: 'update',
+            ref: productRef.ref,
+            data: productRef.data
+        });
+    });
+
+    // הוספת יצירת מוצרי הסיכום
+    for (const productId in productSummary) {
+        const productData = productSummary[productId];
+        const productRef = doc(collection(db, 'collectionGroupProducts'));
+        allUpdates.push({
+            type: 'set',
+            ref: productRef,
+            data: {
+                ...productData,
+                collectionGroupId,
+                status: 1,
+                employeeId: null,
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            }
+        });
+    }
+
+    // ביצוע העדכונים במנות של 500
+    for (let i = 0; i < allUpdates.length; i += 500) {
+        const batch = writeBatch(db);
+        const batchUpdates = allUpdates.slice(i, i + 500);
+
+        batchUpdates.forEach(update => {
+            if (update.type === 'update') {
+                batch.update(update.ref, update.data);
+            } else if (update.type === 'set') {
+                batch.set(update.ref, update.data);
+            }
+        });
+
+        await batch.commit();
+    }
+
+    // עדכון הסטטוס אחרון כדי לוודא שהכל עבר תקין
     await updateDoc(collectionGroupRef, {
         status: 2,
         updatedAt: Timestamp.now(),
@@ -128,4 +236,29 @@ export const getCollectionGroupById = async (collectionGroupId) => {
     } else {
         throw new Error("No such document!");
     }
+}
+
+export const getCollectionGroupProducts = async (collectionGroupId) => {
+    const q = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export const saveEmployeeProductAssignments = async (collectionGroupId, products) => {
+    const batch = writeBatch(db);
+    
+    // Update each product with its assigned employee
+    products.forEach(product => {
+        const productRef = doc(db, 'collectionGroupProducts', product.id);
+        batch.update(productRef, {
+            assignedEmployeeId: product.assignedEmployeeId,
+            updatedAt: Timestamp.now()
+        });
+    });
+    
+    // Commit the batch
+    await batch.commit();
 }

@@ -7,8 +7,10 @@ const BASE_NBS_URL = "https://sales-v2.nbs-app.net/api/crm/"
 const getNbsToken = async () => {
     console.log('🔐 Starting authentication process...');
 
-    const userName = process.env.NBS_USERNAME;
-    const password = process.env.NBS_PASSWORD;
+    const userName = "naftali";
+    const password = "naftali2015";
+    // const userName = process.env.NBS_USERNAME;
+    // const password = process.env.NBS_PASSWORD;
 
     if (!userName || !password) {
         console.error('❌ NBS credentials are missing from environment variables');

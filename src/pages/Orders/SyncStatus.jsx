@@ -17,8 +17,12 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { getLatestImportStatus } from '../../api/services/orders';
+import { refreshOrders } from "../../api/services/importOrders";
+import Context from "../../context";
 
 const SyncStatus = ({ refetch }) => {
+
+    const { user } = React.useContext(Context);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // קריאה לנתונים האחרונים
@@ -89,8 +93,12 @@ const SyncStatus = ({ refetch }) => {
 
     // פונקציה לטיפול ברענון ידני
     const handleManualRefresh = async () => {
-        // כרגע לא מבצע כלום - ימוטל מאוחר יותר
-        alert('ביצוע רענון ידני יוטמל בקרוב...');
+        try {
+            const result = await refreshOrders(user.id);
+            console.log('Added orders:', result);
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     if (isLoading) {

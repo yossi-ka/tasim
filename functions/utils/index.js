@@ -117,7 +117,7 @@ async function createSTT(fileBuffer) {
  */
 const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => {
     try {
-        console.log('📊 Starting Excel parsing...');//לוג ראשון
+        console.log('📊 Starting Excel parsing...');//לוג ראשון 20:58
 
         // Parse the Excel file using xlsx - optimize for large files
         let workbook;
@@ -136,7 +136,7 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
 
-        console.log('📋 Excel workbook parsed, processing sheet...');//לוג שני
+        console.log('📋 Excel workbook parsed, processing sheet...');//לוג שני21:06 
 
         // Convert to JSON with headers - optimize for large datasets
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
