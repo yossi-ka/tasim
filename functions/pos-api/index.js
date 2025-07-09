@@ -2,7 +2,16 @@ const express = require('express');
 var cors = require('cors')
 const { onRequest } = require('firebase-functions/v2/https');
 
-const { login, checkUser, getOrders, approveOrders, sendMessage } = require('./services')
+const { login,
+    checkUser,
+    getOrders,
+    approveOrders,
+    sendMessage,
+    getProducts,
+    approveProducts,
+    getOrderProducts,
+    approveOrderProducts
+} = require('./services')
 
 const app = express();
 
@@ -49,6 +58,84 @@ app.post('/login', async (req, res) => {
         status: "ok",
         ...userData
     })
+})
+
+
+app.get('/products', checkUserFunc, async (req, res) => {
+    // const { isAll, areaId } = req.query;
+
+    const data = await getProducts(req.userId)
+
+    return res.json({
+        status: 'ok',
+        data,
+    })
+})
+
+app.post('/approveProducts', checkUserFunc, async (req, res) => {
+    try {
+        const { products } = req.body;
+
+        if (Array.isArray(products) && products.length > 0) {
+            const approve = await approveProducts(products, req.userId)
+            if (!approve) return res.json({
+                status: "error",
+                massege: "שגיאה"
+            })
+            return res.json({
+                status: 'ok',
+                massege: 'העדכון התקבל בהצלחה'
+            })
+        }
+        return res.json({
+            status: "error",
+            massege: "חסר מזהה מוצר"
+        })
+    }
+    catch (e) {
+        return res.json({
+            status: "error",
+            massege: e.massege || "שגיאה בעדכון המוצרים"
+        })
+    }
+})
+app.get('/orderProducts', checkUserFunc, async (req, res) => {
+    // const { isAll, areaId } = req.query;
+
+    const data = await getOrderProducts(req.userId)
+
+    return res.json({
+        status: 'ok',
+        data,
+    })
+})
+
+app.post('/approveOrderProducts', checkUserFunc, async (req, res) => {
+    try {
+        const { orderProducts } = req.body;
+
+        if (Array.isArray(orderProducts) && orderProducts.length > 0) {
+            const approve = await approveOrderProducts(orderProducts, req.userId)
+            if (!approve) return res.json({
+                status: "error",
+                massege: "שגיאה"
+            })
+            return res.json({
+                status: 'ok',
+                massege: 'העדכון התקבל בהצלחה'
+            })
+        }
+        return res.json({
+            status: "error",
+            massege: "חסר מזהה מוצר"
+        })
+    }
+    catch (e) {
+        return res.json({
+            status: "error",
+            massege: e.massege || "שגיאה בעדכון המוצרים"
+        })
+    }
 })
 
 

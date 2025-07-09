@@ -200,14 +200,14 @@ export const changeOrdersStatus = async (ids, data, userId) => {
                 updateStatus: Timestamp.now(),
             });
 
-            const orderStatusesRef = collection(db, 'orderStatuses');
-            const newStatusDoc = doc(orderStatusesRef);
-            batch.set(newStatusDoc, {
-                ...data,
-                orderId: id,
-                updateBy: userId,
-                updateDate: Timestamp.now(),
-            });
+            // const orderStatusesRef = collection(db, 'orderStatuses');
+            // const newStatusDoc = doc(orderStatusesRef);
+            // batch.set(newStatusDoc, {
+            //     ...data,
+            //     orderId: id,
+            //     updateBy: userId,
+            //     updateDate: Timestamp.now(),
+            // });
 
             updatedOrders.push(id);
         }

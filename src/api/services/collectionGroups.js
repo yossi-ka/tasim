@@ -186,7 +186,21 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
         });
     });
 
-    // הוספת יצירת מוצרי הסיכום
+    // הוספת יצירת מוצרי הסיכום - כולל productPlace
+    // שליפת productPlace לכל productId במנות של 30
+    const allProductIds = Object.keys(productSummary);
+    const productPlaces = {};
+    for (let i = 0; i < allProductIds.length; i += 30) {
+        const batchProductIds = allProductIds.slice(i, i + 30);
+        const productsDetailsQuery = query(
+            collection(db, 'products'),
+            where("__name__", "in", batchProductIds)
+        );
+        const productsDetailsSnapshot = await getDocs(productsDetailsQuery);
+        productsDetailsSnapshot.docs.forEach(doc => {
+            productPlaces[doc.id] = doc.data().productPlace || null;
+        });
+    }
     for (const productId in productSummary) {
         const productData = productSummary[productId];
         const productRef = doc(collection(db, 'collectionGroupProducts'));
@@ -195,9 +209,10 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
             ref: productRef,
             data: {
                 ...productData,
+                productPlace: productPlaces[productId] || null,
                 collectionGroupId,
                 status: 1,
-                employeeId: null,
+                assignedEmployeeId: null,
                 updatedAt: Timestamp.now(),
                 updatedBy: userId,
             }
@@ -249,7 +264,7 @@ export const getCollectionGroupProducts = async (collectionGroupId) => {
 
 export const saveEmployeeProductAssignments = async (collectionGroupId, products) => {
     const batch = writeBatch(db);
-    
+
     // Update each product with its assigned employee
     products.forEach(product => {
         const productRef = doc(db, 'collectionGroupProducts', product.id);
@@ -258,7 +273,90 @@ export const saveEmployeeProductAssignments = async (collectionGroupId, products
             updatedAt: Timestamp.now()
         });
     });
-    
+
     // Commit the batch
     await batch.commit();
 }
+
+export const getCollectionGroupProductsWithOrders = async (collectionGroupId) => {
+    // שליפה מרוכזת של כל הנתונים הדרושים
+
+    // קבלת המוצרים מטבלת collectionGroupProducts
+    const productsQuery = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+    const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // אין צורך להביא productPlace מטבלת products - הוא כבר קיים בכל רשומה
+
+    // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
+    const orderProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const orderProductsSnapshot = await getDocs(orderProductsQuery);
+    const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // קבלת כל ההזמנות עבור קבוצת האיסוף
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // יצירת מפה של ההזמנות לפי ID
+    const ordersMap = orders.reduce((map, order) => {
+        map[order.id] = order;
+        return map;
+    }, {});
+
+    // קיבוץ פריטי ההזמנות לפי מוצר
+    const orderProductsByProduct = orderProducts.reduce((acc, orderProduct) => {
+        const productId = orderProduct.productId;
+        if (!acc[productId]) {
+            acc[productId] = [];
+        }
+        acc[productId].push(orderProduct);
+        return acc;
+    }, {});
+
+    // יצירת התוצאה הסופית
+    let productsWithOrders = products.map(product => {
+        const productOrderProducts = orderProductsByProduct[product.productId] || [];
+        // יצירת מערך של אובייקטים מחוברים של הזמנה ומוצר
+        let ordersWithProductDetails = productOrderProducts.map(orderProduct => {
+            const orderData = ordersMap[orderProduct.orderId];
+            return {
+                product: orderProduct,
+                order: orderData,
+            };
+        }).filter(item => item.order !== null);
+        // מיון פנימי של ההזמנות לפי collectionGroupOrder
+        ordersWithProductDetails = ordersWithProductDetails.sort((a, b) => {
+            const aOrder = a.order?.collectionGroupOrder ?? 0;
+            const bOrder = b.order?.collectionGroupOrder ?? 0;
+            return aOrder - bOrder;
+        });
+        return {
+            ...product,
+            orders: ordersWithProductDetails
+        };
+    });
+
+    // מיון products לפי הערך המספרי ב-productPlace
+    const extractNumber = (val) => {
+        if (!val) return Infinity;
+        const match = String(val).match(/\d+/);
+        return match ? parseInt(match[0], 10) : Infinity;
+    };
+    productsWithOrders = productsWithOrders.sort((a, b) => {
+        const aNum = extractNumber(a.productPlace);
+        const bNum = extractNumber(b.productPlace);
+        return aNum - bNum;
+    });
+
+    return productsWithOrders;
+};

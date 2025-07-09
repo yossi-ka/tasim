@@ -46,23 +46,23 @@ import { getCollectionGroupProducts, saveEmployeeProductAssignments } from "../.
 import { getAllemployees } from "../../../api/services/employees";
 
 // Product Component
-const ProductItem = ({ 
-    product, 
-    isSelected, 
-    onToggleSelect, 
-    onAssignToEmployee, 
-    employees, 
-    showEmployeeSelect, 
+const ProductItem = ({
+    product,
+    isSelected,
+    onToggleSelect,
+    onAssignToEmployee,
+    employees,
+    showEmployeeSelect,
     onToggleEmployeeSelect,
-    currentEmployeeId 
+    currentEmployeeId
 }) => {
     const handleKeyDown = (event) => {
         if (!showEmployeeSelect) return;
-        
+
         event.preventDefault();
         const activeEmployees = employees.filter(emp => emp.isActive);
         const currentIndex = activeEmployees.findIndex(emp => emp.id === currentEmployeeId);
-        
+
         if (event.key === 'ArrowDown') {
             const nextIndex = (currentIndex + 1) % activeEmployees.length;
             onAssignToEmployee(activeEmployees[nextIndex].id);
@@ -79,13 +79,27 @@ const ProductItem = ({
     return (
         <ListItem
             sx={{
-                border: '1px solid #e0e0e0',
+                border: showEmployeeSelect ? '2px solid #1976d2' : '1px solid #e0e0e0',
                 borderRadius: 1,
                 mb: 1,
                 bgcolor: isSelected ? 'action.selected' : 'background.paper',
                 '&:hover': {
                     bgcolor: isSelected ? 'action.selected' : 'action.hover',
                 },
+                position: 'relative',
+                ...(showEmployeeSelect && {
+                    boxShadow: '0 0 10px rgba(25, 118, 210, 0.3)',
+                    '&::before': {
+                        content: '"◀"',
+                        position: 'absolute',
+                        left: -10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#1976d2',
+                        fontSize: '20px',
+                        fontWeight: 'bold'
+                    }
+                })
             }}
         >
             <Checkbox
@@ -93,12 +107,12 @@ const ProductItem = ({
                 onChange={onToggleSelect}
                 sx={{ mr: 1 }}
             />
-            
+
             <ListItemText
                 primary={product.productName}
                 secondary={`כמות: ${product.quantityOrWeight}`}
             />
-            
+
             <ListItemSecondaryAction>
                 {showEmployeeSelect ? (
                     <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -180,8 +194,8 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
 
     // Assign product to employee
     const assignProduct = (productId, employeeId) => {
-        setProducts(prev => prev.map(product => 
-            product.id === productId 
+        setProducts(prev => prev.map(product =>
+            product.id === productId
                 ? { ...product, assignedEmployeeId: employeeId || null }
                 : product
         ));
@@ -224,7 +238,24 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
     // Handle product assignment from dropdown
     const handleProductAssignment = (productId, employeeId) => {
         assignProduct(productId, employeeId);
-        setActiveProductSelect(null);
+
+        // Always move to next unassigned product after assignment (if assigned to someone)
+        if (employeeId) {
+            const unassignedProducts = getProductsByEmployee('unassigned');
+            const currentIndex = unassignedProducts.findIndex(p => p.id === productId);
+
+            // Get the product at the same index after the current one is removed
+            // If we assigned the last product, there won't be a next one
+            const nextProduct = unassignedProducts[currentIndex + 1] || unassignedProducts[currentIndex];
+
+            if (nextProduct && nextProduct.id !== productId) {
+                setActiveProductSelect(nextProduct.id);
+            } else {
+                setActiveProductSelect(null);
+            }
+        } else {
+            setActiveProductSelect(null);
+        }
     };
 
     // Save changes
@@ -267,21 +298,28 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
             {/* Header */}
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                    <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AssignmentIcon sx={{ fontSize: 40 }} />
-                        שיוך מוצרים לעובדים
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <AssignmentIcon sx={{ fontSize: 40 }} />
+                            שיוך מוצרים לעובדים
+                        </Typography>
+                        {hasChanges && (
+                            <Alert severity="warning" sx={{ py: 0.5, px: 1.5 }}>
+                                יש שינויים שלא נשמרו!
+                            </Alert>
+                        )}
+                    </Box>
                     {/* <Typography variant="body1" color="text.secondary">
                         סמן מספר מוצרים או השתמש בכפתור ✓ לשיוך מהיר
                     </Typography> */}
                 </Box>
-                
+
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     {selectedProducts.size > 0 && (
                         <>
-                            <Chip 
-                                label={`${selectedProducts.size} נבחרו`} 
-                                color="primary" 
+                            <Chip
+                                label={`${selectedProducts.size} נבחרו`}
+                                color="primary"
                                 onDelete={clearSelection}
                                 deleteIcon={<ClearIcon />}
                             />
@@ -301,24 +339,18 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                             </FormControl>
                         </>
                     )}
-                    
+
                     <Button
                         variant="contained"
                         startIcon={saveProductAssignments.isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
                         onClick={handleSave}
                         disabled={!hasChanges || saveProductAssignments.isLoading}
-                        size="large"
+                        // size="large"
                     >
                         {saveProductAssignments.isLoading ? 'שומר...' : 'שמור שינויים'}
                     </Button>
                 </Box>
             </Box>
-
-            {hasChanges && (
-                <Alert severity="warning" sx={{ mb: 3 }}>
-                    יש שינויים שלא נשמרו. אל תשכח לשמור!
-                </Alert>
-            )}
 
             <Grid container spacing={3}>
                 {/* Unassigned Products */}
@@ -326,7 +358,7 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                     <Card sx={{ height: 'fit-content' }}>
                         <CardHeader
                             avatar={
-                                <Badge badgeContent={getProductsByEmployee('unassigned').length} color="primary">
+                                <Badge max={999} badgeContent={getProductsByEmployee('unassigned').length} color="primary">
                                     <InventoryIcon />
                                 </Badge>
                             }
@@ -343,7 +375,7 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                             }
                         />
                         <CardContent>
-                            <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                            <Box sx={{ maxHeight: '52vh', overflow: 'auto' }}>
                                 {getProductsByEmployee('unassigned').length === 0 ? (
                                     <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                                         כל המוצרים משויכים
@@ -390,103 +422,65 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ display: 'flex', gap: 2 }}>
-                                                <Chip 
+                                                <Chip
                                                     label={`${getProductsByEmployee(employee.id).length} מוצרים`}
                                                     color="primary"
                                                     variant="outlined"
                                                 />
-                                                <Chip 
+                                                <Chip
                                                     label={`כמות: ${calculateTotalQuantity(employee.id)}`}
                                                     color="secondary"
                                                 />
                                             </Box>
                                         </Box>
                                     </AccordionSummary>                                        <AccordionDetails>
-                                            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                                                {getProductsByEmployee(employee.id).length === 0 ? (
-                                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                                                        אין מוצרים משויכים לעובד זה
-                                                    </Typography>
-                                                ) : (
-                                                    <List dense>
-                                                        {getProductsByEmployee(employee.id).map((product) => (
-                                                            <ProductItem
-                                                                key={product.id}
-                                                                product={product}
-                                                                isSelected={selectedProducts.has(product.id)}
-                                                                onToggleSelect={() => toggleProductSelection(product.id)}
-                                                                onAssignToEmployee={(employeeId) => handleProductAssignment(product.id, employeeId)}
-                                                                employees={employees.data || []}
-                                                                showEmployeeSelect={activeProductSelect === product.id}
-                                                                onToggleEmployeeSelect={() => setActiveProductSelect(
-                                                                    activeProductSelect === product.id ? null : product.id
-                                                                )}
-                                                                currentEmployeeId={employee.id}
-                                                            />
-                                                        ))}
-                                                    </List>
-                                                )}
-                                            </Box>
-                                            
-                                            {/* Quick assign selected products */}
-                                            {selectedProducts.size > 0 && (
-                                                <>
-                                                    <Divider sx={{ my: 2 }} />
-                                                    <Button
-                                                        variant="outlined"
-                                                        size="small"
-                                                        onClick={() => assignSelectedProducts(employee.id)}
-                                                        sx={{ mr: 1 }}
-                                                    >
-                                                        שיוך {selectedProducts.size} מוצרים נבחרים
-                                                    </Button>
-                                                </>
+                                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                                            {getProductsByEmployee(employee.id).length === 0 ? (
+                                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                                                    אין מוצרים משויכים לעובד זה
+                                                </Typography>
+                                            ) : (
+                                                <List dense>
+                                                    {getProductsByEmployee(employee.id).map((product) => (
+                                                        <ProductItem
+                                                            key={product.id}
+                                                            product={product}
+                                                            isSelected={selectedProducts.has(product.id)}
+                                                            onToggleSelect={() => toggleProductSelection(product.id)}
+                                                            onAssignToEmployee={(employeeId) => handleProductAssignment(product.id, employeeId)}
+                                                            employees={employees.data || []}
+                                                            showEmployeeSelect={activeProductSelect === product.id}
+                                                            onToggleEmployeeSelect={() => setActiveProductSelect(
+                                                                activeProductSelect === product.id ? null : product.id
+                                                            )}
+                                                            currentEmployeeId={employee.id}
+                                                        />
+                                                    ))}
+                                                </List>
                                             )}
-                                        </AccordionDetails>
+                                        </Box>
+
+                                        {/* Quick assign selected products */}
+                                        {selectedProducts.size > 0 && (
+                                            <>
+                                                <Divider sx={{ my: 2 }} />
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    onClick={() => assignSelectedProducts(employee.id)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    שיוך {selectedProducts.size} מוצרים נבחרים
+                                                </Button>
+                                            </>
+                                        )}
+                                    </AccordionDetails>
                                 </Accordion>
                             </Card>
                         ))}
                     </Box>
                 </Grid>
             </Grid>
-
-            {/* Summary */}
-            <Paper sx={{ mt: 3, p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                    סיכום
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                        <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="primary">
-                                {collectionProducts.data?.length || 0}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                סה"כ מוצרים
-                            </Typography>
-                        </Box>
-                    </Grid>                        <Grid item xs={12} sm={4}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="success.main">
-                                    {employees.data?.filter(emp => emp.isActive && getProductsByEmployee(emp.id).length > 0).length || 0}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    עובדים עם מוצרים
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="warning.main">
-                                    {getProductsByEmployee('unassigned').length}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    מוצרים לא משויכים
-                                </Typography>
-                            </Box>
-                        </Grid>
-                </Grid>
-            </Paper>
         </Box>
     );
 };

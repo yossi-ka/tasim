@@ -1,3 +1,4 @@
+
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { sendEmail } = require("../emails/sendEmail");
 const { db } = require("../firebase-config");
@@ -169,6 +170,41 @@ const newChalukaMessage = onDocumentCreated("orderMessages/{message}", async (ev
 
 });
 
+
+// טריגר: כאשר סטטוס של orderProduct משתנה מ-2 ל-3, לעדכן את collectionGroupProducts אם צריך
+const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProductId}", async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+    if (!before || !after) return;
+    // נבדוק אם הסטטוס השתנה מ-2 ל-3
+    if (before.status === 2 && after.status === 3) {
+        const { productId, collectionGroupId } = after;
+        if (!productId || !collectionGroupId) return;
+        // בדיקה אם יש עוד orderProducts עם אותו productId ו-collectionGroupId בסטטוס 2 (באמצעות count)
+        const countSnap = await db.collection('orderProducts')
+            .where('productId', '==', productId)
+            .where('collectionGroupId', '==', collectionGroupId)
+            .where('status', '==', 2)
+            .count()
+            .get();
+        if (countSnap.data().count === 0) {
+            // עדכון הרשומה המתאימה ב-collectionGroupProducts לסטטוס 3
+            const cgProductSnap = await db.collection('collectionGroupProducts')
+                .where('productId', '==', productId)
+                .where('collectionGroupId', '==', collectionGroupId)
+                .get();
+            if (!cgProductSnap.empty) {
+                const batch = db.batch();
+                cgProductSnap.docs.forEach(doc => {
+                    batch.update(doc.ref, { status: 3 });
+                });
+                await batch.commit();
+            }
+        }
+    }
+});
+
 module.exports = {
-    newChalukaMessage
+    newChalukaMessage,
+    onOrderProductStatusChange
 };

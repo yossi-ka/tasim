@@ -66,7 +66,14 @@ const CollectionGroups = () => {
 
     const [currentCollectionGroup, setCurrentCollectionGroup] = useState(null);
 
-    const openCollectionGroups = useQuery('openCollectionGroups', getProccessingCollectionGroups);
+    const openCollectionGroups = useQuery('openCollectionGroups', getProccessingCollectionGroups,
+        {
+            refetchOnWindowFocus: false,
+            // refetchOnMount: false,
+            // refetchOnReconnect: false,
+            // enabled: user !== 'loading' && user !== null,
+        }
+    );
 
     React.useEffect(() => {
         if (openCollectionGroups.data && openCollectionGroups.data.length > 0) {
