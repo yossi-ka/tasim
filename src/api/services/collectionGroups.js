@@ -360,3 +360,175 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
 
     return productsWithOrders;
 };
+
+export const getCollectionOrderWithProducts = async (collectionGroupId) => {
+
+    // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
+    const orderProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const orderProductsSnapshot = await getDocs(orderProductsQuery);
+    const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // קבלת כל ההזמנות עבור קבוצת האיסוף
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // יצירת Map של orderId ל-array של products
+    const productsByOrderId = orderProducts.reduce((acc, product) => {
+        if (!acc[product.orderId]) acc[product.orderId] = [];
+        acc[product.orderId].push(product);
+        return acc;
+    }, {});
+
+    // בניית מערך ההזמנות עם הפריטים שלהם
+    const ordersWithProducts = orders.map(order => ({
+        ...order,
+        products: productsByOrderId[order.id] || []
+    }))
+        .sort((a, b) => {
+            const aOrder = a.collectionGroupOrder || 0;
+            const bOrder = b.collectionGroupOrder || 0;
+            return aOrder - bOrder;
+        });
+
+    return ordersWithProducts;
+}
+
+export const completeCollectionGroup = async (collectionGroupId, userId, employeeId = null) => {
+    const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
+    await updateDoc(collectionGroupRef, {
+        status: 100, // loading 
+        updatedAt: Timestamp.now(),
+        updatedBy: userId,
+    });
+
+    // עדכון הסטטוס של כל ההזמנות בקבוצת האיסוף
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const orderDocs = ordersSnapshot.docs;
+
+    // עדכון הסטטוס של כל המוצרים בקבוצת האיסוף
+    const productsQuery = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "!=", 3) // רק מוצרים פעילים
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+    const productDocs = productsSnapshot.docs;
+
+    // קבלת כל המוצרים 
+    const allProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "!=", 3)
+    );
+    const allProductsSnapshot = await getDocs(allProductsQuery);
+    const allProductDocs = allProductsSnapshot.docs;
+
+    // איגוד כל העדכונים
+    const updates = [];
+
+    // orders
+    orderDocs.forEach(orderDoc => {
+        const orderRef = doc(db, 'orders', orderDoc.id);
+        updates.push({
+            ref: orderRef,
+            data: {
+                orderStatus: 4, // סיום
+                employeeId,
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            }
+        });
+    });
+
+    // collectionGroupProducts
+    productDocs.forEach(productDoc => {
+        const productRef = doc(db, 'collectionGroupProducts', productDoc.id);
+        updates.push({
+            ref: productRef,
+            data: {
+                status: 3, // סיום
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            }
+        });
+    });
+
+    // orderProducts
+    allProductDocs.forEach(productDoc => {
+        const productRef = doc(db, 'orderProducts', productDoc.id);
+        updates.push({
+            ref: productRef,
+            data: {
+                status: 3, // סיום
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            }
+        });
+    });
+
+    // בצע עדכונים במנות של 500
+    for (let i = 0; i < updates.length; i += 500) {
+        const batch = writeBatch(db);
+        const batchUpdates = updates.slice(i, i + 500);
+        batchUpdates.forEach(update => {
+            batch.update(update.ref, update.data);
+        });
+        await batch.commit();
+    }
+
+    // עדכון הסטטוס של קבוצת האיסוף לסיום
+    await updateDoc(collectionGroupRef, {
+        status: 3, // סיום
+        updatedAt: Timestamp.now(),
+        updatedBy: userId,
+    });
+}
+
+export const moveAllOrdersFrom4To5 = async (userId) => {
+    const q = query(
+        collection(db, 'orders'),
+        where("orderStatus", "==", 4)
+    );
+    const querySnapshot = await getDocs(q);
+    const orderDocs = querySnapshot.docs;
+
+    //  const orderProductsCountSnap = await db.collection('orderProducts')
+    //         .where('orderId', '==', orderId)
+    //         .where('status', '==', 2)
+    //         .count()
+    //         .get();
+
+    // const orderProductsSnap = await query(
+    //     collection(db, 'orderProducts'),
+    //     where('status', '==', 2),
+    //     where('orderId', '==', "orderDocs.map(doc => doc.id)")
+    // );
+
+    // const d = getDocs(orderProductsSnap);
+    console.log(`Moving ${orderDocs.length} orders from status 4 to 5`);
+    const batch = writeBatch(db);
+
+    orderDocs.forEach(orderDoc => {
+        const orderRef = doc(db, 'orders', orderDoc.id);
+        batch.update(orderRef, {
+            orderStatus: 5, // סיום
+            // employeeId: "h6iEY6mmMkvCsWI2MW8g",
+            // updatedAt: Timestamp.now(),
+            // updatedBy: userId,
+        });
+    });
+
+    await batch.commit();
+    console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
+}

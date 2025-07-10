@@ -70,11 +70,6 @@
     ],
     "ordersTable": [
         {
-            "name": "collectionGroupId",
-            "label": "מספר ליקוט",
-            "type": "text"
-        },
-        {
             "name": "nbsOrderId",
             "label": "מספר הזמנה",
             "type": "text"
@@ -115,53 +110,8 @@
             "type": "number"
         },
         {
-            "name": "idNumber",
-            "label": "תז",
-            "type": "text"
-        },
-        {
-            "name": "partnerIdNumber",
-            "label": "תז בן זוג",
-            "type": "text"
-        },
-        {
-            "name": "city",
-            "label": "עיר",
-            "type": "text"
-        },
-        {
             "name": "street",
             "label": "רחוב",
-            "type": "text"
-        },
-        {
-            "name": "houseNumber",
-            "label": "בית",
-            "type": "text"
-        },
-        {
-            "name": "entrance",
-            "label": "כניסה",
-            "type": "text"
-        },
-        {
-            "name": "apartment",
-            "label": "דירה",
-            "type": "text"
-        },
-        {
-            "name": "floor",
-            "label": "קומה",
-            "type": "text"
-        },
-        {
-            "name": "zipCode",
-            "label": "מיקוד",
-            "type": "text"
-        },
-        {
-            "name": "addressNumber",
-            "label": "מספר כתובת",
             "type": "text"
         },
         {
@@ -193,6 +143,12 @@
             "name": "additionalInfo",
             "label": "מידע נוסף",
             "type": "text"
+        },
+        {
+            "label": "עובד אחראי",
+            "name": "employeeId",
+            "type": "lookup",
+            "lookup": "employees"
         }
     ],
     "addContacts": [

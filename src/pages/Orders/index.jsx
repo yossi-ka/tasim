@@ -100,7 +100,9 @@ const Orders = () => {
                 indeterminate={selected.length > 0 && selected.length < filterdDataLength}
             />,
         },
-        ...terms.table(),
+        ...terms.table(null, {
+            phone: { cb: (row) => row.phones.join(" | ") }
+        }),
         isAllowChangeStatus && {
             actionBtn: ({ row }) => [
                 {

@@ -7,10 +7,11 @@ import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
 import AddOrUpdate from "./AddOrUpdate";
 import SyncStatus from "./SyncStatus";
+import { moveAllOrdersFrom4To5 } from "../../api/services/collectionGroups";
 
 const Search = ({ refetch, params, setParams }) => {
     const { popup, smallPopup } = React.useContext(Context);
-    
+
     return <GlobalSearch
         quickSearchFields={[{ name: 'globalSearch', label: 'חיפוש כללי', size: 12, variant: "outlined" }]}
         quickSearchOnTyping={true}
@@ -30,6 +31,13 @@ const Search = ({ refetch, params, setParams }) => {
                 icon: <RefreshIcon color='primary' />,
                 onClick: () => {
                     refetch();
+                }
+            },
+            {
+                title: "רענן מגדגדגדגסך",
+                icon: <RefreshIcon color='primary' />,
+                onClick: async () => {
+                    await moveAllOrdersFrom4To5();
                 }
             },
         ]}

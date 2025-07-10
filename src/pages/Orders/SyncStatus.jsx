@@ -17,13 +17,23 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { getLatestImportStatus } from '../../api/services/orders';
-import { refreshOrders } from "../../api/services/importOrders";
+// import { refreshOrders } from "../../api/services/importOrders";
+import { checkLocalSyncService, triggerLocalSync } from '../../api/services/localSyncService';
 import Context from "../../context";
 
 const SyncStatus = ({ refetch }) => {
 
     const { user } = React.useContext(Context);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isLocalSyncAvailable, setIsLocalSyncAvailable] = useState(null); // null=unknown, true=ok, false=down
+    // בדיקת זמינות סנכרון מקומי בכניסה לקומפוננטה
+    useEffect(() => {
+        const checkService = async () => {
+            const available = await checkLocalSyncService();
+            setIsLocalSyncAvailable(available);
+        };
+        checkService();
+    }, []);
 
     // קריאה לנתונים האחרונים
     const { data: latestImport, isLoading, error, refetch: refetchStatus } = useQuery(
@@ -91,17 +101,32 @@ const SyncStatus = ({ refetch }) => {
         return `${remainingSeconds} שניות`;
     };
 
+    // פונקציה לחידוש בדיקת שירות מקומי
+    const handleCheckAgain = async () => {
+        setIsRefreshing(true);
+        const available = await checkLocalSyncService();
+        setIsLocalSyncAvailable(available);
+        setIsRefreshing(false);
+    };
+
     // פונקציה לטיפול ברענון ידני
     const handleManualRefresh = async () => {
+        setIsRefreshing(true);
         try {
-            const result = await refreshOrders(user.id);
-            console.log('Added orders:', result);
+            // אם הסנכרון המקומי זמין, מבצע דרכו
+            await triggerLocalSync();
+
+            await refetchStatus();
+            await refetch();
         } catch (error) {
             console.error('Error:', error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
-    if (isLoading) {
+
+    if (isLoading || isLocalSyncAvailable === null) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                 <CircularProgress />
@@ -136,7 +161,9 @@ const SyncStatus = ({ refetch }) => {
                         startIcon={<RefreshIcon />}
                         onClick={handleManualRefresh}
                         size="large"
+                        disabled={isRefreshing || isLocalSyncAvailable === false}
                     >
+                        {isRefreshing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
                         ביצוע סנכרון ראשון
                     </Button>
                 </Box>
@@ -148,14 +175,6 @@ const SyncStatus = ({ refetch }) => {
 
     return (
         <Stack spacing={3}>
-            {/* <Typography variant="h4" color="primary.main">
-                סטטוס סנכרון הזמנות
-            </Typography>
-
-            <Typography variant="h6" color="text.secondary">
-                המערכת מבצעת סנכרון אוטומטי של הזמנות מ-NBS
-            </Typography> */}
-
             <Card elevation={3}>
                 <CardContent>
                     <Stack spacing={2}>
@@ -237,25 +256,43 @@ const SyncStatus = ({ refetch }) => {
 
                         <Divider />
 
-                        <Box display="flex" justifyContent="center">                    <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<RefreshIcon />}
-                            onClick={handleManualRefresh}
-                            size="large"
-                        >
-                            ביצוע רענון ידני
-                        </Button>
+                        <Box display="flex" justifyContent="center" gap={2}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<RefreshIcon />}
+                                onClick={handleManualRefresh}
+                                size="large"
+                                disabled={isRefreshing || isLocalSyncAvailable === false}
+                            >
+                                {isRefreshing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+                                ביצוע רענון ידני
+                            </Button>
+                            {isLocalSyncAvailable === false && (
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={handleCheckAgain}
+                                    disabled={isRefreshing}
+                                >
+                                    בדוק שוב שירות מקומי
+                                </Button>
+                            )}
                         </Box>
                     </Stack>
                 </CardContent>
             </Card>
 
+            {isLocalSyncAvailable === false && (
+                <Alert severity="error">
+                    שירות הסנכרון המקומי אינו פעיל. יש להפעיל את השירות במחשב זה.<br />
+                    לא ניתן לבצע סנכרון הזמנות דרך שירות זה.
+                </Alert>
+            )}
+
             <Alert severity="info">
                 <Typography variant="body2">
-                    הסנכרון פועל בצורה אוטומטית ומביא את ההזמנות החדשות.
-                    <br />
-                    ניתן לבצע רענון ידני במידת הצורך.
+                    הסנכרון לא פועל בצורה אוטומטית וכרגע נדרש לבצע רענון ידני.
                 </Typography>
             </Alert>
         </Stack>

@@ -178,8 +178,8 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
     if (!before || !after) return;
     // נבדוק אם הסטטוס השתנה מ-2 ל-3
     if (before.status === 2 && after.status === 3) {
-        const { productId, collectionGroupId } = after;
-        if (!productId || !collectionGroupId) return;
+        const { productId, collectionGroupId, orderId } = after;
+        if (!productId || !collectionGroupId || !orderId) return;
         // בדיקה אם יש עוד orderProducts עם אותו productId ו-collectionGroupId בסטטוס 2 (באמצעות count)
         const countSnap = await db.collection('orderProducts')
             .where('productId', '==', productId)
@@ -200,6 +200,17 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
                 });
                 await batch.commit();
             }
+        }
+
+        // בדיקה אם אין עוד orderProducts עם אותו orderId וסטטוס 2
+        const orderProductsCountSnap = await db.collection('orderProducts')
+            .where('orderId', '==', orderId)
+            .where('status', '==', 2)
+            .count()
+            .get();
+        if (orderProductsCountSnap.data().count === 0) {
+            // עדכון סטטוס ההזמנה ל-3 (מוכנה)
+            await db.collection('orders').doc(orderId).update({ status: 3 });
         }
     }
 });

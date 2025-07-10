@@ -428,7 +428,7 @@ const getOrderProducts = async (token, orderIds = null) => {
     }
 };
 
-// הפונקציה הראשית - שליפה ונרמול נתונים
+// הפונקציה הראשית - שליפה, נרמול ושליחה לשרת
 const fetchAndNormalizeOrders = async () => {
     try {
         console.log('🚀 Starting NBS data fetch and normalization...');
@@ -483,6 +483,36 @@ const fetchAndNormalizeOrders = async () => {
         console.log(`📊 Total orders with products: ${ordersWithProducts.length}`);
         console.log(`📦 Total products across all orders: ${orderProducts.length}`);
 
+        // שליחת הנתונים לאנדפוינט Firebase Function
+        try {
+            console.log('\n🚀 Sending data to Firebase Function...');
+            const response = await axios.post(
+                'https://us-central1-kanfei-nesharim.cloudfunctions.net/test3',
+                ordersWithProducts,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 300000 // 5 minutes timeout
+                }
+            );
+            console.log(`✅ Data successfully sent to Firebase Function`);
+            console.log(`� Response status: ${response.status}`);
+            console.log(`📋 Response data: ${response.data}`);
+        } catch (sendError) {
+            console.error(`\n❌ Error sending data to Firebase Function: ${sendError.message}`);
+            if (sendError.response) {
+                console.error(`� Response status: ${sendError.response.status}`);
+                console.error(`📥 Response data: ${sendError.response.data}`);
+            }
+            // במקרה של כשל, נשמור גם לקובץ מקומי כגיבוי
+            console.log('\n💾 Saving data locally as backup...');
+            const outputPath = path.join(__dirname, 'orders_with_products_backup.json');
+            fs.writeFileSync(outputPath, JSON.stringify(ordersWithProducts, null, 2), 'utf8');
+            console.log(`💾 Backup saved to: ${outputPath}`);
+            throw sendError;
+        }
+
         return ordersWithProducts;
 
     } catch (error) {
@@ -494,55 +524,17 @@ const fetchAndNormalizeOrders = async () => {
 // אם הקובץ מורץ ישירות
 if (require.main === module) {
     fetchAndNormalizeOrders()
-        .then(async result => {
+        .then(result => {
             console.log(`\n✅ Script completed successfully with ${result.length} orders`);
-            
             // סטטיסטיקות
             const ordersWithProducts = result.filter(order => order.products && order.products.length > 0);
             const ordersWithoutProducts = result.filter(order => !order.products || order.products.length === 0);
             const totalProducts = result.reduce((sum, order) => sum + (order.products ? order.products.length : 0), 0);
-            
             console.log('\n📊 Summary:');
             console.log(`- Total orders: ${result.length}`);
             console.log(`- Orders with products: ${ordersWithProducts.length}`);
             console.log(`- Orders without products: ${ordersWithoutProducts.length}`);
             console.log(`- Total products: ${totalProducts}`);
-            
-            // שליחת הנתונים לאנדפוינט Firebase Function
-            try {
-                console.log('\n🚀 Sending data to Firebase Function...');
-                
-                const response = await axios.post(
-                    'https://us-central1-kanfei-nesharim.cloudfunctions.net/test3',
-                    result,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 300000 // 5 minutes timeout
-                    }
-                );
-                
-                console.log(`✅ Data successfully sent to Firebase Function`);
-                console.log(`� Response status: ${response.status}`);
-                console.log(`📋 Response data: ${response.data}`);
-                
-            } catch (sendError) {
-                console.error(`\n❌ Error sending data to Firebase Function: ${sendError.message}`);
-                if (sendError.response) {
-                    console.error(`� Response status: ${sendError.response.status}`);
-                    console.error(`📥 Response data: ${sendError.response.data}`);
-                }
-                
-                // במקרה של כשל, נשמור גם לקובץ מקומי כגיבוי
-                console.log('\n💾 Saving data locally as backup...');
-                const outputPath = path.join(__dirname, 'orders_with_products_backup.json');
-                fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf8');
-                console.log(`💾 Backup saved to: ${outputPath}`);
-                
-                process.exit(1);
-            }
-            
             process.exit(0);
         })
         .catch(error => {
@@ -557,5 +549,5 @@ module.exports = {
     getNbsToken,
     getOrders,
     getOrderProducts,
-    normalizeOrdersWithProducts
+    // normalizeOrdersWithProducts
 };

@@ -149,10 +149,55 @@ const ProductItem = ({
 };
 
 const EmployeeProducts = ({ currentCollectionGroup }) => {
+    // Extracts the first number from a value for sorting
+    const extractNumber = (val) => {
+        if (!val) return Infinity;
+        const match = String(val).match(/\d+/);
+        return match ? parseInt(match[0], 10) : Infinity;
+    };
     const [products, setProducts] = useState([]);
     const [hasChanges, setHasChanges] = useState(false);
     const [selectedProducts, setSelectedProducts] = useState(new Set());
     const [activeProductSelect, setActiveProductSelect] = useState(null);
+    const [selectedEmployees, setSelectedEmployees] = useState([]); // For fair distribution
+    const [showDistributionSelect, setShowDistributionSelect] = useState(false); // Toggle for distribution UI
+    // Fairly distribute products among selected employees
+    const distributeProductsFairly = () => {
+        if (!selectedEmployees.length) return;
+        const unassigned = getProductsByEmployee('unassigned');
+        const assigned = products.filter(p => selectedEmployees.includes(p.assignedEmployeeId));
+        const allToDistribute = [...unassigned, ...assigned].sort((a, b) => extractNumber(a.productPlace) - extractNumber(b.productPlace));
+        const totalQuantity = allToDistribute.reduce((sum, p) => sum + (p.quantityOrWeight || 0), 0);
+        const result = selectedEmployees.map(() => ({ products: [], quantity: 0 }));
+        allToDistribute.forEach(product => {
+            let minIdx = 0;
+            for (let i = 1; i < result.length; i++) {
+                if (result[i].quantity < result[minIdx].quantity) minIdx = i;
+            }
+            result[minIdx].products.push(product.id);
+            result[minIdx].quantity += product.quantityOrWeight || 0;
+        });
+        setProducts(prev => prev.map(product => {
+            const idx = result.findIndex(r => r.products.includes(product.id));
+            if (idx !== -1) {
+                return { ...product, assignedEmployeeId: selectedEmployees[idx] };
+            }
+            return product;
+        }));
+        setHasChanges(true);
+        setShowDistributionSelect(false);
+        setSelectedEmployees([]);
+    };
+    // Toggle employee selection for fair distribution
+    const toggleEmployeeSelection = (employeeId) => {
+        setSelectedEmployees(prev => {
+            if (prev.includes(employeeId)) {
+                return prev.filter(id => id !== employeeId);
+            } else {
+                return [...prev, employeeId];
+            }
+        });
+    };
     const queryClient = useQueryClient();
 
     const collectionProducts = useQuery(
@@ -177,12 +222,21 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
         }
     }, [collectionProducts.data]);
 
-    // Get products by employee or unassigned
+    // Get products by employee or unassigned, sorted by productPlace
     const getProductsByEmployee = (employeeId) => {
+        let filtered;
         if (employeeId === 'unassigned') {
-            return products.filter(product => !product.assignedEmployeeId);
+            filtered = products.filter(product => !product.assignedEmployeeId);
+        } else {
+            filtered = products.filter(product => product.assignedEmployeeId === employeeId);
         }
-        return products.filter(product => product.assignedEmployeeId === employeeId);
+        // Sort by productPlace using extractNumber (undefined/null as last)
+        return filtered.slice().sort((a, b) => {
+            const aNum = extractNumber(a.productPlace);
+            const bNum = extractNumber(b.productPlace);
+            if (aNum === bNum) return 0;
+            return aNum - bNum;
+        });
     };
 
     // Calculate total quantity for an employee
@@ -315,6 +369,56 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    {/* Fair distribution section */}
+                    {!showDistributionSelect ? (
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => setShowDistributionSelect(true)}
+                        >
+                            חלוקה אוטומטית בין עובדים
+                        </Button>
+                    ) : (
+                        <>
+                            <FormControl size="small" sx={{ minWidth: 200 }}>
+                                <InputLabel>בחר עובדים לחלוקה</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedEmployees}
+                                    onChange={e => setSelectedEmployees(e.target.value)}
+                                    renderValue={selected => selected.map(id => {
+                                        const emp = employees.data?.find(e => e.id === id);
+                                        return emp ? `${emp.firstName} ${emp.lastName}` : '';
+                                    }).join(', ')}
+                                >
+                                    {employees.data?.filter(emp => emp.isActive).map((employee) => (
+                                        <MenuItem key={employee.id} value={employee.id}>
+                                            <Checkbox checked={selectedEmployees.includes(employee.id)} />
+                                            {employee.firstName} {employee.lastName}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                disabled={selectedEmployees.length < 2}
+                                onClick={distributeProductsFairly}
+                                sx={{ minWidth: 48 }}
+                            >
+                                ✓
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={() => { setShowDistributionSelect(false); setSelectedEmployees([]); }}
+                                sx={{ minWidth: 48 }}
+                            >
+                                ✗
+                            </Button>
+                        </>
+                    )}
+
                     {selectedProducts.size > 0 && (
                         <>
                             <Chip
@@ -345,7 +449,7 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                         startIcon={saveProductAssignments.isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
                         onClick={handleSave}
                         disabled={!hasChanges || saveProductAssignments.isLoading}
-                        // size="large"
+                    // size="large"
                     >
                         {saveProductAssignments.isLoading ? 'שומר...' : 'שמור שינויים'}
                     </Button>

@@ -11,143 +11,30 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Stack,
 } from "@mui/material";
 import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import PrintIcon from "@mui/icons-material/Print";
 import usePrint from "../../../context/hooks/print/usePrint";
 import { useMutation, useQuery } from "react-query";
-import { getCollectionGroupProductsWithOrders } from "../../../api/services/collectionGroups";
+import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrderWithProducts } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
+import StickerPages from "./StickerPages";
+import ProductPages from "./ProductPages";
+import OrderPages from "./OrderPages";
 
 const Tracking = ({ currentCollectionGroup }) => {
 
     const { getLookupName } = React.useContext(Context)
     const { handlePrint, printComponent } = usePrint();
 
-    // קומפוננט הדפסה לכל מוצר
-    const ProductPrintComponent = ({ product, currentPage, totalPages }) => {
-        const now = new Date();
-        const currentDate = now.toLocaleDateString('he-IL');
-        const currentTime = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-
-        return (
-            <Box sx={{
-                pageBreakAfter: 'always',
-                minHeight: '297mm',
-                padding: '10mm',
-                fontFamily: 'Arial, sans-serif',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative'
-            }}>
-                {/* כותרת עליונה מוקטנת בפינה */}
-                <Box sx={{ position: 'absolute', top: 0, right: 0, p: 1 }}>
-                    <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#888' }}>בס"ד</Typography>
-                </Box>
-
-                {/* כותרת עם פרטי המוצר */}
-                <Box sx={{ mb: 2, mt: 1 }}>
-                    <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
-                        <Box sx={{
-                            flex: 1,
-                            background: '#f4f4f4',
-                            border: '1.5px solid #bbb',
-                            borderRadius: '8px',
-                            padding: '6px 0',
-                            textAlign: 'center',
-                            minWidth: 0
-                        }}>
-                            <Typography sx={{ fontSize: '13px', color: '#666', fontWeight: 700, mb: 0.5 }}>כמות כוללת</Typography>
-                            <Typography sx={{ fontWeight: 900, fontSize: '22px', color: '#222', lineHeight: 1 }}>{product.quantityOrWeight}</Typography>
-                        </Box>
-                        <Box sx={{
-                            flex: 1,
-                            background: '#f8f8f8',
-                            border: '1.5px solid #bbb',
-                            borderRadius: '8px',
-                            padding: '6px 0',
-                            textAlign: 'center',
-                            minWidth: 0
-                        }}>
-                            <Typography sx={{ fontSize: '13px', color: '#666', fontWeight: 700, mb: 0.5 }}>מיקום</Typography>
-                            <Typography sx={{ fontWeight: 900, fontSize: '20px', color: '#222', lineHeight: 1 }}>{product.productPlace || 'לא נקבע'}</Typography>
-                        </Box>
-                    </Box>
-                    <Box sx={{ textAlign: 'center', mt: 0.5 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '18px', color: '#222', mb: 0.5 }}>{product.productName}</Typography>
-                        <Typography sx={{ fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
-                            עובד אחראי: {getLookupName("employees", product.assignedEmployeeId) || 'לא נקבע'}
-                        </Typography>
-                    </Box>
-                </Box>
-
-                {/* טבלת ההזמנות */}
-                <Box sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '6px 0 0 0',
-                    border: '1px solid #e0e0e0',
-                    minHeight: 0
-                }}>
-                    <TableContainer sx={{ width: '100%', flex: 1, borderRadius: '6px', overflow: 'hidden' }}>
-                        <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
-                            <TableHead>
-                                <TableRow sx={{ background: '#f0f0f0', height: '32px' }}>
-                                    <TableCell sx={{ border: 'none', fontWeight: 700, fontSize: '13px', color: '#222', textAlign: 'center', padding: '4px' }}>מס' קרטון</TableCell>
-                                    <TableCell sx={{ border: 'none', fontWeight: 700, fontSize: '13px', color: '#222', textAlign: 'center', padding: '4px', background: '#ededed' }}>כמות</TableCell>
-                                    <TableCell sx={{ border: 'none', fontWeight: 700, fontSize: '13px', color: '#222', textAlign: 'center', padding: '4px' }}>לקוח</TableCell>
-                                    <TableCell sx={{ border: 'none', fontWeight: 700, fontSize: '13px', color: '#222', textAlign: 'center', padding: '4px' }}>כתובת</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {product.orders.map((orderItem, index) => (
-                                    <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? '#fafafa' : '#fff', height: '28px' }}>
-                                        <TableCell sx={{ border: 'none', fontSize: '12px', textAlign: 'center', padding: '2px 4px', fontWeight: 500 }}>{orderItem.order.collectionGroupOrder}</TableCell>
-                                        <TableCell sx={{ border: 'none', fontSize: '12px', textAlign: 'center', background: '#ededed', fontWeight: 700, padding: '2px 4px', borderRadius: '2px' }}>{orderItem.product.quantityOrWeight}</TableCell>
-                                        <TableCell sx={{ border: 'none', fontSize: '12px', textAlign: 'center', padding: '2px 4px', fontWeight: 500 }}>{`${orderItem.order.firstName || ''} ${orderItem.order.lastName || ''}`.trim()}</TableCell>
-                                        <TableCell sx={{ border: 'none', fontSize: '12px', textAlign: 'center', padding: '2px 4px', color: '#555' }}>{orderItem.order.street}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Box>
-
-                {/* כותרת תחתונה קומפקטית */}
-                <Box sx={{
-                    mt: 1,
-                    pt: 1,
-                    borderTop: '1px solid #e0e0e0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: '#fafafa',
-                    borderRadius: '0 0 8px 8px',
-                    padding: '4px 8px',
-                    fontSize: '11px',
-                    color: '#888'
-                }}>
-                    <span>עמוד {currentPage} מתוך {totalPages}</span>
-                    <span>הודפס ע"י מערכת כנפי נשרים</span>
-                    <span>{currentTime} {currentDate}</span>
-                </Box>
-            </Box>
-        );
-    };
 
     const print = useMutation(() => getCollectionGroupProductsWithOrders(currentCollectionGroup.id), {
         onSuccess: (data) => {
             console.log("Data fetched successfully:", data);
 
-            // יצירת עמודים להדפסה - עמוד לכל מוצר
-            const pages = data.map((product, index) => (
-                <ProductPrintComponent key={index} product={product} currentPage={index + 1} totalPages={data.length} />
-            ));
-
-            // הדפסה בגודל A4 רגיל
+            // יצירת עמודים להדפסה - עמוד לכל מוצר (קומפוננטה חיצונית)
+            const pages = ProductPages({ products: data, getLookupName });
             handlePrint(pages);
         },
         onError: (error) => {
@@ -155,14 +42,41 @@ const Tracking = ({ currentCollectionGroup }) => {
         }
     });
 
-    const handlePrintPages = () => {
-        // const pages = [
+    // קומפוננט הדפסה למדבקות - 8 בעמוד, כל עמוד עם אותה הזמנה
+    const printStickers = useMutation(() => getOrdersByCollectionGroup(currentCollectionGroup.id), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
 
-        // ];
+            console.log("Orders fetched successfully:", orders);
 
-        // // הדפסה בגודל A4 רגיל
-        // handlePrint(pages);
-    };
+            const pages = StickerPages({ orders });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
+    // קומפוננט הדפסה לדפי הזמנה
+    const printOrders = useMutation(() => getCollectionOrderWithProducts(currentCollectionGroup.id), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = OrderPages({ orders });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
     return (
         <Box sx={{ p: 3 }}>
             <Paper sx={{ p: 3, textAlign: 'center', minHeight: '400px' }}>
@@ -179,16 +93,38 @@ const Tracking = ({ currentCollectionGroup }) => {
                     בקרוב יתווספו אפשרויות נוספות
                 </Typography>
 
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ mt: 3 }}
-                    onClick={print.mutate}
-                    disabled={print.isLoading}
-                    startIcon={print.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                >
-                    {print.isLoading ? 'מכין דוח...' : 'הדפסת דוח מוצרים להזמנה'}
-                </Button>
+                <Stack direction="column" spacing={2} sx={{ mt: 3, mb: 3, alignItems: 'center' }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 3 }}
+                        onClick={print.mutate}
+                        disabled={print.isLoading}
+                        startIcon={print.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                    >
+                        {print.isLoading ? 'מכין דוח...' : 'הדפסת דוח מוצרים להזמנה'}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 3 }}
+                        onClick={printStickers.mutate}
+                        disabled={printStickers.isLoading}
+                        startIcon={printStickers.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                    >
+                        {printStickers.isLoading ? 'מכין מדבקות...' : 'הדפסת דפי מדבקות להזמנה'}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 3 }}
+                        onClick={printOrders.mutate}
+                        disabled={printOrders.isLoading}
+                        startIcon={printOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                    >
+                        {printOrders.isLoading ? 'מכין דפי הזמנה...' : 'הדפסת דפי הזמנה ללקוח'}
+                    </Button>
+                </Stack>
 
                 {printComponent}
             </Paper>

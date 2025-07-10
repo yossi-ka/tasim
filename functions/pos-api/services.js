@@ -272,27 +272,94 @@ const approveOrderProducts = async (products, userId) => {
 };
 
 
+// טבלת מוצרים מיוחדים - מומלץ לקרוא לה specialProducts
+// שלב ראשון: שליפת כל המוצרים המיוחדים
+// const getOrders = async (userId) => {
+//     // שליפת מזהי מוצרים מיוחדים
+//     const specialProductsSnap = await db.collection('specialProducts').get();
+//     const specialProductIds = specialProductsSnap.docs.map(doc => doc.data().productId);
+
+//     // שליפת כל ההזמנות של העובד
+//     const ordersSnap = await db.collection('orders')
+//         .where("employeeId", "==", userId)
+//         .where("orderStatus", "==", 4).get();
+
+//     // שלב שני: שליפת כל orderProducts של ההזמנות במנות של 30
+//     const orderIds = ordersSnap.docs.map(doc => doc.id);
+//     let orderProducts = [];
+//     for (let i = 0; i < orderIds.length; i += 30) {
+//         const batch = orderIds.slice(i, i + 30);
+//         const snap = await db.collection('orderProducts')
+//             .where("orderId", "in", batch)
+//             .get();
+//         orderProducts.push(...snap.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+//     }
+
+//     // מיפוי orderId -> רשימת productId מיוחדים
+//     const orderIdToSpecialProducts = {};
+//     orderProducts.forEach(op => {
+//         if (specialProductIds.includes(op.productId)) {
+//             if (!orderIdToSpecialProducts[op.orderId]) orderIdToSpecialProducts[op.orderId] = [];
+//             orderIdToSpecialProducts[op.orderId].push(op.productName || op.productId);
+//         }
+//     });
+
+//     // בניית התוצאה
+//     const res = ordersSnap.docs.map(doc => {
+//         const docData = doc.data();
+//         const specialProductsInOrder = orderIdToSpecialProducts[doc.id] || [];
+//         const obj = {
+//             orderId: doc.id,
+//             nbsOrderId: docData.nbsOrderId,
+//             collectionGroupOrder: docData.collectionGroupOrder || 0,
+//             fullName: (docData.lastName || "") + "-" + (docData.firstName || ""),
+//             street: docData.street || "",
+//             houseNumber: docData.houseNumber || "",
+//             entrance: docData.entrance || "",
+//             floor: docData.floor || "",
+//             apartment: docData.apartment || "",
+//             phone: docData.phones.join(",") || "",
+//             note: docData.note || "הערה",
+//             notes: specialProductsInOrder.length > 0
+//                 ? [`שים לב: בהזמנה יש מוצרים מיוחדים: ${specialProductsInOrder.join(", ")}`]
+//                 : []
+//         }
+//         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();
+//         return obj
+//     }).sort((a, b) => {
+//         return a.collectionGroupOrder - b.collectionGroupOrder;
+//     })
+//     return res;
+// }
+
+
 const getOrders = async (userId) => {
     const orders = await db.collection('orders')
         .where("employeeId", "==", userId)
         .where("orderStatus", "==", 4).get();
+
+
     const res = orders.docs.map(doc => {
         const docData = doc.data();
         const obj = {
             orderId: doc.id,
             nbsOrderId: docData.nbsOrderId,
+            collectionGroupOrder: docData.collectionGroupOrder || 0,
             fullName: (docData.lastName || "") + "-" + (docData.firstName || ""),
             street: docData.street || "",
             houseNumber: docData.houseNumber || "",
             entrance: docData.entrance || "",
             floor: docData.floor || "",
             apartment: docData.apartment || "",
-            phone: docData.phone || "",
-            note: docData.note || "",
+            phone: docData.phones.join(",") || "",
+            // note: docData.note || "הערה",
+            // notes: ["אבטיח", "ביצים", "מוצרי חלב"]
         }
 
         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();
         return obj
+    }).sort((a, b) => {
+        return a.collectionGroupOrder - b.collectionGroupOrder;
     })
     return res;
 }
