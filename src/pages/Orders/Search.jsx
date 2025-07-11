@@ -32,14 +32,7 @@ const Search = ({ refetch, params, setParams }) => {
                 onClick: () => {
                     refetch();
                 }
-            },
-            {
-                title: "רענן מגדגדגדגסך",
-                icon: <RefreshIcon color='primary' />,
-                onClick: async () => {
-                    await moveAllOrdersFrom4To5();
-                }
-            },
+            }
         ]}
     />
 }

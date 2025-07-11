@@ -361,6 +361,55 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
     return productsWithOrders;
 };
 
+// מחזירה גם את ordersWithProducts וגם את collectionGroupProducts
+export const getCollectionOrdersAndGroupProducts = async (collectionGroupId) => {
+    // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
+    const orderProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const orderProductsSnapshot = await getDocs(orderProductsQuery);
+    const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // קבלת כל ההזמנות עבור קבוצת האיסוף
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // קבלת כל collectionGroupProducts עבור קבוצת האיסוף
+    const groupProductsQuery = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const groupProductsSnapshot = await getDocs(groupProductsQuery);
+    const collectionGroupProducts = groupProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // יצירת Map של orderId ל-array של products
+    const productsByOrderId = orderProducts.reduce((acc, product) => {
+        if (!acc[product.orderId]) acc[product.orderId] = [];
+        acc[product.orderId].push(product);
+        return acc;
+    }, {});
+
+    // בניית מערך ההזמנות עם הפריטים שלהם
+    const ordersWithProducts = orders.map(order => ({
+        ...order,
+        products: productsByOrderId[order.id] || []
+    }))
+        .sort((a, b) => {
+            const aOrder = a.collectionGroupOrder || 0;
+            const bOrder = b.collectionGroupOrder || 0;
+            return aOrder - bOrder;
+        });
+
+    return {
+        ordersWithProducts,
+        collectionGroupProducts
+    };
+}
 export const getCollectionOrderWithProducts = async (collectionGroupId) => {
 
     // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף

@@ -255,21 +255,67 @@ const getOrderProducts = async (userId) => {
     return result;
 };
 
-const approveOrderProducts = async (products, userId) => {
-    const batch = db.batch();
-    for (const product of products) {
-        const docRef = db.doc('orderProducts/' + product);
-        batch.update(docRef, {
-            status: 3,
-            updateBy: "pos",
-            updateDate: Timestamp.now(),
-            updateStatus: Timestamp.now(),
-            collectBy: userId,
+// --- פונקציה חדשה להצגת סטטוס מוצרים בהזמנות ---
+const { getCollectionOrdersAndGroupProducts } = require('./collectionGroupUtils');
+
+/**
+ * מחזיר סטטיסטיקת מוצרים לכל הזמנה בקבוצה
+ * @param {string} collectionGroupId
+ */
+const getOrderCardsWithProductStatus = async (collectionGroupId) => {
+    const { ordersWithProducts, collectionGroupProducts, orderProducts } = await getCollectionOrdersAndGroupProducts(collectionGroupId);
+
+    // מיפוי סטטוס מוצרי מדף לפי productId
+    const groupProductStatusMap = {};
+    collectionGroupProducts.forEach(p => {
+        groupProductStatusMap[p.productId] = p.status;
+    });
+
+    // מיפוי orderProducts לפי productId והזמנה
+    const orderProductStatusMap = {};
+    orderProducts.forEach(op => {
+        if (!orderProductStatusMap[op.orderId]) orderProductStatusMap[op.orderId] = {};
+        orderProductStatusMap[op.orderId][op.productId] = op.status;
+    });
+
+    // לכל הזמנה מחשבים כמה מוצרים בסטטוס 1/2/3
+    const cards = ordersWithProducts.map(order => {
+        let total = order.products.length;
+        let countOnShelf = 0; // סטטוס 1
+        let countCollected = 0; // סטטוס 2
+        let countPlaced = 0; // סטטוס 3
+        let products = order.products.map(product => {
+            const shelfStatus = groupProductStatusMap[product.productId];
+            const placedStatus = orderProductStatusMap[order.id]?.[product.productId];
+            let status = 'onShelf';
+            if (shelfStatus === 1) status = 'onShelf';
+            else if (shelfStatus === 2) {
+                if (placedStatus === 3) status = 'placed';
+                else status = 'collected';
+            } else if (shelfStatus === 3) status = 'placed';
+
+            if (status === 'onShelf') countOnShelf++;
+            else if (status === 'collected') countCollected++;
+            else if (status === 'placed') countPlaced++;
+
+            return {
+                ...product,
+                status
+            };
         });
-    }
-    await batch.commit();
-    return true;
+        return {
+            ...order,
+            products,
+            total,
+            countOnShelf,
+            countCollected,
+            countPlaced
+        };
+    });
+    return cards;
 };
+
+module.exports.getOrderCardsWithProductStatus = getOrderCardsWithProductStatus;
 
 
 // טבלת מוצרים מיוחדים - מומלץ לקרוא לה specialProducts
