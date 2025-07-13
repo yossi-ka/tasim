@@ -5,87 +5,83 @@ import {
     Grid,
     Stack,
     Button,
-    CircularProgress
+    CircularProgress,
+    ToggleButtonGroup,
+    ToggleButton
 } from "@mui/material";
 import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import PrintIcon from "@mui/icons-material/Print";
 import usePrint from "../../../context/hooks/print/usePrint";
 import { useMutation, useQuery } from "react-query";
-import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts } from "../../../api/services/collectionGroups";
+import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts, getProductsWithOrdersAndStatusSummary, getMissingProductsByOrder } from "../../../api/services/collectionGroups";
 import OrderCard from "./OrderCard";
+import ProductCard from "./ProductCard";
 import Context from "../../../context";
 import StickerPages from "./StickerPages";
 import ProductPages from "./ProductPages";
 import OrderPages from "./OrderPages";
+import MissingCreditsPages from "./MissingCreditsPages";
 
 
 const Tracking = ({ currentCollectionGroup }) => {
     const { getLookupName } = React.useContext(Context);
     const { handlePrint, printComponent } = usePrint();
 
-
+    const [filterOrdersType, setFilterOrdersType] = React.useState("all");
     // עמודה 1: הזמנות עם מוצרים וסטטוס מוצר
-    const { data, isLoading } = useQuery([
+    const { data, isLoading, refetch } = useQuery([
         "collection-orders-and-group-products",
         currentCollectionGroup?.id
     ], () => getCollectionOrdersAndGroupProducts(currentCollectionGroup.id), {
         enabled: !!currentCollectionGroup?.id
     });
 
-
-    // נרמול סטטוסים לכל מוצר בכל הזמנה (MEMO)
-    const orders = React.useMemo(() => {
+    const filteredOrders = React.useMemo(() => {
         if (!data) return [];
-        console.log("Data fetched:", data);
-        const { ordersWithProducts = [], collectionGroupProducts = [] } = data;
-        // מיפוי מהיר של collectionGroupProducts לפי productId
-        const groupProductMap = {};
-        collectionGroupProducts.forEach(p => {
-            groupProductMap[p.productId] = p;
+        return data.filter(order => {
+            if (filterOrdersType === "ready") {
+                return order.countStatus2 === 0 && order.countStatus5 === 0 && order.countStatus3 > 0;
+            } else if (filterOrdersType === "notReady") {
+                return order.countStatus2 > 0 || order.countStatus5 > 0;
+            } else if (filterOrdersType === "missing") {
+                return order.countStatus4 > 0;
+            }
+            return true; // הכל
         });
+    }, [data, filterOrdersType]);
 
-        return ordersWithProducts.map(order => {
-            let countOnShelf = 0, countInCart = 0, countPlaced = 0;
-            const products = order.products.map(product => {
-                const groupProduct = groupProductMap[product.productId];
-                let status = 'onShelf';
-                if (groupProduct) {
-                    if (groupProduct.status === 1) {
-                        status = 'onShelf';
-                        countOnShelf++;
-                    } else if (groupProduct.status === 2 || groupProduct.status === 3) {
-                        if (product.status === 3) {
-                            status = 'placed';
-                            countPlaced++;
-                        } else if (product.status === 2) {
-                            status = 'inCart';
-                            countInCart++;
-                        } else {
-                            status = 'inCart';
-                            countInCart++;
-                        }
-                    } else {
-                        countOnShelf++;
-                    }
-                } else {
-                    countOnShelf++;
-                }
-                return {
-                    ...product,
-                    status
-                };
-            });
-            return {
-                ...order,
-                products,
-                countOnShelf,
-                countInCart,
-                countPlaced
-            };
+
+    const [filterProductsType, setFilterProductsType] = React.useState("all");
+    // עמודה 1: הזמנות עם מוצרים וסטטוס מוצר
+    const productsCollection = useQuery([
+        "collection-products-and-group-orders",
+        currentCollectionGroup?.id
+    ], () => getProductsWithOrdersAndStatusSummary(currentCollectionGroup.id), {
+        enabled: !!currentCollectionGroup?.id
+    });
+
+    const filteredProducts = React.useMemo(() => {
+        if (!productsCollection.data) return [];
+        return productsCollection.data.filter(product => {
+            if (filterProductsType === "ready") {
+                return (product?.status2 === 0) && (product?.status5 === 0) && (product?.status3 > 0);
+            } else if (filterProductsType === "notReady") {
+                return (product?.status2 > 0);
+            } else if (filterProductsType === "missing") {
+                return (product?.status4 > 0);
+            }
+            return true;
         });
-    }, [data]);
+    }, [productsCollection.data, filterProductsType]);
 
-    // עמודה 3: כל מה שהיה קודם
+    console.log("productsCollection", productsCollection.data);
+    console.log("data", data);
+
+    const refetchAll = () => {
+        refetch();
+        productsCollection.refetch();
+    }
+
     const print = useMutation(() => getCollectionGroupProductsWithOrders(currentCollectionGroup.id), {
         onSuccess: (data) => {
             const pages = ProductPages({ products: data, getLookupName });
@@ -124,27 +120,103 @@ const Tracking = ({ currentCollectionGroup }) => {
         }
     });
 
+    const printMissingOrders = useMutation(() => getMissingProductsByOrder(currentCollectionGroup.id), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = MissingCreditsPages({ orders });
+            handlePrint([pages]);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
     return (
         <Box sx={{ p: 3 }}>
             <Grid container spacing={3}>
                 {/* עמודה 1: הזמנות עם מוצרים */}
-                <Grid item xs={12} md={4}>
-                    <Typography variant="h5" gutterBottom>הזמנות עם מוצרים</Typography>
-                    {isLoading ? (
-                        <CircularProgress />
-                    ) : (
-                        orders && orders.length > 0 ? (
-                            orders.map(order => (
-                                <OrderCard key={order.id} order={order} getLookupName={getLookupName} />
-                            ))
+                <Grid item xs={12} md={4} sx={{}}>
+                    <Typography variant="h5" textAlign="center">הזמנות עם מוצרים</Typography>
+                    <ToggleButtonGroup
+                        value={filterOrdersType}
+                        onChange={(_, newFilters) => {
+                            setFilterOrdersType(newFilters);
+
+                        }}
+                        color="primary"
+                        size="small"
+                        exclusive
+                    >
+                        <ToggleButton value="ready" aria-label="ready">
+                            מוכן
+                        </ToggleButton>
+                        <ToggleButton value="notReady" aria-label="notReady">
+                            לא מוכן
+                        </ToggleButton>
+                        <ToggleButton value="missing" aria-label="missing">
+                            מוצרים חסרים
+                        </ToggleButton>
+                        <ToggleButton value="all" aria-label="all">
+                            הכל
+                        </ToggleButton>
+
+                    </ToggleButtonGroup>
+                    <Box sx={{ mb: 2, height: '62vh', overflowY: 'auto' }}>
+                        {isLoading ? (
+                            <CircularProgress />
                         ) : (
-                            <Typography color="text.secondary">לא נמצאו הזמנות</Typography>
-                        )
-                    )}
+                            filteredOrders.length > 0 ? (
+                                filteredOrders.map(order => (
+                                    <OrderCard key={order.id} order={order} refetch={refetchAll} />
+                                ))
+                            ) : (
+                                <Typography textAlign="center" variant="h4" color="text.secondary" sx={{ my: 10 }}>לא נמצאו הזמנות</Typography>
+                            )
+                        )}
+                    </Box>
                 </Grid>
-                {/* עמודה 2: ריק לעתיד */}
+                {/* עמודה 2: מוצרים עם הזמנות */}
                 <Grid item xs={12} md={4}>
-                    {/* כאן אפשר להוסיף תוכן נוסף בהמשך */}
+                    <Typography variant="h5" textAlign="center">מוצרים עם הזמנות</Typography>
+                    <ToggleButtonGroup
+                        value={filterProductsType}
+                        onChange={(_, newFilters) => {
+                            setFilterProductsType(newFilters);
+                        }}
+                        color="primary"
+                        size="small"
+                        exclusive
+                    >
+                        <ToggleButton value="ready" aria-label="ready">
+                            הסתיים
+                        </ToggleButton>
+                        <ToggleButton value="notReady" aria-label="notReady">
+                            לא הסתיים
+                        </ToggleButton>
+                        <ToggleButton value="missing" aria-label="missing">
+                            מוצרים חסרים
+                        </ToggleButton>
+                        <ToggleButton value="all" aria-label="all">
+                            הכל
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    <Box sx={{ mb: 2, height: '62vh', overflowY: 'auto' }}>
+                        {productsCollection.isLoading ? (
+                            <CircularProgress />
+                        ) : (
+                            filteredProducts.length > 0 ? (
+                                filteredProducts.map(product => (
+                                    <ProductCard key={product.id} product={product} refetch={refetchAll} />
+                                ))
+                            ) : (
+                                <Typography textAlign="center" variant="h4" color="text.secondary" sx={{ my: 10 }}>לא נמצאו מוצרים</Typography>
+                            )
+                        )}
+                    </Box>
                 </Grid>
                 {/* עמודה 3: כל מה שהיה קודם */}
                 <Grid item xs={12} md={4}>
@@ -188,6 +260,16 @@ const Tracking = ({ currentCollectionGroup }) => {
                             startIcon={printOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
                         >
                             {printOrders.isLoading ? 'מכין דפי הזמנה...' : 'הדפסת דפי הזמנה ללקוח'}
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ mt: 3 }}
+                            onClick={printMissingOrders.mutate}
+                            disabled={printMissingOrders.isLoading}
+                            startIcon={printMissingOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                        >
+                            {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'הדפסת דוח זיכויים'}
                         </Button>
                     </Stack>
                     {printComponent}

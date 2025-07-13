@@ -5,9 +5,7 @@ import SyncIcon from '@mui/icons-material/Sync';
 
 import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
-import AddOrUpdate from "./AddOrUpdate";
 import SyncStatus from "./SyncStatus";
-import { moveAllOrdersFrom4To5 } from "../../api/services/collectionGroups";
 
 const Search = ({ refetch, params, setParams }) => {
     const { popup, smallPopup } = React.useContext(Context);

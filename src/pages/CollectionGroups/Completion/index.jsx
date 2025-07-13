@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useMutation, useQueryClient } from "react-query";
-import { completeCollectionGroup, moveAllOrdersFrom4To5 } from "../../../api/services/collectionGroups";
+import { completeCollectionGroup } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
 import GenericForm from "../../../components/GenericForm";
 

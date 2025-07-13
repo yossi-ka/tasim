@@ -11,6 +11,7 @@ import Customers from "../pages/Customers";
 import Products from "../pages/Products";
 import VoiceMsg from "../pages/VoiceMsg";
 import CollectionGroups from "../pages/CollectionGroups";
+import Test from "../pages/Test";
 
 
 const ProjectRoutes = () => {
@@ -37,6 +38,7 @@ const ProjectRoutes = () => {
                 <Route path="customers" element={<Customers />} />
                 <Route path="products" element={<Products />} />
                 <Route path="voice-msg" element={<VoiceMsg />} />
+                <Route path="test" element={<Test />} />
             </Route>
         </Routes>
     )

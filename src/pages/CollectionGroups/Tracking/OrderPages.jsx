@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip } from "@mui/material";
 
 /**
  * קומפוננטת עמוד הדפסה להזמנה בודדת
@@ -11,6 +11,10 @@ export const OrderPrintComponent = ({ order, currentPage, totalPages, pageIndex,
 
     // חישוב סה"כ עמודים להזמנה זו
     const products = order.products || [];
+    // חישוב סה"כ זיכוי עבור מוצרים חסרים (סטטוס 4)
+    const totalCredit = products
+        .filter(p => p.status === 4)
+        .reduce((sum, p) => sum + ((p.price || 0) * (p.quantityOrWeight || 0)), 0);
 
 
     return (
@@ -88,14 +92,43 @@ export const OrderPrintComponent = ({ order, currentPage, totalPages, pageIndex,
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {products.map((product, index) => (
-                                <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? '#fafafa' : '#fff', height: '28px' }}>
-                                    <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 500 }}>{product.productName}</TableCell>
-                                    <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '10%' }}>{product.quantityOrWeight}</TableCell>
-                                    <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '15%' }}>{product.price != null ? product.price.toLocaleString() : ''}</TableCell>
-                                    <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '15%' }}>{product.price != null ? (product.price * (product.quantityOrWeight || 0)).toLocaleString() : ''}</TableCell>
-                                </TableRow>
-                            ))}
+                            {products.map((product, index) => {
+                                const isCredited = product.status === 4;
+                                return (
+                                    <TableRow
+                                        key={index}
+                                        sx={{
+                                            backgroundColor: isCredited ? '#e0e0e0' : (index % 2 === 0 ? '#fafafa' : '#fff'),
+                                            height: '28px',
+                                        }}
+                                    >
+                                        <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 500 }}>
+                                            {product.productName}
+                                            {isCredited && (
+                                                <Chip
+                                                    label="חסר בוצע זיכוי"
+                                                    size="small"
+                                                    sx={{
+                                                        ml: 1,
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        background: '#bdbdbd',
+                                                        color: '#222',
+                                                        height: 20,
+                                                        borderRadius: '8px',
+                                                        verticalAlign: 'middle',
+                                                        px: 1.2,
+                                                        display: 'inline-flex',
+                                                    }}
+                                                />
+                                            )}
+                                        </TableCell>
+                                        <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '10%' }}>{product.quantityOrWeight}</TableCell>
+                                        <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '15%' }}>{product.price != null ? product.price.toLocaleString() : ''}</TableCell>
+                                        <TableCell sx={{ border: 'none', fontSize: '13px', textAlign: 'center', padding: '2px 4px', fontWeight: 700, width: '15%' }}>{product.price != null ? (product.price * (product.quantityOrWeight || 0)).toLocaleString() : ''}</TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -106,6 +139,11 @@ export const OrderPrintComponent = ({ order, currentPage, totalPages, pageIndex,
                 <Box sx={{ mt: 2, mb: 1, p: 2, background: '#f7f7f7', borderRadius: '8px', border: '1px solid #e0e0e0', maxWidth: 400, alignSelf: 'end', minHeight: 120 }}>
                     <Typography sx={{ fontWeight: 900, fontSize: '18px', color: '#000', mb: 1 }}>סיכום הזמנה</Typography>
                     <Typography sx={{ fontWeight: 700, fontSize: '16px', color: '#000' }}>סה"כ שולם: {order.totalPrice.toLocaleString()} ₪</Typography>
+                    {totalCredit > 0 && (
+                        <Typography sx={{ fontWeight: 700, fontSize: '16px', color: '#000', mt: 0.5 }}>
+                            סה"כ זיכוי עבור מוצרים חסרים: {totalCredit.toLocaleString()} ₪
+                        </Typography>
+                    )}
                     <Typography sx={{ fontWeight: 700, fontSize: '16px', color: '#000' }}>אמצעי תשלום: {order.paymentMethod || '—'}</Typography>
                     {order.moreInfo && (
                         <Typography sx={{ fontWeight: 700, fontSize: '16px', color: '#000' }}>מידע נוסף: {order.moreInfo}</Typography>

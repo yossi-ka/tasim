@@ -2,6 +2,7 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { sendEmail } = require("../emails/sendEmail");
 const { db } = require("../firebase-config");
+const { yemotRequest } = require("../api");
 
 
 const newChalukaMessage = onDocumentCreated("orderMessages/{message}", async (event) => {
@@ -214,6 +215,23 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
         }
     }
 });
+
+//כשההזמנה מגיעה ליעד
+// const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (event) => {
+//     const before = event.data.before.data();
+//     const after = event.data.after.data();
+//     if (!before || !after) return;
+//     // נבדוק אם הסטטוס השתנה ל-5
+//     if (before.status !== 5 && after.status === 5) {
+//         const phones = Array.isArray(after.phones) ? after.phones : [];
+//         if (phones.length > 0) {
+//             await yemotRequest("CallExtensionBridging",{
+//                 phones: phones,
+//                 ivrPath:"ivr2:/1/100",
+//             })
+//         }
+//     }
+// })
 
 module.exports = {
     newChalukaMessage,

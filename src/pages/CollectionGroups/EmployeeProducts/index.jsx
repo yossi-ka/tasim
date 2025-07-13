@@ -383,6 +383,7 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
                             <FormControl size="small" sx={{ minWidth: 200 }}>
                                 <InputLabel>בחר עובדים לחלוקה</InputLabel>
                                 <Select
+                                    sx={{ maxWidth: 300 }}
                                     multiple
                                     value={selectedEmployees}
                                     onChange={e => setSelectedEmployees(e.target.value)}
@@ -459,7 +460,7 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
             <Grid container spacing={3}>
                 {/* Unassigned Products */}
                 <Grid item xs={12} md={4}>
-                    <Card sx={{ height: 'fit-content' }}>
+                    <Card sx={{ height: '60vh' }}>
                         <CardHeader
                             avatar={
                                 <Badge max={999} badgeContent={getProductsByEmployee('unassigned').length} color="primary">
@@ -510,9 +511,9 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
 
                 {/* Employees */}
                 <Grid item xs={12} md={8}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ height: '60vh', overflowY: 'auto' }}>
                         {employees.data?.filter(emp => emp.isActive).map((employee) => (
-                            <Card key={employee.id}>
+                            <Card key={employee.id} sx={{ mb: 2 }}>
                                 <Accordion>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>

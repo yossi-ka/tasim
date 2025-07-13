@@ -255,128 +255,21 @@ const getOrderProducts = async (userId) => {
     return result;
 };
 
-// --- פונקציה חדשה להצגת סטטוס מוצרים בהזמנות ---
-const { getCollectionOrdersAndGroupProducts } = require('./collectionGroupUtils');
-
-/**
- * מחזיר סטטיסטיקת מוצרים לכל הזמנה בקבוצה
- * @param {string} collectionGroupId
- */
-const getOrderCardsWithProductStatus = async (collectionGroupId) => {
-    const { ordersWithProducts, collectionGroupProducts, orderProducts } = await getCollectionOrdersAndGroupProducts(collectionGroupId);
-
-    // מיפוי סטטוס מוצרי מדף לפי productId
-    const groupProductStatusMap = {};
-    collectionGroupProducts.forEach(p => {
-        groupProductStatusMap[p.productId] = p.status;
-    });
-
-    // מיפוי orderProducts לפי productId והזמנה
-    const orderProductStatusMap = {};
-    orderProducts.forEach(op => {
-        if (!orderProductStatusMap[op.orderId]) orderProductStatusMap[op.orderId] = {};
-        orderProductStatusMap[op.orderId][op.productId] = op.status;
-    });
-
-    // לכל הזמנה מחשבים כמה מוצרים בסטטוס 1/2/3
-    const cards = ordersWithProducts.map(order => {
-        let total = order.products.length;
-        let countOnShelf = 0; // סטטוס 1
-        let countCollected = 0; // סטטוס 2
-        let countPlaced = 0; // סטטוס 3
-        let products = order.products.map(product => {
-            const shelfStatus = groupProductStatusMap[product.productId];
-            const placedStatus = orderProductStatusMap[order.id]?.[product.productId];
-            let status = 'onShelf';
-            if (shelfStatus === 1) status = 'onShelf';
-            else if (shelfStatus === 2) {
-                if (placedStatus === 3) status = 'placed';
-                else status = 'collected';
-            } else if (shelfStatus === 3) status = 'placed';
-
-            if (status === 'onShelf') countOnShelf++;
-            else if (status === 'collected') countCollected++;
-            else if (status === 'placed') countPlaced++;
-
-            return {
-                ...product,
-                status
-            };
+const approveOrderProducts = async (products, userId) => {
+    const batch = db.batch();
+    for (const product of products) {
+        const docRef = db.doc('orderProducts/' + product);
+        batch.update(docRef, {
+            status: 3,
+            updateBy: "pos",
+            updateDate: Timestamp.now(),
+            updateStatus: Timestamp.now(),
+            collectBy: userId,
         });
-        return {
-            ...order,
-            products,
-            total,
-            countOnShelf,
-            countCollected,
-            countPlaced
-        };
-    });
-    return cards;
+    }
+    await batch.commit();
+    return true;
 };
-
-module.exports.getOrderCardsWithProductStatus = getOrderCardsWithProductStatus;
-
-
-// טבלת מוצרים מיוחדים - מומלץ לקרוא לה specialProducts
-// שלב ראשון: שליפת כל המוצרים המיוחדים
-// const getOrders = async (userId) => {
-//     // שליפת מזהי מוצרים מיוחדים
-//     const specialProductsSnap = await db.collection('specialProducts').get();
-//     const specialProductIds = specialProductsSnap.docs.map(doc => doc.data().productId);
-
-//     // שליפת כל ההזמנות של העובד
-//     const ordersSnap = await db.collection('orders')
-//         .where("employeeId", "==", userId)
-//         .where("orderStatus", "==", 4).get();
-
-//     // שלב שני: שליפת כל orderProducts של ההזמנות במנות של 30
-//     const orderIds = ordersSnap.docs.map(doc => doc.id);
-//     let orderProducts = [];
-//     for (let i = 0; i < orderIds.length; i += 30) {
-//         const batch = orderIds.slice(i, i + 30);
-//         const snap = await db.collection('orderProducts')
-//             .where("orderId", "in", batch)
-//             .get();
-//         orderProducts.push(...snap.docs.map(doc => ({ ...doc.data(), id: doc.id })));
-//     }
-
-//     // מיפוי orderId -> רשימת productId מיוחדים
-//     const orderIdToSpecialProducts = {};
-//     orderProducts.forEach(op => {
-//         if (specialProductIds.includes(op.productId)) {
-//             if (!orderIdToSpecialProducts[op.orderId]) orderIdToSpecialProducts[op.orderId] = [];
-//             orderIdToSpecialProducts[op.orderId].push(op.productName || op.productId);
-//         }
-//     });
-
-//     // בניית התוצאה
-//     const res = ordersSnap.docs.map(doc => {
-//         const docData = doc.data();
-//         const specialProductsInOrder = orderIdToSpecialProducts[doc.id] || [];
-//         const obj = {
-//             orderId: doc.id,
-//             nbsOrderId: docData.nbsOrderId,
-//             collectionGroupOrder: docData.collectionGroupOrder || 0,
-//             fullName: (docData.lastName || "") + "-" + (docData.firstName || ""),
-//             street: docData.street || "",
-//             houseNumber: docData.houseNumber || "",
-//             entrance: docData.entrance || "",
-//             floor: docData.floor || "",
-//             apartment: docData.apartment || "",
-//             phone: docData.phones.join(",") || "",
-//             note: docData.note || "הערה",
-//             notes: specialProductsInOrder.length > 0
-//                 ? [`שים לב: בהזמנה יש מוצרים מיוחדים: ${specialProductsInOrder.join(", ")}`]
-//                 : []
-//         }
-//         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();
-//         return obj
-//     }).sort((a, b) => {
-//         return a.collectionGroupOrder - b.collectionGroupOrder;
-//     })
-//     return res;
-// }
 
 
 const getOrders = async (userId) => {
@@ -467,9 +360,5 @@ module.exports = {
     sendMessage,
     getOrderProducts,
     approveOrderProducts
-    // getAreas,
-    // approveBuild,
-    // approveBuilds,
-    // getBuildings,
-    // sendMessage
+
 }

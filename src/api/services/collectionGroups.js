@@ -16,6 +16,28 @@ import {
     writeBatch
 } from "firebase/firestore";
 
+
+/*
+
+פירוט סטטוסים
+collectionsGroups:
+1 - ראשוני ופתוח וניתן להוסיף הזמנות
+2 - מסלול סגור ואין אפשרות להוסיף הזמנות, בתהליך ליקוט
+3 - תהליך הליקוט הסתיים והזמנות עברו לסטטוס במשלוח
+
+collectionGroupProducts:
+1 - מוצר פעיל בקבוצת האיסוף
+2 - אספו את המוצר מהמדף
+3 - סיימו לפזר את המוצר בהזמנות
+
+orderProducts:
+1 - 
+2 - מוצר שייך לקבוצה
+3 - מוצר הונח בהזמנה
+4 - מוצר חסר
+5 - מוצר נאסף מהמדף
+*/
+
 export const addToCollectionGroup = async (lineId, orderIds, userId) => {
 
     const q = query(collection(db, 'collectionsGroups'),
@@ -394,21 +416,49 @@ export const getCollectionOrdersAndGroupProducts = async (collectionGroupId) => 
         return acc;
     }, {});
 
-    // בניית מערך ההזמנות עם הפריטים שלהם
-    const ordersWithProducts = orders.map(order => ({
-        ...order,
-        products: productsByOrderId[order.id] || []
-    }))
+    // יצירת Map של productId לסטטוס מתוך collectionGroupProducts
+    const groupProductStatusMap = collectionGroupProducts.reduce((acc, groupProduct) => {
+        if (groupProduct.status === 2) {
+            acc[groupProduct.productId] = 2;
+        }
+        return acc;
+    }, {});
+
+    // בניית מערך ההזמנות עם הפריטים שלהם, כולל עדכון סטטוס במידת הצורך
+    const ordersWithProducts = orders.map(order => {
+        const products = (productsByOrderId[order.id] || []).map(product => {
+            // בדיקה אם יש productId כזה ב-collectionGroupProducts עם סטטוס 2
+            if (groupProductStatusMap[product.productId] === 2 && product.status === 2) {
+                return { ...product, status: 5 };
+            }
+            return product;
+        });
+
+        // חישוב כמויות לכל סטטוס
+        const statusCount = products.reduce((acc, p) => {
+            if (p.status === 2) acc.status2++;
+            if (p.status === 3) acc.status3++;
+            if (p.status === 4) acc.status4++;
+            if (p.status === 5) acc.status5++;
+            return acc;
+        }, { status2: 0, status3: 0, status4: 0, status5: 0 });
+
+        return {
+            ...order,
+            products,
+            countStatus2: statusCount.status2,
+            countStatus3: statusCount.status3,
+            countStatus4: statusCount.status4,
+            countStatus5: statusCount.status5
+        };
+    })
         .sort((a, b) => {
             const aOrder = a.collectionGroupOrder || 0;
             const bOrder = b.collectionGroupOrder || 0;
             return aOrder - bOrder;
         });
 
-    return {
-        ordersWithProducts,
-        collectionGroupProducts
-    };
+    return ordersWithProducts;
 }
 export const getCollectionOrderWithProducts = async (collectionGroupId) => {
 
@@ -580,4 +630,134 @@ export const moveAllOrdersFrom4To5 = async (userId) => {
 
     await batch.commit();
     console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
+    return orderDocs.length;
+}
+
+
+export const updateMissingProduct = async (orderProductId, userId) => {
+    try {
+        if (orderProductId) {
+            const orderProductRef = doc(db, 'orderProducts', orderProductId);
+            const orderProductSnap = await getDoc(orderProductRef);
+
+            if (!orderProductSnap.exists()) {
+                return { status: "error", message: "מוצר לא קיים" };
+            }
+
+            await updateDoc(orderProductRef, {
+                status: 4, // סטטוס חסר
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            });
+
+            return { status: 'ok', message: 'העדכון התקבל בהצלחה' };
+        }
+        return { status: "error", message: "חסר מזהה מוצר" };
+    } catch (e) {
+        return { status: "error", message: e.message || "שגיאה בעדכון המוצר" };
+    }
+}
+
+export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) => {
+    // שליפת כל פריטי ההזמנות עבור קבוצת האיסוף
+    const orderProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const orderProductsSnapshot = await getDocs(orderProductsQuery);
+    const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // שליפת כל המוצרים מטבלת collectionGroupProducts
+    const productsQuery = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+    const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // שליפת כל ההזמנות עבור קבוצת האיסוף (כדי להחזיר פרטי הזמנה)
+    const ordersQuery = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const ordersMap = ordersSnapshot.docs.reduce((map, doc) => {
+        map[doc.id] = { id: doc.id, ...doc.data() };
+        return map;
+    }, {});
+
+    // קיבוץ orderProducts לפי productId
+    const orderProductsByProductId = orderProducts.reduce((acc, op) => {
+        if (!acc[op.productId]) acc[op.productId] = [];
+        acc[op.productId].push(op);
+        return acc;
+    }, {});
+
+    // בניית מערך collectionGroupProducts עם orders וסיכום סטטוסים
+    const result = products.map(product => {
+        const productOrderProducts = orderProductsByProductId[product.productId] || [];
+        // לכל orderProduct נחבר גם את פרטי ההזמנה
+        const orders = productOrderProducts.map(op => {
+            if (op.status === 2 && product.status === 2) op.status = 5; // אם המוצר נאסף מהמדף, נעדכן את הסטטוס ל-5
+            return {
+                ...op,
+                order: ordersMap[op.orderId] || null,
+                orderFullName: ordersMap[op.orderId] ? `${ordersMap[op.orderId].firstName || ""} ${ordersMap[op.orderId].lastName || ""}` : null
+            }
+        });
+        // חישוב סיכום סטטוסים 2,3,4
+        const statusSummary = productOrderProducts.reduce((acc, op) => {
+            if (op.status === 2) acc.status2++;
+            if (op.status === 3) acc.status3++;
+            if (op.status === 4) acc.status4++;
+            if (op.status === 5) acc.status5++;
+            return acc;
+        }, { status2: 0, status3: 0, status4: 0, status5: 0 });
+
+        return {
+            ...product,
+            orders,
+            ...statusSummary
+        };
+    });
+
+    return result;
+};
+
+export const getMissingProductsByOrder = async (collectionGroupId) => {
+    const q = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "==", 4) // סטטוס חסר
+    );
+    const querySnapshot = await getDocs(q);
+    const missingProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const uniqueOrderIds = [...new Set(missingProducts.map(mp => mp.orderId))];
+
+    const orders = [];
+    //get in 30 batches
+    for (let i = 0; i < uniqueOrderIds.length; i += 30) {
+        const batchOrderIds = uniqueOrderIds.slice(i, i + 30);
+        const ordersQuery = query(
+            collection(db, 'orders'),
+            where("__name__", "in", batchOrderIds)
+        );
+        const ordersSnapshot = await getDocs(ordersQuery);
+        ordersSnapshot.docs.forEach(doc => {
+            orders.push({ id: doc.id, ...doc.data() });
+        });
+    }
+
+    const productOrdersMap = missingProducts.reduce((acc, product) => {
+        if (!acc[product.orderId]) acc[product.orderId] = [];
+        acc[product.orderId].push(product);
+        return acc;
+    }, {});
+
+    return orders.map(order => {
+        return {
+            ...order,
+            missingProducts: productOrdersMap[order.id] || []
+        };
+    })
 }
