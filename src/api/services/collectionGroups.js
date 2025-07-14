@@ -552,31 +552,32 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
         });
     });
 
-    // collectionGroupProducts
-    productDocs.forEach(productDoc => {
-        const productRef = doc(db, 'collectionGroupProducts', productDoc.id);
-        updates.push({
-            ref: productRef,
-            data: {
-                status: 3, // סיום
-                updatedAt: Timestamp.now(),
-                updatedBy: userId,
-            }
-        });
-    });
+    // העברתי להערה כי צריך להגיע לסיום רק כשכל הסטטוסים כבר מוכנים..
+    // // collectionGroupProducts
+    // productDocs.forEach(productDoc => {
+    //     const productRef = doc(db, 'collectionGroupProducts', productDoc.id);
+    //     updates.push({
+    //         ref: productRef,
+    //         data: {
+    //             status: 3, // סיום
+    //             updatedAt: Timestamp.now(),
+    //             updatedBy: userId,
+    //         }
+    //     });
+    // });
 
-    // orderProducts
-    allProductDocs.forEach(productDoc => {
-        const productRef = doc(db, 'orderProducts', productDoc.id);
-        updates.push({
-            ref: productRef,
-            data: {
-                status: 3, // סיום
-                updatedAt: Timestamp.now(),
-                updatedBy: userId,
-            }
-        });
-    });
+    // // orderProducts
+    // allProductDocs.forEach(productDoc => {
+    //     const productRef = doc(db, 'orderProducts', productDoc.id);
+    //     updates.push({
+    //         ref: productRef,
+    //         data: {
+    //             status: 3, // סיום
+    //             updatedAt: Timestamp.now(),
+    //             updatedBy: userId,
+    //         }
+    //     });
+    // });
 
     // בצע עדכונים במנות של 500
     for (let i = 0; i < updates.length; i += 500) {
@@ -597,68 +598,112 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 }
 
 export const moveAllOrdersFrom4To5 = async (userId) => {
-    const q = query(
-        collection(db, 'orders'),
-        where("orderStatus", "==", 4)
-    );
-    const querySnapshot = await getDocs(q);
-    const orderDocs = querySnapshot.docs;
-
-    //  const orderProductsCountSnap = await db.collection('orderProducts')
-    //         .where('orderId', '==', orderId)
-    //         .where('status', '==', 2)
-    //         .count()
-    //         .get();
-
-    // const orderProductsSnap = await query(
-    //     collection(db, 'orderProducts'),
-    //     where('status', '==', 2),
-    //     where('orderId', '==', "orderDocs.map(doc => doc.id)")
+    // const q = query(
+    //     collection(db, 'orders'),
+    //     where("orderStatus", "==", 4)
     // );
+    // const querySnapshot = await getDocs(q);
+    // const orderDocs = querySnapshot.docs;
 
-    // const d = getDocs(orderProductsSnap);
-    console.log(`Moving ${orderDocs.length} orders from status 4 to 5`);
-    const batch = writeBatch(db);
+    // //  const orderProductsCountSnap = await db.collection('orderProducts')
+    // //         .where('orderId', '==', orderId)
+    // //         .where('status', '==', 2)
+    // //         .count()
+    // //         .get();
 
-    orderDocs.forEach(orderDoc => {
-        const orderRef = doc(db, 'orders', orderDoc.id);
-        batch.update(orderRef, {
-            orderStatus: 5, // סיום
-            // employeeId: "h6iEY6mmMkvCsWI2MW8g",
-            // updatedAt: Timestamp.now(),
-            // updatedBy: userId,
-        });
-    });
+    // // const orderProductsSnap = await query(
+    // //     collection(db, 'orderProducts'),
+    // //     where('status', '==', 2),
+    // //     where('orderId', '==', "orderDocs.map(doc => doc.id)")
+    // // );
 
-    await batch.commit();
-    console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
-    return orderDocs.length;
+    // // const d = getDocs(orderProductsSnap);
+    // console.log(`Moving ${orderDocs.length} orders from status 4 to 5`);
+    // const batch = writeBatch(db);
+
+    // orderDocs.forEach(orderDoc => {
+    //     const orderRef = doc(db, 'orders', orderDoc.id);
+    //     batch.update(orderRef, {
+    //         orderStatus: 5, // סיום
+    //         // employeeId: "h6iEY6mmMkvCsWI2MW8g",
+    //         // updatedAt: Timestamp.now(),
+    //         // updatedBy: userId,
+    //     });
+    // });
+
+    // await batch.commit();
+    // console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
+    // return orderDocs.length;
 }
 
 
 export const updateMissingProduct = async (orderProductId, userId) => {
-    try {
-        if (orderProductId) {
-            const orderProductRef = doc(db, 'orderProducts', orderProductId);
-            const orderProductSnap = await getDoc(orderProductRef);
+    // try {
+    //     if (orderProductId) {
+    //         const orderProductRef = doc(db, 'orderProducts', orderProductId);
+    //         const orderProductSnap = await getDoc(orderProductRef);
 
-            if (!orderProductSnap.exists()) {
-                return { status: "error", message: "מוצר לא קיים" };
-            }
+    //         if (!orderProductSnap.exists()) {
+    //             return { status: "error", message: "מוצר לא קיים" };
+    //         }
 
-            await updateDoc(orderProductRef, {
-                status: 4, // סטטוס חסר
-                updatedAt: Timestamp.now(),
-                updatedBy: userId,
-            });
+    //         await updateDoc(orderProductRef, {
+    //             status: 4, // סטטוס חסר
+    //             updatedAt: Timestamp.now(),
+    //             updatedBy: userId,
+    //         });
 
-            return { status: 'ok', message: 'העדכון התקבל בהצלחה' };
-        }
-        return { status: "error", message: "חסר מזהה מוצר" };
-    } catch (e) {
-        return { status: "error", message: e.message || "שגיאה בעדכון המוצר" };
-    }
+    //         return { status: 'ok', message: 'העדכון התקבל בהצלחה' };
+    //     }
+    //     return { status: "error", message: "חסר מזהה מוצר" };
+    // } catch (e) {
+    //     return { status: "error", message: e.message || "שגיאה בעדכון המוצר" };
+    // }
 }
+
+export const getProductsWithStatusSummaryOnly = async (collectionGroupId) => {
+    // שליפת כל פריטי ההזמנות עבור קבוצת האיסוף
+    const orderProductsQuery = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const orderProductsSnapshot = await getDocs(orderProductsQuery);
+    const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    console.log(`Found ${orderProducts.length} order products for collection group ${collectionGroupId}`);
+    // שליפת כל המוצרים מטבלת collectionGroupProducts
+    const productsQuery = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+    const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // יצירת Map לבדיקה מהירה של מוצרים שנאספו מהמדף
+    const collectedProductsMap = products.reduce((map, product) => {
+        if (product.status === 2) {
+            map[product.productId] = true;
+        }
+        return map;
+    }, {});
+
+    // חישוב סיכום כולל של כל הסטטוסים
+    const totalSummary = orderProducts.reduce((acc, op) => {
+        let status = op.status;
+        // אם המוצר נאסף מהמדף, נעדכן את הסטטוס ל-5
+        if (status === 2 && collectedProductsMap[op.productId]) {
+            status = 5;
+        }
+
+        if (status === 2) acc.status2++;
+        if (status === 3) acc.status3++;
+        if (status === 4) acc.status4++;
+        if (status === 5) acc.status5++;
+        return acc;
+    }, { status2: 0, status3: 0, status4: 0, status5: 0 });
+
+    return totalSummary;
+};
 
 export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) => {
     // שליפת כל פריטי ההזמנות עבור קבוצת האיסוף
@@ -790,4 +835,14 @@ export const updateCollectionGroupProducts = async () => {
 
     await batch.commit();
     console.log(`Successfully updated ${querySnapshot.docs.length} products in collection group ${collectionGroupId}`);
+}
+
+export const getUnprocessedProductsCount = async (collectionGroupId) => {
+    const q = query(
+        collection(db, 'orderProducts'),
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "not-in", [3, 4]) // סטטוסים פעילים
+    );
+    const querySnapshot = await getCountFromServer(q);
+    return querySnapshot.data().count;
 }

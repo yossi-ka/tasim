@@ -99,6 +99,79 @@ const addMessageFromYemot = onRequest(async (req, res) => {
     });
 })
 
+
+
+const getOrdersForYemot = onRequest(async (req, res) => {
+    const { ApiPhone, isOnlyLast, isOnlyMiss } = req.query;
+    if (!ApiPhone) {
+        return res.status(400).send({
+            status: "error",
+            message: "ApiPhone parameter is required"
+        });
+    }
+    try {
+        const getLastOrders = await db.collection('orders')
+            .where('phones', 'array-contains', ApiPhone)
+            .where('isSentTzintuk', '==', true)
+            .orderBy('sentTzintukAt', 'desc')
+            .limit(isOnlyLast ? 1 : 5)
+            .get();
+
+        if (getLastOrders.empty) {
+            return res.send('id_list_message=אין נתונים להשמעה.');
+        }
+
+        const ids = getLastOrders.docs.map(doc => doc.id);
+        console.log(`נמצאו ${ids.length} הזמנות עבור הטלפון: ${ApiPhone}`);
+        const orderMissProducts = await db.collection('orderProducts')
+            .where('orderId', 'in', ids)
+            .where('status', '==', 4)
+            .get();
+
+        const missedProducts = orderMissProducts.docs.map(doc => doc.data());
+
+        const mappedProducts = missedProducts.reduce((acc, product) => {
+            const orderId = product.orderId;
+            if (!acc[orderId]) acc[orderId] = [];
+            acc[orderId].push(product);
+            return acc;
+        }, {});
+
+        const orders = getLastOrders.docs.map(doc => {
+            const orderData = doc.data();
+            const orderId = doc.id;
+            const products = mappedProducts[orderId] || [];
+            return {
+                ...orderData,
+                products: products,
+            }
+        })
+
+        if (isOnlyLast) {
+            const formattedLastOrder = formatLastOrderForYemot(orders[0]);
+            return res.send(`id_list_message=${formattedLastOrder}`);
+        }
+
+        if (isOnlyMiss) {
+            const formattedMissedProducts = formatMissedProductsForYemot(orders[0]);
+            return res.send(`id_list_message=${formattedMissedProducts}`);
+        }
+
+        const formattedOrders = formatOrdersForYemot(orders);
+        return res.send(`id_list_message=${formattedOrders}`);
+
+
+    } catch (error) {
+        console.error('שגיאה בפונקציית getOrdersForYemot:', error);
+        return res.status(500).json({
+            error: 'שגיאה פנימית בשרת',
+            details: error.message
+        });
+    }
+})
+
+
+
 // פונקציה נפרדת לעיבוד ההודעה ברקע
 async function processVoiceMessage(Phone, Booking) {
     try {
@@ -291,6 +364,51 @@ function formatMessagesForYemot(messages) {
     return formattedMessages.join("m-1006.");
 }
 
+function formatOrdersForYemot(orders) {
+
+    const formattedOrders = orders.map(order => {
+
+        const isMiss = order.products.length > 0;
+
+        const orderDate = order.sentTzintukAt ? formatDate(order.sentTzintukAt) : '';
+
+        // הזמנהה ללא מוצרים חסרים מוכנה
+        if (!isMiss) {
+            return `f-m105.n-${order.nbsOrderId}.f-106.${orderDate}.`;
+        }
+
+        const products = order.products.map(product => {
+            const name = product.productName.replace(/\([^)]+\)/, '').trim();
+            return `t-${fixText(name)}.`
+        }).join("f-107.");
+
+        //הזמנה עם מוצרים חסרים מוכנה
+        if (order.status === 5) {
+            return `f-m105.n-${order.nbsOrderId}.f-m106.${orderDate}.f-m103.${products}f-m108.`;
+        } else {
+            return `f-m105.n-${order.nbsOrderId}.f-m109.${products}f-m104.`;
+        }
+
+        // return `f-m105.n-${order.nbsOrderId}.n-${orderDate}.n-${productsText}`;
+    });
+
+    return formattedOrders.join("m-1006.");
+}
+
+function formatLastOrderForYemot(order) {
+    return `f-m100.n-${order.nbsOrderId}.f-m101.g-hangup.`
+}
+
+function formatMissedProductsForYemot(order) {
+    const products = order.products.map(product => {
+        const name = product.productName.replace(/\([^)]+\)/, '').trim();
+        return `t-${fixText(name)}.`
+    }).join("f-m107.");
+    return `f-m102.n-${order.nbsOrderId}.f-m103.${products}f-m104.g-hangup.`
+}
+
+
+
 function formatDate(firebaseTimestamp) {
     const dateObj = firebaseTimestamp.toDate ? firebaseTimestamp.toDate() : new Date(firebaseTimestamp);
     const now = new Date();
@@ -366,5 +484,6 @@ async function updateConversationInBackground(conversationId, apiPhone) {
 
 module.exports = {
     getMessagesForYemot,
-    addMessageFromYemot
+    addMessageFromYemot,
+    getOrdersForYemot
 };

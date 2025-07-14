@@ -8,14 +8,20 @@ import {
     Stack,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useMutation, useQueryClient } from "react-query";
-import { completeCollectionGroup } from "../../../api/services/collectionGroups";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { completeCollectionGroup, getUnprocessedProductsCount } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
 import GenericForm from "../../../components/GenericForm";
 
 const Completion = ({ currentCollectionGroup }) => {
 
     const { popup, user } = React.useContext(Context);
+
+    const { data } = useQuery(["collectionGroup", currentCollectionGroup.id],
+        () => getUnprocessedProductsCount(currentCollectionGroup.id), {
+        enabled: !!currentCollectionGroup.id,
+    }
+    );
 
     return (
         <Box sx={{ p: 3 }}>
@@ -29,6 +35,7 @@ const Completion = ({ currentCollectionGroup }) => {
                 </Typography>
 
                 <Stack direction="column" spacing={2} sx={{ mt: 3, mb: 3, alignItems: 'center' }}>
+
                     <Button
                         variant="contained"
                         color="primary"
@@ -37,10 +44,20 @@ const Completion = ({ currentCollectionGroup }) => {
                             title: "סגירת קבוצה",
                             content: <CompletedPopup currentCollectionGroup={currentCollectionGroup} />,
                         })}
+                        disabled={data === undefined || data !== 0}
                         startIcon={<CheckCircleIcon />}
                     >
                         {'סיום וסגירת ההזמנה'}
                     </Button>
+                    {data === undefined ? (
+                        <CircularProgress />
+                    ) : (
+                        data !== 0 && <Typography variant="body1" color="error.secondary">
+                            אין אפשרות לסגור את הקבוצה,
+                            <br />
+                            יש <strong>{data}</strong> מוצרים לא מטופלים
+                        </Typography>
+                    )}
                 </Stack>
             </Paper>
         </Box>
