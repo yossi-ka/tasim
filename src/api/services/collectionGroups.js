@@ -38,6 +38,12 @@ orderProducts:
 5 - מוצר נאסף מהמדף
 */
 
+const extractNumber = (val) => {
+    if (!val) return Infinity;
+    const match = String(val).match(/\d+/);
+    return match ? parseInt(match[0], 10) : Infinity;
+};
+
 export const addToCollectionGroup = async (lineId, orderIds, userId) => {
 
     const q = query(collection(db, 'collectionsGroups'),
@@ -369,11 +375,7 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
     });
 
     // מיון products לפי הערך המספרי ב-productPlace
-    const extractNumber = (val) => {
-        if (!val) return Infinity;
-        const match = String(val).match(/\d+/);
-        return match ? parseInt(match[0], 10) : Infinity;
-    };
+
     productsWithOrders = productsWithOrders.sort((a, b) => {
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
@@ -719,7 +721,11 @@ export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) =
             orders,
             ...statusSummary
         };
-    });
+    }).sort((a, b) => {
+        const aNum = extractNumber(a.productPlace);
+        const bNum = extractNumber(b.productPlace);
+        return aNum - bNum;
+    })
 
     return result;
 };
