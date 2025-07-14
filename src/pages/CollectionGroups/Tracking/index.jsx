@@ -22,6 +22,7 @@ import StickerPages from "./StickerPages";
 import ProductPages from "./ProductPages";
 import OrderPages from "./OrderPages";
 import MissingCreditsPages from "./MissingCreditsPages";
+import CreditSummaryPages from "./CreditSummaryPages";
 
 
 const Tracking = ({ currentCollectionGroup }) => {
@@ -76,8 +77,6 @@ const Tracking = ({ currentCollectionGroup }) => {
         });
     }, [productsCollection.data, filterProductsType]);
 
-    console.log("productsCollection", productsCollection.data);
-    console.log("data", data);
 
     // Query לגרף הסטטוסים
     const statusSummaryQuery = useQuery([
@@ -87,7 +86,6 @@ const Tracking = ({ currentCollectionGroup }) => {
         enabled: !!currentCollectionGroup?.id
     });
 
-    console.log("statusSummaryQuery", statusSummaryQuery.data);    // הכנת נתונים לגרף עוגה
     const chartData = React.useMemo(() => {
         if (!statusSummaryQuery.data) return [];
 
@@ -155,6 +153,23 @@ const Tracking = ({ currentCollectionGroup }) => {
             }
             const pages = MissingCreditsPages({ orders });
             handlePrint([pages]);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
+    const printCreditSummary = useMutation(() => getMissingProductsByOrder(currentCollectionGroup.id), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = CreditSummaryPages({ orders });
+
+            handlePrint(pages);
+
         },
         onError: (error) => {
             alert("שגיאה בשליפת ההזמנות");
@@ -435,7 +450,29 @@ const Tracking = ({ currentCollectionGroup }) => {
                                     disabled={printMissingOrders.isLoading}
                                     startIcon={printMissingOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
                                 >
-                                    {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'דוח זיכויים'}
+                                    {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'דוח זיכויים מפורט'}
+                                </Button>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    size="large"
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textAlign: 'center',
+                                        backgroundColor: '#059669',
+                                        '&:hover': {
+                                            backgroundColor: '#047857'
+                                        }
+                                    }}
+                                    onClick={printCreditSummary.mutate}
+                                    disabled={printCreditSummary.isLoading}
+                                    startIcon={printCreditSummary.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                >
+                                    {printCreditSummary.isLoading ? 'מכין סיכום זיכויים...' : 'סיכום זיכויים'}
                                 </Button>
                             </Grid>
                         </Grid>

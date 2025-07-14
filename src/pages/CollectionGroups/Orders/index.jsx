@@ -55,7 +55,6 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
             refetchOnWindowFocus: false, // לא לרענן אוטומטית כשחלון הדפדפן מתמקד
         }
     );
-    console.log("!!currentCollectionGroup?.id", !!currentCollectionGroup?.id)
 
     const isAllowToColse = React.useMemo(() => {
         if (!orders) return false;
@@ -64,7 +63,6 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
 
     React.useEffect(() => {
         if (orders) {
-            console.log("Orders fetched:", orders);
             const organized = orders.filter(order => order.collectionGroupOrder > 0)
                 .sort((a, b) => a.collectionGroupOrder - b.collectionGroupOrder);
             setOrganizedUsers(organized);
@@ -158,11 +156,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
 
     // פונקציות לניהול פתיחת אינפוטים ברצף
     const handleOpenNextInputUnorganized = (nextIndex) => {
-        console.log('handleOpenNextInputUnorganized:', {
-            nextIndex,
-            unorganizedUsersLength: unorganizedUsers.length,
-            currentOpenInput: openInputIndex
-        });
+      
 
         if (nextIndex === -1) {
             // איפוס
@@ -179,11 +173,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
     };
 
     const handleOpenNextInputOrganized = (nextIndex) => {
-        console.log('handleOpenNextInputOrganized:', {
-            nextIndex,
-            organizedUsersLength: organizedUsers.length,
-            currentOpenInput: openInputIndex
-        });
+       
 
         if (nextIndex === -1) {
             // איפוס

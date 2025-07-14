@@ -138,13 +138,6 @@ export const SortableUserItem = ({
 
     const handlePositionSubmit = () => {
         const position = parseInt(positionValue);
-        console.log('handlePositionSubmit:', {
-            position,
-            currentIndex,
-            isInOrganized,
-            allUsersLength: allUsers.length,
-            userInfo: user.name
-        });
 
         if (position && position > 0) {
             if (isInOrganized && onMoveInOrganized) {

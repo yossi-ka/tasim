@@ -11,8 +11,9 @@ export const OrderPrintComponent = ({ order, currentPage, totalPages, pageIndex,
 
     // חישוב סה"כ עמודים להזמנה זו
     const products = order.products || [];
-    // חישוב סה"כ זיכוי עבור מוצרים חסרים (סטטוס 4)
-    const totalCredit = products
+    // חישוב סה"כ זיכוי עבור מוצרים חסרים (סטטוס 4) - על בסיס כל המוצרים של ההזמנה המקורית
+    const allOrderProducts = order.originalProducts || order.products || [];
+    const totalCredit = allOrderProducts
         .filter(p => p.status === 4)
         .reduce((sum, p) => sum + ((p.price || 0) * (p.quantityOrWeight || 0)), 0);
 
@@ -193,7 +194,7 @@ const OrderPages = ({ orders }) => {
             pages.push(
                 <OrderPrintComponent
                     key={order.id + '-' + pageIndex}
-                    order={{ ...order, products: pageProducts }}
+                    order={{ ...order, products: pageProducts, originalProducts: products }}
                     currentPage={pageIndex + 1}
                     totalPages={totalPagesForOrder}
                     pageIndex={pageIndex}

@@ -121,6 +121,11 @@ const getOrdersForYemot = onRequest(async (req, res) => {
             return res.send('id_list_message=אין נתונים להשמעה.');
         }
 
+        if (isOnlyLast) {
+            const formattedLastOrder = formatLastOrderForYemot(getLastOrders.docs[0].data());
+            return res.send(`id_list_message=${formattedLastOrder}`);
+        }
+
         const ids = getLastOrders.docs.map(doc => doc.id);
         console.log(`נמצאו ${ids.length} הזמנות עבור הטלפון: ${ApiPhone}`);
         const orderMissProducts = await db.collection('orderProducts')
@@ -147,10 +152,7 @@ const getOrdersForYemot = onRequest(async (req, res) => {
             }
         })
 
-        if (isOnlyLast) {
-            const formattedLastOrder = formatLastOrderForYemot(orders[0]);
-            return res.send(`id_list_message=${formattedLastOrder}`);
-        }
+
 
         if (isOnlyMiss) {
             const formattedMissedProducts = formatMissedProductsForYemot(orders[0]);
@@ -374,7 +376,7 @@ function formatOrdersForYemot(orders) {
 
         // הזמנהה ללא מוצרים חסרים מוכנה
         if (!isMiss) {
-            return `f-m105.n-${order.nbsOrderId}.f-106.${orderDate}.`;
+            return `f-m105.d-${order.nbsOrderId}.f-m106.${orderDate}.`;
         }
 
         const products = order.products.map(product => {
@@ -383,7 +385,7 @@ function formatOrdersForYemot(orders) {
         }).join("f-107.");
 
         //הזמנה עם מוצרים חסרים מוכנה
-        if (order.status === 5) {
+        if (order.orderStatus === 5) {
             return `f-m105.n-${order.nbsOrderId}.f-m106.${orderDate}.f-m103.${products}f-m108.`;
         } else {
             return `f-m105.n-${order.nbsOrderId}.f-m109.${products}f-m104.`;
@@ -396,7 +398,7 @@ function formatOrdersForYemot(orders) {
 }
 
 function formatLastOrderForYemot(order) {
-    return `f-m100.n-${order.nbsOrderId}.f-m101.g-hangup.`
+    return `f-m100.d-${order.nbsOrderId}.f-m101.`
 }
 
 function formatMissedProductsForYemot(order) {
@@ -404,7 +406,7 @@ function formatMissedProductsForYemot(order) {
         const name = product.productName.replace(/\([^)]+\)/, '').trim();
         return `t-${fixText(name)}.`
     }).join("f-m107.");
-    return `f-m102.n-${order.nbsOrderId}.f-m103.${products}f-m104.g-hangup.`
+    return `f-m102.n-${order.nbsOrderId}.f-m103.${products}f-m104.`
 }
 
 

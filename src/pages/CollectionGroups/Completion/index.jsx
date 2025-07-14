@@ -72,7 +72,6 @@ const CompletedPopup = ({ currentCollectionGroup }) => {
     const { user, snackbar, closePopup } = React.useContext(Context);
     const completedGroup = useMutation((d) => completeCollectionGroup(currentCollectionGroup.id, user.id, d.employeeId), {
         onSuccess: (data) => {
-            console.log("Collection group completed successfully:", data);
             snackbar("הקבוצה הושלמה בהצלחה", "success");
             queryClient.invalidateQueries("openCollectionGroups");
             closePopup();

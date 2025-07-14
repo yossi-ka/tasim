@@ -67,8 +67,6 @@ export const handleDragEnd = (event, unorganizedUsers, organizedUsers, setUnorga
     const activeId = active.id;
     const overId = over.id;
 
-    console.log('Drag ended:', { activeId, overId });
-
     // מציאת המשתמש הנגרר
     const activeUser = unorganizedUsers.find(user => user.id === activeId) ||
         organizedUsers.find(user => user.id === activeId);
@@ -88,12 +86,10 @@ export const handleDragEnd = (event, unorganizedUsers, organizedUsers, setUnorga
         const parts = overId.split('-');
         targetContainer = parts[1]; // organized או unorganized
         insertIndex = parseInt(parts[2]); // האינדקס
-        console.log('Drop zone detected:', { targetContainer, insertIndex });
     }
     // בדיקה אם הגרירה היא ישירות לקונטיינר
     else if (overId === 'unorganized' || overId === 'organized') {
         targetContainer = overId;
-        console.log('Container detected:', targetContainer);
     } else {
         // בדיקה לאיזה קונטיינר השתמש שגורר עליו שייך
         const isOverInUnorganized = unorganizedUsers.some(user => user.id === overId);
@@ -107,7 +103,6 @@ export const handleDragEnd = (event, unorganizedUsers, organizedUsers, setUnorga
             const overIndex = organizedUsers.findIndex(user => user.id === overId);
             insertIndex = overIndex;
         }
-        console.log('User detected:', { targetContainer, insertIndex });
     }
 
     if (!targetContainer || activeId === overId) return false; // לא היה שינוי
@@ -116,7 +111,6 @@ export const handleDragEnd = (event, unorganizedUsers, organizedUsers, setUnorga
 
     // ביצוע הפעולות על פי הלוגיקה
     if (isActiveInUnorganized && targetContainer === 'organized') {
-        console.log('Moving from unorganized to organized at index:', insertIndex);
         // העברה מרשימה לא מסודרת לרשימה מסודרת
         setUnorganizedUsers(prev => prev.filter(user => user.id !== activeId));
         hasChange = true;

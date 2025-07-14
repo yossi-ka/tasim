@@ -212,7 +212,7 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
             .get();
         if (orderProductsCountSnap.data().count === 0) {
             // עדכון סטטוס ההזמנה ל-3 (מוכנה)
-            await db.collection('orders').doc(orderId).update({ status: 3 });
+            await db.collection('orders').doc(orderId).update({ orderStatus: 3 });
         }
     }
 });
@@ -223,7 +223,7 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
     const after = event.data.after.data();
     if (!before || !after) return;
     // נבדוק אם הסטטוס השתנה ל-5
-    if (before.status !== 5 && after.status === 5) {
+    if (before.orderStatus !== 5 && after.orderStatus === 5) {
         const phones = Array.isArray(after.phones) ? after.phones : [];
         if (phones.length > 0) {
             console.log("Sending IVR message to phones:", phones);
@@ -233,7 +233,7 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
             })
 
             //update isSentTzintuk
-            await db.collection('orders').doc(after.id).update({
+            await db.collection('orders').doc(event.data.after.id).update({
                 isSentTzintuk: true,
                 sentTzintukAt: Timestamp.now()
             });

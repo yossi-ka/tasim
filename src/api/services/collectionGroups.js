@@ -553,18 +553,18 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
     });
 
     // העברתי להערה כי צריך להגיע לסיום רק כשכל הסטטוסים כבר מוכנים..
-    // // collectionGroupProducts
-    // productDocs.forEach(productDoc => {
-    //     const productRef = doc(db, 'collectionGroupProducts', productDoc.id);
-    //     updates.push({
-    //         ref: productRef,
-    //         data: {
-    //             status: 3, // סיום
-    //             updatedAt: Timestamp.now(),
-    //             updatedBy: userId,
-    //         }
-    //     });
-    // });
+    // collectionGroupProducts
+    productDocs.forEach(productDoc => {
+        const productRef = doc(db, 'collectionGroupProducts', productDoc.id);
+        updates.push({
+            ref: productRef,
+            data: {
+                status: 3, // סיום
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            }
+        });
+    });
 
     // // orderProducts
     // allProductDocs.forEach(productDoc => {
@@ -638,27 +638,27 @@ export const moveAllOrdersFrom4To5 = async (userId) => {
 
 
 export const updateMissingProduct = async (orderProductId, userId) => {
-    // try {
-    //     if (orderProductId) {
-    //         const orderProductRef = doc(db, 'orderProducts', orderProductId);
-    //         const orderProductSnap = await getDoc(orderProductRef);
+    try {
+        if (orderProductId) {
+            const orderProductRef = doc(db, 'orderProducts', orderProductId);
+            const orderProductSnap = await getDoc(orderProductRef);
 
-    //         if (!orderProductSnap.exists()) {
-    //             return { status: "error", message: "מוצר לא קיים" };
-    //         }
+            if (!orderProductSnap.exists()) {
+                return { status: "error", message: "מוצר לא קיים" };
+            }
 
-    //         await updateDoc(orderProductRef, {
-    //             status: 4, // סטטוס חסר
-    //             updatedAt: Timestamp.now(),
-    //             updatedBy: userId,
-    //         });
+            await updateDoc(orderProductRef, {
+                status: 4, // סטטוס חסר
+                updatedAt: Timestamp.now(),
+                updatedBy: userId,
+            });
 
-    //         return { status: 'ok', message: 'העדכון התקבל בהצלחה' };
-    //     }
-    //     return { status: "error", message: "חסר מזהה מוצר" };
-    // } catch (e) {
-    //     return { status: "error", message: e.message || "שגיאה בעדכון המוצר" };
-    // }
+            return { status: 'ok', message: 'העדכון התקבל בהצלחה' };
+        }
+        return { status: "error", message: "חסר מזהה מוצר" };
+    } catch (e) {
+        return { status: "error", message: e.message || "שגיאה בעדכון המוצר" };
+    }
 }
 
 export const getProductsWithStatusSummaryOnly = async (collectionGroupId) => {
@@ -810,7 +810,11 @@ export const getMissingProductsByOrder = async (collectionGroupId) => {
             ...order,
             missingProducts: productOrdersMap[order.id] || []
         };
-    })
+    }).sort((a, b) => {
+        const aOrder = a.collectionGroupOrder || 0;
+        const bOrder = b.collectionGroupOrder || 0;
+        return aOrder - bOrder;
+    });
 }
 
 
