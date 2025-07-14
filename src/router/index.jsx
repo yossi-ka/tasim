@@ -32,6 +32,7 @@ const ProjectRoutes = () => {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
+                <Route index element={<Navigate to="/orders" replace />} />
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="collectionGroups" element={<CollectionGroups />} />
