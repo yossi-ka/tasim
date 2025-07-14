@@ -13,9 +13,10 @@ import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import PrintIcon from "@mui/icons-material/Print";
 import usePrint from "../../../context/hooks/print/usePrint";
 import { useMutation, useQuery } from "react-query";
-import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts, getProductsWithOrdersAndStatusSummary, getMissingProductsByOrder } from "../../../api/services/collectionGroups";
+import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts, getProductsWithOrdersAndStatusSummary, getMissingProductsByOrder, getProductsWithStatusSummaryOnly } from "../../../api/services/collectionGroups";
 import OrderCard from "./OrderCard";
 import ProductCard from "./ProductCard";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import Context from "../../../context";
 import StickerPages from "./StickerPages";
 import ProductPages from "./ProductPages";
@@ -24,6 +25,7 @@ import MissingCreditsPages from "./MissingCreditsPages";
 
 
 const Tracking = ({ currentCollectionGroup }) => {
+
     const { getLookupName } = React.useContext(Context);
     const { handlePrint, printComponent } = usePrint();
 
@@ -77,9 +79,34 @@ const Tracking = ({ currentCollectionGroup }) => {
     console.log("productsCollection", productsCollection.data);
     console.log("data", data);
 
+    // Query לגרף הסטטוסים
+    const statusSummaryQuery = useQuery([
+        "status-summary",
+        currentCollectionGroup?.id
+    ], () => getProductsWithStatusSummaryOnly(currentCollectionGroup.id), {
+        enabled: !!currentCollectionGroup?.id
+    });
+
+    console.log("statusSummaryQuery", statusSummaryQuery.data);    // הכנת נתונים לגרף עוגה
+    const chartData = React.useMemo(() => {
+        if (!statusSummaryQuery.data) return [];
+
+        const totals = statusSummaryQuery.data;
+
+        return [
+            { name: 'על המדף', value: totals.status2 || 0, color: "#bfbfbf" },
+            { name: 'בעגלה', value: totals.status5 || 0, color: "#faad14" },
+            { name: 'הושלם', value: totals.status3 || 0, color: "#52c41a" },
+            { name: 'חסר', value: totals.status4 || 0, color: "#f5222d" },
+        ].filter(item => item.value > 0);
+    }, [statusSummaryQuery.data]);
+
+    const totalItems = chartData.reduce((sum, item) => sum + item.value, 0);
+
     const refetchAll = () => {
         refetch();
         productsCollection.refetch();
+        statusSummaryQuery.refetch();
     }
 
     const print = useMutation(() => getCollectionGroupProductsWithOrders(currentCollectionGroup.id), {
@@ -139,8 +166,20 @@ const Tracking = ({ currentCollectionGroup }) => {
         <Box sx={{ p: 3 }}>
             <Grid container spacing={3}>
                 {/* עמודה 1: הזמנות עם מוצרים */}
-                <Grid item xs={12} md={4} sx={{}}>
-                    <Typography variant="h5" textAlign="center">הזמנות עם מוצרים</Typography>
+                <Grid item xs={12} md={4} sx={{ 
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        right: -12,
+                        bottom: 0,
+                        width: '1px',
+                        backgroundColor: '#e0e0e0',
+                        display: { xs: 'none', md: 'block' }
+                    }
+                }}>
+                    <Typography variant="h5" textAlign="center">הזמנות עם מוצרים - <strong>{filteredOrders.length}</strong></Typography>
                     <ToggleButtonGroup
                         value={filterOrdersType}
                         onChange={(_, newFilters) => {
@@ -180,8 +219,20 @@ const Tracking = ({ currentCollectionGroup }) => {
                     </Box>
                 </Grid>
                 {/* עמודה 2: מוצרים עם הזמנות */}
-                <Grid item xs={12} md={4}>
-                    <Typography variant="h5" textAlign="center">מוצרים עם הזמנות</Typography>
+                <Grid item xs={12} md={4} sx={{ 
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        right: -12,
+                        bottom: 0,
+                        width: '1px',
+                        backgroundColor: '#e0e0e0',
+                        display: { xs: 'none', md: 'block' }
+                    }
+                }}>
+                    <Typography variant="h5" textAlign="center">מוצרים עם הזמנות - <strong>{filteredProducts.length}</strong></Typography>
                     <ToggleButtonGroup
                         value={filterProductsType}
                         onChange={(_, newFilters) => {
@@ -218,60 +269,177 @@ const Tracking = ({ currentCollectionGroup }) => {
                         )}
                     </Box>
                 </Grid>
-                {/* עמודה 3: כל מה שהיה קודם */}
+                {/* עמודה 3: גרף סטטוסים */}
                 <Grid item xs={12} md={4}>
-                    <TrackChangesIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h4" gutterBottom>
-                        מעקב
+                    <Typography variant="h5" gutterBottom textAlign="center">
+                        סיכום סטטוסים
                     </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                        כאן תוכל לעקוב אחר התקדמות העבודה
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                        בקרוב יתווספו אפשרויות נוספות
-                    </Typography>
-                    <Stack direction="column" spacing={2} sx={{ mt: 3, mb: 3, alignItems: 'center' }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ mt: 3 }}
-                            onClick={print.mutate}
-                            disabled={print.isLoading}
-                            startIcon={print.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                        >
-                            {print.isLoading ? 'מכין דוח...' : 'הדפסת דוח מוצרים להזמנה'}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ mt: 3 }}
-                            onClick={printStickers.mutate}
-                            disabled={printStickers.isLoading}
-                            startIcon={printStickers.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                        >
-                            {printStickers.isLoading ? 'מכין מדבקות...' : 'הדפסת דפי מדבקות להזמנה'}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ mt: 3 }}
-                            onClick={printOrders.mutate}
-                            disabled={printOrders.isLoading}
-                            startIcon={printOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                        >
-                            {printOrders.isLoading ? 'מכין דפי הזמנה...' : 'הדפסת דפי הזמנה ללקוח'}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ mt: 3 }}
-                            onClick={printMissingOrders.mutate}
-                            disabled={printMissingOrders.isLoading}
-                            startIcon={printMissingOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                        >
-                            {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'הדפסת דוח זיכויים'}
-                        </Button>
-                    </Stack>
+
+                    {statusSummaryQuery.isLoading ? (
+                        <Box display="flex" justifyContent="center" mt={4}>
+                            <CircularProgress />
+                        </Box>
+                    ) : chartData.length > 0 ? (
+                        <Box>
+                            {/* גרף עוגה */}
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={chartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={120}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {chartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value) => [`${value} פריטים`, 'כמות']} />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+
+                            {/* סיכום במספרים */}
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="h6" textAlign="center" gutterBottom>
+                                    סה"כ: {totalItems} פריטים
+                                </Typography>
+                                <Stack spacing={1}>
+                                    {chartData.map((item, index) => (
+                                        <Box key={index} display="flex" justifyContent="space-between" alignItems="center">
+                                            <Box display="flex" alignItems="center">
+                                                <Box
+                                                    sx={{
+                                                        width: 16,
+                                                        height: 16,
+                                                        backgroundColor: item.color,
+                                                        borderRadius: '50%',
+                                                        mr: 1
+                                                    }}
+                                                />
+                                                <Typography variant="body2">{item.name}</Typography>
+                                            </Box>
+                                            <Typography variant="body2" fontWeight="bold">
+                                                {item.value} ({Math.round((item.value / totalItems) * 100)}%)
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Typography textAlign="center" color="text.secondary" sx={{ mt: 4 }}>
+                            אין נתונים להצגה
+                        </Typography>
+                    )}
+
+                    {/* אזור הדפסות */}
+                    <Box sx={{
+                        mt: 4,
+                        p: 3,
+                        border: '2px solid #e0e0e0',
+                        borderRadius: 3,
+                        backgroundColor: '#fafafa',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    }}>
+                        <Typography variant="h6" textAlign="center" sx={{ mb: 3, color: '#1976d2', fontWeight: 'bold' }}>
+                            <PrintIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            הדפסת דוחות
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    size="large"
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textAlign: 'center',
+                                        backgroundColor: '#6366f1',
+                                        '&:hover': {
+                                            backgroundColor: '#5856eb'
+                                        }
+                                    }}
+                                    onClick={print.mutate}
+                                    disabled={print.isLoading}
+                                    startIcon={print.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                >
+                                    {print.isLoading ? 'מכין דוח...' : 'דוח מוצרים להזמנה'}
+                                </Button>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    size="large"
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textAlign: 'center',
+                                        backgroundColor: '#8b5cf6',
+                                        '&:hover': {
+                                            backgroundColor: '#7c3aed'
+                                        }
+                                    }}
+                                    onClick={printStickers.mutate}
+                                    disabled={printStickers.isLoading}
+                                    startIcon={printStickers.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                >
+                                    {printStickers.isLoading ? 'מכין מדבקות...' : 'דפי מדבקות להזמנה'}
+                                </Button>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    size="large"
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textAlign: 'center',
+                                        backgroundColor: '#06b6d4',
+                                        '&:hover': {
+                                            backgroundColor: '#0891b2'
+                                        }
+                                    }}
+                                    onClick={printOrders.mutate}
+                                    disabled={printOrders.isLoading}
+                                    startIcon={printOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                >
+                                    {printOrders.isLoading ? 'מכין דפי הזמנה...' : 'דפי הזמנה ללקוח'}
+                                </Button>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    size="large"
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        textAlign: 'center',
+                                        backgroundColor: '#10b981',
+                                        '&:hover': {
+                                            backgroundColor: '#059669'
+                                        }
+                                    }}
+                                    onClick={printMissingOrders.mutate}
+                                    disabled={printMissingOrders.isLoading}
+                                    startIcon={printMissingOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                >
+                                    {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'דוח זיכויים'}
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Box>
                     {printComponent}
                 </Grid>
             </Grid>
