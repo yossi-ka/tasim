@@ -177,13 +177,19 @@ const EmployeeProducts = ({ currentCollectionGroup }) => {
             result[minIdx].products.push(product.id);
             result[minIdx].quantity += product.quantityOrWeight || 0;
         });
+
         setProducts(prev => prev.map(product => {
-            const idx = result.findIndex(r => r.products.includes(product.id));
-            if (idx !== -1) {
-                return { ...product, assignedEmployeeId: selectedEmployees[idx] };
+            const productIndex = allToDistribute.findIndex(p => p.id === product.id);
+            if (productIndex !== -1) {
+                const productsPerEmployee = Math.ceil(allToDistribute.length / selectedEmployees.length);
+                const employeeIndex = Math.floor(productIndex / productsPerEmployee);
+                // וודא שלא חורגים מהמערך של העובדים
+                const finalEmployeeIndex = Math.min(employeeIndex, selectedEmployees.length - 1);
+                return { ...product, assignedEmployeeId: selectedEmployees[finalEmployeeIndex] };
             }
             return product;
         }));
+
         setHasChanges(true);
         setShowDistributionSelect(false);
         setSelectedEmployees([]);

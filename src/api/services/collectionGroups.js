@@ -761,3 +761,27 @@ export const getMissingProductsByOrder = async (collectionGroupId) => {
         };
     })
 }
+
+
+
+export const updateCollectionGroupProducts = async () => {
+    const collectionGroupId = "k04NXPMZMXZLX8BsrO7J"
+    const q = query(
+        collection(db, 'collectionGroupProducts'),
+        where("collectionGroupId", "==", collectionGroupId)
+    );
+    const querySnapshot = await getDocs(q);
+    // return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    console.log(`Updating ${querySnapshot.docs.length} products in collection group ${collectionGroupId}`);
+    const batch = writeBatch(db);
+    querySnapshot.docs.forEach(doc => {
+        const productRef = doc.ref;
+        batch.update(productRef, {
+            assignedEmployeeId: null, // עדכון הסטטוס למצב פעיל
+        });
+    });
+
+    await batch.commit();
+    console.log(`Successfully updated ${querySnapshot.docs.length} products in collection group ${collectionGroupId}`);
+}
