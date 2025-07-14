@@ -244,9 +244,9 @@ const getOrderProducts = async (userId) => {
         return match ? parseInt(match[0], 10) : Infinity;
     };
     result.sort((a, b) => {
-        const orderA = a.collectionGroupOrder || 0;
-        const orderB = b.collectionGroupOrder || 0;
-        if (orderA !== orderB) return orderA - orderB;
+        // const orderA = a.collectionGroupOrder || 0;
+        // const orderB = b.collectionGroupOrder || 0;
+        // if (orderA !== orderB) return orderA - orderB;
         // אם אותו collectionGroupOrder, מיין לפי productPlace
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
