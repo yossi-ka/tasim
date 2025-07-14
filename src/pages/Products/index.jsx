@@ -7,14 +7,17 @@ import { useQuery } from "react-query";
 import GenericTable from "../../components/GenericTable";
 import { search } from "../../utils/search";
 import { getAllProducts } from "../../api/services/products";
+import { Checkbox } from "@mui/material";
+import ManageCategories from "./ManageCategories";
 
 const Products = () => {
 
-    const { getLookupName } = React.useContext(Context)
+    const { getLookupName, popup } = React.useContext(Context)
 
     const terms = useTerms("productsTable");
     const [params, setParams] = React.useState({})
     const [filterdData, setFilterdData] = React.useState([])
+    const [selected, setSelected] = React.useState([]);
 
     const { data, status, refetch } = useQuery("productsTable", getAllProducts, {
         refetchOnWindowFocus: false,
@@ -31,7 +34,36 @@ const Products = () => {
         refetch();
     }
 
+    const filterdDataLength = React.useMemo(() => {
+        if (status == "loading") return 0
+        return data.length
+    }, [data, status]);
+
     const columns = [
+        {
+            cb: (row) => <Checkbox
+                checked={selected.some((r) => r.id === row.id)}
+                onChange={(e) => {
+                    if (e.target.checked) {
+                        setSelected((prev) => [...prev, row]);
+                    } else {
+                        setSelected((prev) => prev.filter((r) => r.id !== row.id));
+                    }
+
+                }}
+            />,
+            label: <Checkbox
+                checked={status != "loading" && selected.length === filterdDataLength}
+                onChange={(e) => {
+                    if (e.target.checked) {
+                        setSelected(filterdData);
+                    } else {
+                        setSelected([]);
+                    }
+                }}
+                indeterminate={selected.length > 0 && selected.length < filterdDataLength}
+            />,
+        },
         ...terms.table(),
     ]
 
@@ -48,6 +80,21 @@ const Products = () => {
                 refetch={refetchAll}
             />}
             innerPagination
+            actions={selected.length > 0 ? [
+                {
+                    label: `שינוי סטטוס ל ${selected.length} הזמנות`,
+                    onClick: () => popup({
+                        title: "שנה סטטוס הזמנות",
+                        content: <ManageCategories
+                            rows={selected}
+                            refetch={() => {
+                                refetchAll();
+                                setSelected([])
+                            }} />
+                    }),
+                    count: selected.length,
+                }
+            ] : null}
         />
     )
 }

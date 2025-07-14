@@ -335,6 +335,12 @@
             "name": "isVatExempt",
             "label": "פטור ממע\"מ",
             "type": "boolean"
+        },
+        {
+            "name": "categories",
+            "label": "קטגוריות",
+            "type": "lookup-array",
+            "lookup": "globalProductCategories"
         }
     ]
 }

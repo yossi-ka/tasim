@@ -850,3 +850,78 @@ export const getUnprocessedProductsCount = async (collectionGroupId) => {
     const querySnapshot = await getCountFromServer(q);
     return querySnapshot.data().count;
 }
+
+export const getOrdersByProductCategory = async (collectionGroupId, categoryId) => {
+    try {
+        // שלב 1: שליפת כל המוצרים עם הקטגוריה המבוקשת
+        const productsQuery = query(
+            collection(db, 'products'),
+            where("categories", "array-contains", categoryId)
+        );
+        const productsSnapshot = await getDocs(productsQuery);
+        const productIds = productsSnapshot.docs.map(doc => doc.id);
+
+        if (productIds.length === 0) {
+            return []; // אין מוצרים עם הקטגוריה הזו
+        }
+
+        // שלב 2: שליפת כל פריטי ההזמנות עם המוצרים האלה בקבוצת האיסוף
+        const orderProductsResults = [];
+        
+        // בגלל מגבלת Firebase של 30 פריטים ב-array-contains-any
+        for (let i = 0; i < productIds.length; i += 30) {
+            const batchProductIds = productIds.slice(i, i + 30);
+            const orderProductsQuery = query(
+                collection(db, 'orderProducts'),
+                where("collectionGroupId", "==", collectionGroupId),
+                where("productId", "in", batchProductIds)
+            );
+            const orderProductsSnapshot = await getDocs(orderProductsQuery);
+            orderProductsResults.push(...orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
+
+        // שלב 3: קבלת מזהי ההזמנות הייחודיים
+        const uniqueOrderIds = [...new Set(orderProductsResults.map(op => op.orderId))];
+
+        if (uniqueOrderIds.length === 0) {
+            return []; // אין הזמנות עם המוצרים האלה
+        }
+
+        // שלב 4: שליפת פרטי ההזמנות
+        const orders = [];
+        for (let i = 0; i < uniqueOrderIds.length; i += 30) {
+            const batchOrderIds = uniqueOrderIds.slice(i, i + 30);
+            const ordersQuery = query(
+                collection(db, 'orders'),
+                where("__name__", "in", batchOrderIds)
+            );
+            const ordersSnapshot = await getDocs(ordersQuery);
+            ordersSnapshot.docs.forEach(doc => {
+                orders.push({ id: doc.id, ...doc.data() });
+            });
+        }
+
+        // שלב 5: יצירת Map של המוצרים לפי הזמנה
+        const productsByOrderId = orderProductsResults.reduce((acc, product) => {
+            if (!acc[product.orderId]) acc[product.orderId] = [];
+            acc[product.orderId].push(product);
+            return acc;
+        }, {});
+
+        // שלב 6: חיבור ההזמנות עם המוצרים הרלוונטיים
+        const ordersWithCategoryProducts = orders.map(order => ({
+            ...order,
+            categoryProducts: productsByOrderId[order.id] || []
+        })).sort((a, b) => {
+            const aOrder = a.collectionGroupOrder || 0;
+            const bOrder = b.collectionGroupOrder || 0;
+            return aOrder - bOrder;
+        });
+
+        return ordersWithCategoryProducts;
+
+    } catch (error) {
+        console.error("Error in getOrdersByProductCategory:", error);
+        throw error;
+    }
+}

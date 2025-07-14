@@ -13,7 +13,7 @@ import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import PrintIcon from "@mui/icons-material/Print";
 import usePrint from "../../../context/hooks/print/usePrint";
 import { useMutation, useQuery } from "react-query";
-import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts, getProductsWithOrdersAndStatusSummary, getMissingProductsByOrder, getProductsWithStatusSummaryOnly } from "../../../api/services/collectionGroups";
+import { getCollectionGroupProductsWithOrders, getOrdersByCollectionGroup, getCollectionOrdersAndGroupProducts, getCollectionOrderWithProducts, getProductsWithOrdersAndStatusSummary, getMissingProductsByOrder, getProductsWithStatusSummaryOnly, getOrdersByProductCategory } from "../../../api/services/collectionGroups";
 import OrderCard from "./OrderCard";
 import ProductCard from "./ProductCard";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -130,6 +130,22 @@ const Tracking = ({ currentCollectionGroup }) => {
             console.error(error);
         }
     });
+    const printCategoryStickers = useMutation((category) => getOrdersByProductCategory(currentCollectionGroup.id, category), {
+        onSuccess: (orders, category) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            console.log(orders)
+            const title = getLookupName("globalProductCategories", category);
+            const pages = StickerPages({ orders, title });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
     const printOrders = useMutation(() => getCollectionOrderWithProducts(currentCollectionGroup.id), {
         onSuccess: (orders) => {
             if (!orders || orders.length === 0) {
@@ -181,7 +197,7 @@ const Tracking = ({ currentCollectionGroup }) => {
         <Box sx={{ p: 3 }}>
             <Grid container spacing={3}>
                 {/* עמודה 1: הזמנות עם מוצרים */}
-                <Grid item xs={12} md={4} sx={{ 
+                <Grid item xs={12} md={4} sx={{
                     position: 'relative',
                     '&::after': {
                         content: '""',
@@ -234,7 +250,7 @@ const Tracking = ({ currentCollectionGroup }) => {
                     </Box>
                 </Grid>
                 {/* עמודה 2: מוצרים עם הזמנות */}
-                <Grid item xs={12} md={4} sx={{ 
+                <Grid item xs={12} md={4} sx={{
                     position: 'relative',
                     '&::after': {
                         content: '""',
@@ -354,35 +370,109 @@ const Tracking = ({ currentCollectionGroup }) => {
                     {/* אזור הדפסות */}
                     <Box sx={{
                         mt: 4,
-                        p: 3,
-                        border: '2px solid #e0e0e0',
-                        borderRadius: 3,
-                        backgroundColor: '#fafafa',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        p: 4,
+                        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                        borderRadius: 4,
+                        border: '1px solid #dee2e6',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
                     }}>
-                        <Typography variant="h6" textAlign="center" sx={{ mb: 3, color: '#1976d2', fontWeight: 'bold' }}>
-                            <PrintIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        <Typography variant="h6" textAlign="center" sx={{ 
+                            mb: 4, 
+                            color: '#2c3e50', 
+                            fontWeight: 600,
+                            fontSize: '1.1rem'
+                        }}>
+                            <PrintIcon sx={{ mr: 1, verticalAlign: 'middle', color: '#3498db' }} />
                             הדפסת דוחות
                         </Typography>
 
-                        <Grid container spacing={2}>
+                        <Grid container spacing={3}>
                             <Grid item xs={12} sm={6}>
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    size="large"
+                                    onClick={printStickers.mutate}
+                                    disabled={printStickers.isLoading}
+                                    startIcon={printStickers.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
                                     sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        textAlign: 'center',
-                                        backgroundColor: '#6366f1',
+                                        height: 56,
+                                        backgroundColor: '#3498db',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(52, 152, 219, 0.3)',
+                                        transition: 'all 0.3s ease',
                                         '&:hover': {
-                                            backgroundColor: '#5856eb'
+                                            backgroundColor: '#2980b9',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(52, 152, 219, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
                                         }
                                     }}
+                                >
+                                    {printStickers.isLoading ? 'מכין מדבקות...' : 'דפי מדבקות להזמנה'}
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => printCategoryStickers.mutate("iMhnv6W2DwApDpRQ2lfl")}
+                                    disabled={printCategoryStickers.isLoading}
+                                    startIcon={printCategoryStickers.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#27ae60',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(39, 174, 96, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#229954',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(39, 174, 96, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
+                                >
+                                    {printCategoryStickers.isLoading ? 'מכין מדבקות...' : 'דפי מדבקות לחלבי'}
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
                                     onClick={print.mutate}
                                     disabled={print.isLoading}
-                                    startIcon={print.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                    startIcon={print.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#8e44ad',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(142, 68, 173, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#7d3c98',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(142, 68, 173, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
                                 >
                                     {print.isLoading ? 'מכין דוח...' : 'דוח מוצרים להזמנה'}
                                 </Button>
@@ -392,41 +482,28 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    size="large"
-                                    sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        textAlign: 'center',
-                                        backgroundColor: '#8b5cf6',
-                                        '&:hover': {
-                                            backgroundColor: '#7c3aed'
-                                        }
-                                    }}
-                                    onClick={printStickers.mutate}
-                                    disabled={printStickers.isLoading}
-                                    startIcon={printStickers.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
-                                >
-                                    {printStickers.isLoading ? 'מכין מדבקות...' : 'דפי מדבקות להזמנה'}
-                                </Button>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6}>
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    size="large"
-                                    sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        textAlign: 'center',
-                                        backgroundColor: '#06b6d4',
-                                        '&:hover': {
-                                            backgroundColor: '#0891b2'
-                                        }
-                                    }}
                                     onClick={printOrders.mutate}
                                     disabled={printOrders.isLoading}
-                                    startIcon={printOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                    startIcon={printOrders.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#e67e22',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(230, 126, 34, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#d35400',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(230, 126, 34, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
                                 >
                                     {printOrders.isLoading ? 'מכין דפי הזמנה...' : 'דפי הזמנה ללקוח'}
                                 </Button>
@@ -436,19 +513,28 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    size="large"
-                                    sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        textAlign: 'center',
-                                        backgroundColor: '#10b981',
-                                        '&:hover': {
-                                            backgroundColor: '#059669'
-                                        }
-                                    }}
                                     onClick={printMissingOrders.mutate}
                                     disabled={printMissingOrders.isLoading}
-                                    startIcon={printMissingOrders.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                    startIcon={printMissingOrders.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#e74c3c',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(231, 76, 60, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#c0392b',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(231, 76, 60, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
                                 >
                                     {printMissingOrders.isLoading ? 'מכין דוח זיכויים...' : 'דוח זיכויים מפורט'}
                                 </Button>
@@ -458,19 +544,28 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    size="large"
-                                    sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        textAlign: 'center',
-                                        backgroundColor: '#059669',
-                                        '&:hover': {
-                                            backgroundColor: '#047857'
-                                        }
-                                    }}
                                     onClick={printCreditSummary.mutate}
                                     disabled={printCreditSummary.isLoading}
-                                    startIcon={printCreditSummary.isLoading ? <CircularProgress size={20} /> : <PrintIcon />}
+                                    startIcon={printCreditSummary.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#34495e',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(52, 73, 94, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#2c3e50',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(52, 73, 94, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
                                 >
                                     {printCreditSummary.isLoading ? 'מכין סיכום זיכויים...' : 'סיכום זיכויים'}
                                 </Button>

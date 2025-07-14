@@ -1,6 +1,6 @@
 import { db } from '../../firebase-config'
 
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export const getAllProducts = async () => {
     console.log('Fetching all products');
@@ -140,7 +140,7 @@ export const uploadProducts = async (productsData, userId) => {
 export const getProductsCount = async () => {
     const productsRef = collection(db, "products");
     const countQuery = query(productsRef, where("isActive", "==", true));
-    
+
     try {
         const countSnapshot = await getCountFromServer(countQuery);
         return countSnapshot.data().count;
@@ -148,4 +148,30 @@ export const getProductsCount = async () => {
         console.error('Error getting products count:', error);
         throw new Error(`שגיאה בקבלת מספר המוצרים: ${error.message}`);
     }
+}
+
+export const updateCategories = async (products, category, type, userId) => {
+
+    const batch = writeBatch(db);
+    const productsCollection = collection(db, 'products');
+
+
+    products.forEach(product => {
+        const productRef = doc(productsCollection, product);
+        if (type === "add") {
+            batch.update(productRef, {
+                categories: arrayUnion(category),
+                updateBy: userId,
+                updateDate: Timestamp.now(),
+            });
+        } else if (type === "remove") {
+            batch.update(productRef, {
+                categories: arrayRemove(category),
+                updateBy: userId,
+                updateDate: Timestamp.now(),
+            });
+        }
+    })
+
+    await batch.commit();
 }

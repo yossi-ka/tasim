@@ -6,7 +6,7 @@ import { Box, Typography } from "@mui/material";
  * @param {Array} orders - מערך ההזמנות
  * @returns JSX של עמודי המדבקות
  */
-const StickerPages = ({ orders }) => {
+const StickerPages = ({ orders, title }) => {
     // מיין את ההזמנות לפי collectionGroupOrder
     const sortedOrders = [...orders].sort((a, b) => (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0));
     // צור מערך של 8 מדבקות לכל הזמנה
@@ -64,6 +64,10 @@ const StickerPages = ({ orders }) => {
                         <Typography sx={{ position: "absolute", left: 12, bottom: 10, fontSize: "13px", color: "#000", fontWeight: 700, opacity: 0.7 }}>
                             {idx + 1}
                         </Typography>
+                        {/* מספר המדבקה בפינה */}
+                        {title && <Typography sx={{ position: "absolute", right: 12, bottom: 10, fontSize: "13px", color: "#000", fontWeight: 700, opacity: 0.7 }}>
+                            {title}
+                        </Typography>}
                     </Box>
                 ))}
                 {/* placeholders אם חסר */}
