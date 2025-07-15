@@ -12,6 +12,7 @@ import Products from "../pages/Products";
 import VoiceMsg from "../pages/VoiceMsg";
 import CollectionGroups from "../pages/CollectionGroups";
 import Test from "../pages/Test";
+import CollectionGroupsHistory from "../pages/collectionGroupsHistory";
 
 
 const ProjectRoutes = () => {
@@ -35,7 +36,8 @@ const ProjectRoutes = () => {
                 <Route index element={<Navigate to="/orders" replace />} />
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
-                <Route path="collectionGroups" element={<CollectionGroups />} />
+                <Route path="collection-groups" element={<CollectionGroups />} />
+                <Route path="collection-groups-history" element={<CollectionGroupsHistory />} />
                 <Route path="customers" element={<Customers />} />
                 <Route path="products" element={<Products />} />
                 <Route path="voice-msg" element={<VoiceMsg />} />

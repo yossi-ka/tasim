@@ -99,6 +99,12 @@ export const getOpenCollectionGroups = async () => {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
+export const getCollectionGroupsHistory = async () => {
+    const q = query(collection(db, 'collectionsGroups'), where("status", "==", 3), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
 export const getProccessingCollectionGroups = async () => {
     const q = query(collection(db, 'collectionsGroups'), where("status", "in", [1, 2]));
     const querySnapshot = await getDocs(q);

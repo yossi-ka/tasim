@@ -1,0 +1,202 @@
+import React from 'react';
+import { IconButton, Stack, Tooltip, CircularProgress, Box } from '@mui/material';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import PrintIcon from '@mui/icons-material/Print';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import { useMutation } from 'react-query';
+import usePrint from '../../context/hooks/print/usePrint';
+import Context from '../../context';
+import {
+    getCollectionGroupProductsWithOrders,
+    getOrdersByCollectionGroup,
+    getOrdersByProductCategory,
+    getCollectionOrderWithProducts,
+    getMissingProductsByOrder
+} from '../../api/services/collectionGroups';
+import ProductPages from '../CollectionGroups/Tracking/ProductPages';
+import StickerPages from '../CollectionGroups/Tracking/StickerPages';
+import OrderPages from '../CollectionGroups/Tracking/OrderPages';
+import MissingCreditsPages from '../CollectionGroups/Tracking/MissingCreditsPages';
+import CreditSummaryPages from '../CollectionGroups/Tracking/CreditSummaryPages';
+
+
+const PrintActionsCell = ({ collectionGroupId }) => {
+
+    const { getLookupName } = React.useContext(Context);
+
+    const { handlePrint, printComponent } = usePrint()
+
+    const printProducts = useMutation(() => getCollectionGroupProductsWithOrders(collectionGroupId), {
+        onSuccess: (data) => {
+            const pages = ProductPages({ products: data, getLookupName });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            console.error("Error fetching data:", error);
+        }
+    });
+    const printStickers = useMutation(() => getOrdersByCollectionGroup(collectionGroupId), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = StickerPages({ orders });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+    const printCategoryStickers = useMutation((category) => getOrdersByProductCategory(collectionGroupId, category), {
+        onSuccess: (orders, category) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            console.log(orders)
+            const title = getLookupName("globalProductCategories", category);
+            const pages = StickerPages({ orders, title });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+    const printOrders = useMutation(() => getCollectionOrderWithProducts(collectionGroupId), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            console.log(orders);
+            const pages = OrderPages({ orders });
+            handlePrint(pages);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
+    const printMissingOrders = useMutation(() => getMissingProductsByOrder(collectionGroupId), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = MissingCreditsPages({ orders });
+            handlePrint([pages]);
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+
+    const printCreditSummary = useMutation(() => getMissingProductsByOrder(collectionGroupId), {
+        onSuccess: (orders) => {
+            if (!orders || orders.length === 0) {
+                alert("לא נמצאו הזמנות");
+                return;
+            }
+            const pages = CreditSummaryPages({ orders });
+
+            handlePrint(pages);
+
+        },
+        onError: (error) => {
+            alert("שגיאה בשליפת ההזמנות");
+            console.error(error);
+        }
+    });
+    const actions = [
+        {
+            key: 'stickers',
+            tooltip: 'מדבקות להזמנה',
+            icon: <LocalOfferIcon fontSize="small" />,
+            onClick: () => printStickers.mutate(),
+            loading: printStickers.isLoading,
+            color: '#3498db'
+        },
+        {
+            key: 'products',
+            tooltip: 'דוח מוצרים',
+            icon: <PrintIcon fontSize="small" />,
+            onClick: () => printProducts.mutate(),
+            loading: printProducts.isLoading,
+            color: '#8e44ad'
+        },
+        {
+            key: 'orders',
+            tooltip: 'דפי הזמנה',
+            icon: <ShoppingCartIcon fontSize="small" />,
+            onClick: () => printOrders.mutate(),
+            loading: printOrders.isLoading,
+            color: '#e67e22'
+        },
+        {
+            key: 'missing',
+            tooltip: 'זיכויים מפורט',
+            icon: <CreditCardIcon fontSize="small" />,
+            onClick: () => printMissingOrders.mutate(),
+            loading: printMissingOrders.isLoading,
+            color: '#e74c3c'
+        },
+        {
+            key: 'summary',
+            tooltip: 'סיכום זיכויים',
+            icon: <SummarizeIcon fontSize="small" />,
+            onClick: () => printCreditSummary.mutate(),
+            loading: printCreditSummary.isLoading,
+            color: '#34495e'
+        },
+        {
+            key: 'dairy',
+            tooltip: 'מדבקות חלבי',
+            icon: <ReceiptIcon fontSize="small" />,
+            onClick: () => printCategoryStickers.mutate("iMhnv6W2DwApDpRQ2lfl"),
+            loading: printCategoryStickers.isLoading,
+            color: '#27ae60'
+        }
+    ];
+
+    return (
+        <Box sx={{ display: 'inline-block' }}>
+
+            <Stack direction="row" spacing={0.5} sx={{ width: 'fit-content' }}>
+                {actions.map((action) => (
+                    <Tooltip key={action.key} title={action.tooltip} arrow>
+                        <IconButton
+                            size="small"
+                            onClick={action.onClick}
+                            disabled={action.loading}
+                            sx={{
+                                color: action.color,
+                                '&:hover': {
+                                    backgroundColor: `${action.color}20`,
+                                    transform: 'scale(1.1)'
+                                },
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            {action.loading ? (
+                                <CircularProgress size={16} sx={{ color: action.color }} />
+                            ) : (
+                                action.icon
+                            )}
+                        </IconButton>
+                    </Tooltip>
+                ))}
+                {printComponent}
+            </Stack>
+        </Box>
+    );
+};
+
+export default PrintActionsCell;

@@ -17,9 +17,6 @@ function useLookup(user) {
         }
     );
 
-    console.log("Lookup Data", data, isError, isLoading);
-
-
     // console.log("Lookup", lookup.status, lookup.data, lookup.error)
     // if (isError) {
     //     console.log("Lookup Error", isError);

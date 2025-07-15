@@ -123,7 +123,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                     if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "") return "-";
                     return <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" sx={{ width: 1, height: 1 }}>
                         <AccessTimeIcon color='primary' sx={{ fontSize: 12 }} />
-                        <Typography variant="body2" color="secondary.main">{formatDateTime(row[col.key])}</Typography>
+                        <Typography variant="body2" color="secondary.main">{row[col.key].toDate ? formatDateTime(row[col.key].toDate()) : formatDateTime(row[col.key])}</Typography>
                     </Stack>
                 case "currency":
                     return formatCurrency(row[col.key]);

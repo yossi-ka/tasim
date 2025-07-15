@@ -19,17 +19,20 @@ const DrawerContent = () => {
 
     const permission = "admin"// user?.permission
     const admin = [
-        // { title: "לוח הבקרה", to: "", icon: <DashboardIcon color='primary' /> },
-        // { title: "תשלומים", to: "payments", icon: <AttachMoneyIcon color='primary' /> },
-        // { title: "סדרים", to: "sdarim", icon: <MenuBookIcon color='primary' /> },
         { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
-        { title: "קבוצות ליקוט", to: "collectionGroups", icon: <ShoppingBagIcon color='primary' /> },
+        {
+            title: "קבוצות ליקוט",
+            to: "collectionGroups",
+            icon: <ShoppingBagIcon color='primary' />,
+            items: [
+                { title: "קבוצה פעילה", to: "collection-groups" },
+                { title: "היסטוריה", to: "collection-groups-history" }
+            ]
+        },
         { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
         { title: "לקוחות", to: "customers", icon: <GroupsIcon color='primary' /> },
         { title: "מוצרים", to: "products", icon: <InventoryIcon color='primary' /> },
         { title: "עובדים", to: "employees", icon: <EngineeringIcon color='primary' /> },
-        // { title: "מוצרים", to: "prodacts", icon: <CardGiftcardIcon color='primary' />, disabled: true },
-        // { title: "דרגות", to: "levels", icon: <StairsIcon color='primary' /> },
 
     ]
 
