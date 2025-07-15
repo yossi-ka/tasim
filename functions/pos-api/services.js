@@ -144,7 +144,7 @@ const approveProducts = async (products, userId) => {
     return true;
 };
 
-const getOrderProducts = async (userId) => {
+const getOrderProducts = async (userId, viewMode = "order") => {
     // שלב 1: שליפת כל המוצרים של העובד בעגלה (סטטוס 2)
     const collectionGroupProductsSnap = await db
         .collection('collectionGroupProducts')
@@ -152,8 +152,14 @@ const getOrderProducts = async (userId) => {
         .where("status", "==", 2)
         .get();
 
-    const groupProducts = collectionGroupProductsSnap.docs.map(doc => doc.data());
+    const groupProducts = collectionGroupProductsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if (groupProducts.length === 0) return [];
+
+    // יצירת מפה של collectionGroupProducts לפי productId
+    const groupProductsMap = {};
+    groupProducts.forEach(gp => {
+        groupProductsMap[gp.productId] = gp;
+    });
 
     // מערך מזהי groupId ו-productId
     const groupIds = [...new Set(groupProducts.map(doc => doc.collectionGroupId).filter(Boolean))];
@@ -221,8 +227,9 @@ const getOrderProducts = async (userId) => {
     // שלב 6: בניית מערך שטוח עם כל המידע
     const result = orderProducts.map(op => {
         const order = ordersMap[op.orderId] || {};
-        // const group = groupsMap[op.collectionGroupId] || {};
-        // const line = group.lineId ? linesMap[group.lineId] || {} : {};
+        // מציאת ה-collectionGroupProduct המתאים לפי productId
+        const groupProduct = groupProductsMap[op.productId] || {};
+
         return {
             id: op.id,
             productName: op.productName,
@@ -231,7 +238,7 @@ const getOrderProducts = async (userId) => {
             orderId: order.id,
             firstName: order.firstName,
             lastName: order.lastName,
-            productPlace: op.productPlace,
+            productPlace: groupProduct.productPlace || '',
             orderProductId: op.id,
             // color: line.color || null
         };
@@ -245,9 +252,12 @@ const getOrderProducts = async (userId) => {
     };
 
     result.sort((a, b) => {
-        const orderA = a.collectionGroupOrder || 0;
-        const orderB = b.collectionGroupOrder || 0;
-        if (orderA !== orderB) return orderA - orderB;
+
+        if (viewMode === "order") {
+            const orderA = a.collectionGroupOrder || 0;
+            const orderB = b.collectionGroupOrder || 0;
+            if (orderA !== orderB) return orderA - orderB;
+        }
         // אם אותו collectionGroupOrder, מיין לפי productPlace
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
