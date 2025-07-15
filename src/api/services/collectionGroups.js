@@ -494,7 +494,14 @@ export const getCollectionOrderWithProducts = async (collectionGroupId) => {
     // בניית מערך ההזמנות עם הפריטים שלהם
     const ordersWithProducts = orders.map(order => ({
         ...order,
-        products: productsByOrderId[order.id] || []
+        products: (productsByOrderId[order.id] || []).sort((a, b) => {
+            const aLocation = a.productName.match(/\(([^)]+)\)/);
+            const bLocation = b.productName.match(/\(([^)]+)\)/);
+
+            const aNum = extractNumber(aLocation ? aLocation[1] : "0");
+            const bNum = extractNumber(bLocation ? bLocation[1] : "0");
+            return aNum - bNum;
+        })
     }))
         .sort((a, b) => {
             const aOrder = a.collectionGroupOrder || 0;

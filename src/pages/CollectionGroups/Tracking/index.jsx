@@ -152,6 +152,7 @@ const Tracking = ({ currentCollectionGroup }) => {
                 alert("לא נמצאו הזמנות");
                 return;
             }
+            console.log(orders);
             const pages = OrderPages({ orders });
             handlePrint(pages);
         },
@@ -376,9 +377,9 @@ const Tracking = ({ currentCollectionGroup }) => {
                         border: '1px solid #dee2e6',
                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
                     }}>
-                        <Typography variant="h6" textAlign="center" sx={{ 
-                            mb: 4, 
-                            color: '#2c3e50', 
+                        <Typography variant="h6" textAlign="center" sx={{
+                            mb: 4,
+                            color: '#2c3e50',
                             fontWeight: 600,
                             fontSize: '1.1rem'
                         }}>
