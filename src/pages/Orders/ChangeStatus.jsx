@@ -111,11 +111,11 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                 setInitInput={setInitInputs}
             />}
 
-            {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
+            {/* {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
                 <Chip label="ליקוט פרטני" size="small" />
-            </Divider>}
+            </Divider>} */}
 
-            <Typography variant="h4" color="success.main">העברת הזמנה ל{statusName}</Typography>
+            {/* <Typography variant="h4" color="success.main">העברת הזמנה ל{statusName}</Typography>
             <GenericForm
                 fields={[
                     {
@@ -144,7 +144,7 @@ const ChangeStatus = ({ rows, refetch, status }) => {
 
                     handleSubmit.mutate(objToSend);
                 }}
-            />
+            /> */}
         </Stack>
     );
 }

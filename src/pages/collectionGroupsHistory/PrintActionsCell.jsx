@@ -1,11 +1,13 @@
 import React from 'react';
-import { IconButton, Stack, Tooltip, CircularProgress, Box } from '@mui/material';
+import { IconButton, Stack, Tooltip, CircularProgress, Box, Button } from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import PrintIcon from '@mui/icons-material/Print';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PhoneIcon from '@mui/icons-material/Phone';
 import { useMutation } from 'react-query';
 import usePrint from '../../context/hooks/print/usePrint';
 import Context from '../../context';
@@ -14,18 +16,20 @@ import {
     getOrdersByCollectionGroup,
     getOrdersByProductCategory,
     getCollectionOrderWithProducts,
-    getMissingProductsByOrder
+    getMissingProductsByOrder,
+    sendTzintukForMissingOrders
 } from '../../api/services/collectionGroups';
 import ProductPages from '../CollectionGroups/Tracking/ProductPages';
 import StickerPages from '../CollectionGroups/Tracking/StickerPages';
 import OrderPages from '../CollectionGroups/Tracking/OrderPages';
 import MissingCreditsPages from '../CollectionGroups/Tracking/MissingCreditsPages';
 import CreditSummaryPages from '../CollectionGroups/Tracking/CreditSummaryPages';
+import MissingProductsCredit from './MissingProductsCredit';
 
 
-const PrintActionsCell = ({ collectionGroupId }) => {
+const PrintActionsCell = ({ collectionGroupId, isMissingSendTzintuk }) => {
 
-    const { getLookupName } = React.useContext(Context);
+    const { getLookupName, popup, user } = React.useContext(Context);
 
     const { handlePrint, printComponent } = usePrint()
 
@@ -115,6 +119,17 @@ const PrintActionsCell = ({ collectionGroupId }) => {
             console.error(error);
         }
     });
+
+    const sendTzintuk = useMutation(() => {
+        if (isMissingSendTzintuk) {
+            return alert("צינתוק חוסרים כבר בוצע");
+        } else {
+            const c = window.confirm("האם אתה בטוח שאתה רוצה לבצע צינתוק חוסרים?\n פעולה זו תשלח הודעה למשפחות עם פרטי החוסרים.");
+            if (c) {
+                sendTzintukForMissingOrders(collectionGroupId, user.id);
+            }
+        }
+    });
     const actions = [
         {
             key: 'stickers',
@@ -168,31 +183,118 @@ const PrintActionsCell = ({ collectionGroupId }) => {
 
     return (
         <Box sx={{ display: 'inline-block' }}>
+            <Stack direction="row" spacing={1} sx={{ width: 'fit-content', alignItems: 'center' }}>
+                {/* מסגרת הדפסות */}
+                <Box sx={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    p: 0.5,
+                    position: 'relative'
+                }}>
+                    <Box sx={{
+                        position: 'absolute',
+                        top: -10,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'background.paper',
+                        px: 0.5,
+                        fontSize: '0.65rem',
+                        color: 'primary.dark',
+                        borderRadius: 1
+                    }}>
+                        הדפסות
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                        {actions.map((action) => (
+                            <Tooltip key={action.key} title={action.tooltip} arrow>
+                                <IconButton
+                                    size="small"
+                                    onClick={action.onClick}
+                                    disabled={action.loading}
+                                    sx={{
+                                        color: action.color,
+                                        width: 28,
+                                        height: 28,
+                                        '&:hover': {
+                                            backgroundColor: `${action.color}20`,
+                                            transform: 'scale(1.05)'
+                                        },
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    {action.loading ? (
+                                        <CircularProgress size={14} sx={{ color: action.color }} />
+                                    ) : (
+                                        action.icon
+                                    )}
+                                </IconButton>
+                            </Tooltip>
+                        ))}
+                    </Stack>
+                </Box>
 
-            <Stack direction="row" spacing={0.5} sx={{ width: 'fit-content' }}>
-                {actions.map((action) => (
-                    <Tooltip key={action.key} title={action.tooltip} arrow>
-                        <IconButton
-                            size="small"
-                            onClick={action.onClick}
-                            disabled={action.loading}
-                            sx={{
-                                color: action.color,
-                                '&:hover': {
-                                    backgroundColor: `${action.color}20`,
-                                    transform: 'scale(1.1)'
-                                },
-                                transition: 'all 0.2s ease'
-                            }}
-                        >
-                            {action.loading ? (
-                                <CircularProgress size={16} sx={{ color: action.color }} />
-                            ) : (
-                                action.icon
-                            )}
-                        </IconButton>
-                    </Tooltip>
-                ))}
+                {/* מסגרת פעולות */}
+                <Box sx={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    p: 0.5,
+                    position: 'relative'
+                }}>
+                    <Box sx={{
+                        position: 'absolute',
+                        top: -10,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'background.paper',
+                        px: 0.5,
+                        fontSize: '0.65rem',
+                        color: 'primary.dark'
+                    }}>
+                        פעולות
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                        <Tooltip title="ביצוע זיכויים" arrow>
+                            <IconButton
+                                onClick={() => popup({
+                                    title: "ביצוע זיכויים",
+                                    content: <MissingProductsCredit collectionGroupId={collectionGroupId} />
+                                })}
+                                size="small"
+                                sx={{
+                                    color: '#2e7d32',
+                                    width: 28,
+                                    height: 28,
+                                    '&:hover': {
+                                        backgroundColor: '#2e7d3220',
+                                        transform: 'scale(1.05)'
+                                    },
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                <PaymentIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="צינתוק חוסרים" arrow>
+                            <IconButton
+                                onClick={sendTzintuk.mutate}
+                                size="small"
+                                sx={{
+                                    color: '#1976d2',
+                                    width: 28,
+                                    height: 28,
+                                    '&:hover': {
+                                        backgroundColor: '#1976d220',
+                                        transform: 'scale(1.05)'
+                                    },
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                <PhoneIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>
+                </Box>
+
                 {printComponent}
             </Stack>
         </Box>

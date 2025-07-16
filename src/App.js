@@ -8,13 +8,19 @@ import './App.css';
 
 function App() {
 
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false
+      }
+    }
+  });
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeCustomization>
-      <ContextProvider>
-        <ProjectRoutes />
-      </ContextProvider>
+        <ContextProvider>
+          <ProjectRoutes />
+        </ContextProvider>
       </ThemeCustomization>
     </QueryClientProvider>
   );

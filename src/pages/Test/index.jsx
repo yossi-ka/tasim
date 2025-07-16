@@ -9,7 +9,7 @@ const Test = () => {
             const c = window.confirm("האם אתה בטוח שאתה רוצה להעביר את כל ההזמנות מסטטוס 4 לסטטוס 5?\nאין אפשרות לבט ל את הפעולה הזו");
             if (!c) return;
             // const amount = await moveAllOrdersFrom4To5();
-            const amount = await updateCollectionGroupProducts();
+            const amount = await moveAllOrdersFrom4To5();
             if (amount > 0) {
                 alert(`ההזמנות הועברו בהצלחה, סה"כ ${amount} הזמנות`);
             } else {
@@ -24,10 +24,10 @@ const Test = () => {
     return (
         <div>
 
-            <Button
+            {/* <Button
                 variant='contained'
                 onClick={updateOrdersStatus}
-            >העברת הזמנות מסטטוס 4 ל5</Button>
+            >העברת הזמנות מסטטוס 4 ל5</Button> */}
         </div>
     );
 }

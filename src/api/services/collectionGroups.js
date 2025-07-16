@@ -615,12 +615,12 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 }
 
 export const moveAllOrdersFrom4To5 = async (userId) => {
-    // const q = query(
-    //     collection(db, 'orders'),
-    //     where("orderStatus", "==", 4)
-    // );
-    // const querySnapshot = await getDocs(q);
-    // const orderDocs = querySnapshot.docs;
+    const q = query(
+        collection(db, 'orders'),
+        where("collectionGroupId", "==", "XFWUA2duxnEAA3aFNPYk")
+    );
+    const querySnapshot = await getDocs(q);
+    const orderDocs = querySnapshot.docs;
 
     // //  const orderProductsCountSnap = await db.collection('orderProducts')
     // //         .where('orderId', '==', orderId)
@@ -636,21 +636,22 @@ export const moveAllOrdersFrom4To5 = async (userId) => {
 
     // // const d = getDocs(orderProductsSnap);
     // console.log(`Moving ${orderDocs.length} orders from status 4 to 5`);
-    // const batch = writeBatch(db);
+    const batch = writeBatch(db);
 
-    // orderDocs.forEach(orderDoc => {
-    //     const orderRef = doc(db, 'orders', orderDoc.id);
-    //     batch.update(orderRef, {
-    //         orderStatus: 5, // סיום
-    //         // employeeId: "h6iEY6mmMkvCsWI2MW8g",
-    //         // updatedAt: Timestamp.now(),
-    //         // updatedBy: userId,
-    //     });
-    // });
+    console.log(`Moving ${orderDocs.length} orders from status 4 to 6`);
+    orderDocs.forEach(orderDoc => {
+        const orderRef = doc(db, 'orders', orderDoc.id);
+        batch.update(orderRef, {
+            orderStatus: 6, // סיום
+            // employeeId: "h6iEY6mmMkvCsWI2MW8g",
+            // updatedAt: Timestamp.now(),
+            // updatedBy: userId,
+        });
+    });
 
-    // await batch.commit();
-    // console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
-    // return orderDocs.length;
+    await batch.commit();
+    console.log(`Successfully moved ${orderDocs.length} orders from status 4 to 5`);
+    return orderDocs.length;
 }
 
 
@@ -825,7 +826,9 @@ export const getMissingProductsByOrder = async (collectionGroupId) => {
     return orders.map(order => {
         return {
             ...order,
-            missingProducts: productOrdersMap[order.id] || []
+            missingProducts: productOrdersMap[order.id] || [],
+            creditAmount: calculateCreditAmount(productOrdersMap[order.id] || []),
+            missingProductsCount: (productOrdersMap[order.id] || []).length
         };
     }).sort((a, b) => {
         const aOrder = a.collectionGroupOrder || 0;
@@ -834,7 +837,10 @@ export const getMissingProductsByOrder = async (collectionGroupId) => {
     });
 }
 
-
+const calculateCreditAmount = (missingProducts) => {
+    return missingProducts.reduce((orderSum, p) =>
+        orderSum + ((p.price || 0) * (p.quantityOrWeight || 0)), 0);
+}
 
 export const updateCollectionGroupProducts = async () => {
     const collectionGroupId = "k04NXPMZMXZLX8BsrO7J"
@@ -941,4 +947,49 @@ export const getOrdersByProductCategory = async (collectionGroupId, categoryId) 
         console.error("Error in getOrdersByProductCategory:", error);
         throw error;
     }
+}
+
+
+export const sendTzintukForMissingOrders = async (collectionGroupId, userId) => {
+    const missingOrders = await getMissingProductsByOrder(collectionGroupId);
+    if (missingOrders.length === 0) {
+        console.log("No missing orders found.");
+        return;
+    }
+
+    const batch = writeBatch(db);
+    missingOrders.forEach(order => {
+        const orderRef = doc(db, 'orders', order.id);
+        batch.update(orderRef, {
+            isMissingSendTzintuk: true, // סטטוס שליחת תזכורת
+            updatedAt: Timestamp.now(),
+            updatedBy: userId,
+        });
+    });
+
+    //update collectionGroup
+    const collectionGroupRef = doc(db, 'collectionGroups', collectionGroupId);
+    batch.update(collectionGroupRef, {
+        isMissingSendTzintuk: true,
+        updatedAt: Timestamp.now(),
+        updatedBy: userId,
+    });
+
+    await batch.commit();
+}
+
+
+export const removeOrderFromCollectionGroup = async (orderId, userId) => {
+    const orderRef = doc(db, 'orders', orderId);
+
+    const batch = writeBatch(db);
+    batch.update(orderRef, {
+        collectionGroupId: null,
+        orderStatus: 1,
+        collectionGroupOrder: 0,
+        updatedAt: Timestamp.now(),
+        updatedBy: userId,
+    });
+
+    await batch.commit();
 }

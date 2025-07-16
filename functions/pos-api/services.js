@@ -288,9 +288,74 @@ const getOrders = async (userId) => {
         .where("employeeId", "==", userId)
         .where("orderStatus", "==", 4).get();
 
+    if (orders.empty) {
+        return [];
+    }
 
+    // שלב 1: שליפת כל הקטגוריות (טבלה קטנה)
+    const categoriesSnap = await db.collection('globalProductCategories').get();
+    const categoriesMap = {};
+    categoriesSnap.docs.forEach(doc => {
+        categoriesMap[doc.id] = doc.data().name;
+    });
+
+    // שלב 2: שליפת כל orderProducts לפי orderIds במנות של 30
+    const orderIds = orders.docs.map(doc => doc.id);
+    let allOrderProducts = [];
+    for (let i = 0; i < orderIds.length; i += 30) {
+        const batch = orderIds.slice(i, i + 30);
+        const snap = await db
+            .collection('orderProducts')
+            .where("orderId", "in", batch)
+            .get();
+        allOrderProducts.push(...snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    // שלב 3: איסוף כל productIds ייחודיים מכל ההזמנות
+    const uniqueProductIds = [...new Set(allOrderProducts.map(op => op.productId).filter(Boolean))];
+
+    // שלב 4: שליפת כל המוצרים הרלוונטיים במנות של 30
+    let productsMap = {};
+    for (let i = 0; i < uniqueProductIds.length; i += 30) {
+        const batch = uniqueProductIds.slice(i, i + 30);
+        const snap = await db
+            .collection('products')
+            .where("__name__", "in", batch)
+            .get();
+        snap.docs.forEach(doc => {
+            productsMap[doc.id] = doc.data();
+        });
+    }
+
+    // שלב 5: קיבוץ orderProducts לפי orderId
+    const orderProductsMap = {};
+    allOrderProducts.forEach(op => {
+        if (!orderProductsMap[op.orderId]) {
+            orderProductsMap[op.orderId] = [];
+        }
+        orderProductsMap[op.orderId].push(op);
+    });
+
+    // שלב 6: בניית התוצאה עם הקטגוריות
     const res = orders.docs.map(doc => {
         const docData = doc.data();
+        const orderId = doc.id;
+
+        // מציאת כל הקטגוריות ייחודיות עבור ההזמנה הזו
+        const orderProducts = orderProductsMap[orderId] || [];
+        const uniqueCategories = new Set();
+
+        orderProducts.forEach(op => {
+            const product = productsMap[op.productId];
+            if (product && product.categories && Array.isArray(product.categories)) {
+                product.categories.forEach(categoryId => {
+                    if (categoriesMap[categoryId]) {
+                        uniqueCategories.add(categoriesMap[categoryId]);
+                    }
+                });
+            }
+        });
+
         const obj = {
             orderId: doc.id,
             nbsOrderId: docData.nbsOrderId,
@@ -302,6 +367,7 @@ const getOrders = async (userId) => {
             floor: docData.floor || "",
             apartment: docData.apartment || "",
             phone: docData.phones.join(",") || "",
+            notes: Array.from(uniqueCategories), // מערך של שמות קטגוריות ייחודיות
             // note: docData.note || "הערה",
             // notes: ["אבטיח", "ביצים", "מוצרי חלב"]
         }

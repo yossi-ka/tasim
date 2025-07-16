@@ -32,7 +32,7 @@ import {
     handleMoveInOrganized
 } from './handlers';
 import { useMutation, useQuery } from "react-query";
-import { closeCollectionGroup, getOrdersByCollectionGroup, saveCollectionGroupOrder } from "../../../api/services/collectionGroups";
+import { closeCollectionGroup, getOrdersByCollectionGroup, removeOrderFromCollectionGroup, saveCollectionGroupOrder } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
 import LoadingCloseCollection from "./LoadingCloseCollection";
 
@@ -114,6 +114,22 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
     };
 
 
+    const deleteFromCollection = useMutation((obj) => removeOrderFromCollectionGroup(obj.id, user.id),
+        {
+            onSuccess: (res, arg) => {
+                setUnorganizedUsers(prev => prev.filter(user => user.id !== arg.id));
+                setOrganizedUsers(prev => prev.filter(user => user.id !== arg.id));
+                setHasUnsavedChanges(true);
+                snackbar("המשתמש הוסר בהצלחה");
+            },
+            onError: (error) => {
+                console.error("Error deleting user:", error);
+                snackbar("שגיאה בהסרת המשתמש, אנא נסה שוב", "error");
+            }
+        })
+
+
+
     const saveOrder = useMutation(data => saveCollectionGroupOrder(
         currentCollectionGroup.id,
         organizedUsers,
@@ -156,7 +172,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
 
     // פונקציות לניהול פתיחת אינפוטים ברצף
     const handleOpenNextInputUnorganized = (nextIndex) => {
-      
+
 
         if (nextIndex === -1) {
             // איפוס
@@ -173,7 +189,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
     };
 
     const handleOpenNextInputOrganized = (nextIndex) => {
-       
+
 
         if (nextIndex === -1) {
             // איפוס
@@ -329,6 +345,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                                                 currentIndex={index}
                                                 onOpenNextInput={handleOpenNextInputUnorganized}
                                                 forceOpenInput={openInputIndex.list === 'unorganized' && openInputIndex.index === index}
+                                                onDelete={deleteFromCollection.mutate}
                                             />
                                         ))}
                                     </SortableContext>
@@ -369,7 +386,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                                             startIcon={<SaveIcon />}
                                             onClick={saveOrder.mutate}
                                             disabled={saveOrder.isLoading}
-                                            
+
                                             sx={{
                                                 px: 2,
                                                 py: 0.5,
@@ -434,6 +451,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                                                             currentIndex={index}
                                                             onOpenNextInput={handleOpenNextInputOrganized}
                                                             forceOpenInput={openInputIndex.list === 'organized' && openInputIndex.index === index}
+                                                            onDelete={deleteFromCollection.mutate}
                                                         />
                                                     </Box>
                                                 </Box>
@@ -477,6 +495,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                         <SortableUserItem
                             user={draggedUser}
                             showDragHandle={false}
+                            onDelete={() => { }} // פונקציה ריקה ל-overlay
                         />
                     ) : null}
                 </DragOverlay>

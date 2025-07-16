@@ -18,6 +18,7 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import PersonIcon from "@mui/icons-material/Person";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { TextField } from "@mui/material";
 
 // רכיב drop zone בין אלמנטים
@@ -53,6 +54,7 @@ export const DropZone = ({ id, isActive, draggedUser }) => {
                     <SortableUserItem
                         user={draggedUser}
                         showDragHandle={false}
+                        onDelete={() => {}} // פונקציה ריקה ל-preview
                     />
                 </Box>
             ) : (
@@ -101,7 +103,8 @@ export const SortableUserItem = ({
     allUsers = [],
     currentIndex = 0,
     onOpenNextInput,
-    forceOpenInput = false
+    forceOpenInput = false,
+    onDelete
 }) => {
     const {
         attributes,
@@ -114,6 +117,7 @@ export const SortableUserItem = ({
 
     const [showPositionInput, setShowPositionInput] = useState(false);
     const [positionValue, setPositionValue] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const inputRef = useRef(null);
 
     // עדכן state כאשר יש בקשה לפתוח אינפוט מקומפוננטה אחרת
@@ -190,6 +194,23 @@ export const SortableUserItem = ({
                 inputRef.current.focus();
             }
         }, 50);
+    };
+
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setShowDeleteConfirm(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (onDelete) {
+            onDelete(user);
+        }
+        setShowDeleteConfirm(false);
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteConfirm(false);
     };
 
     return (
@@ -271,8 +292,48 @@ export const SortableUserItem = ({
                                     ✕
                                 </IconButton>
                             </Box>
+                        ) : showDeleteConfirm ? (
+                            /* אישור מחיקה */
+                            <Box display="flex" alignItems="center" gap={0.5}>
+                                <Typography variant="body2" sx={{ mr: 1 }}>
+                                    בטוח?
+                                </Typography>
+                                <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteConfirm();
+                                    }}
+                                    sx={{ color: 'success.main' }}
+                                >
+                                    ✓
+                                </IconButton>
+                                <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteCancel();
+                                    }}
+                                    sx={{ color: 'error.main' }}
+                                >
+                                    ✕
+                                </IconButton>
+                            </Box>
                         ) : (
                             <>
+                                {/* כפתור מחיקה */}
+                                <IconButton
+                                    size="small"
+                                    onClick={handleDeleteClick}
+                                    sx={{
+                                        color: 'error.main',
+                                        '&:hover': { bgcolor: 'error.lighter' }
+                                    }}
+                                    title="מחק הזמנה"
+                                >
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+
                                 {/* כפתורי העברה */}
                                 {!isInOrganized && onMoveToOrganized && (
                                     <IconButton

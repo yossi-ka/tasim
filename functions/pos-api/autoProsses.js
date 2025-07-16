@@ -222,14 +222,31 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
     const before = event.data.before.data();
     const after = event.data.after.data();
     if (!before || !after) return;
+
+    const phones = Array.isArray(after.phones) ? after.phones : [];
     // נבדוק אם הסטטוס השתנה ל-5
     if (before.orderStatus !== 5 && after.orderStatus === 5) {
-        const phones = Array.isArray(after.phones) ? after.phones : [];
         if (phones.length > 0) {
             console.log("Sending IVR message to phones:", phones);
             await yemotRequest("CallExtensionBridging", {
                 phones: phones,
                 ivrPath: "ivr2:/system/orders",
+            })
+
+            //update isSentTzintuk
+            await db.collection('orders').doc(event.data.after.id).update({
+                isSentTzintuk: true,
+                sentTzintukAt: Timestamp.now()
+            });
+        }
+    }
+    //שליחת צינתוק מוצרים חסרים
+    if (!before.isMissingSendTzintuk && after.isMissingSendTzintuk) {
+        if (phones.length > 0) {
+            console.log("Sending IVR message to phones:", phones);
+            await yemotRequest("CallExtensionBridging", {
+                phones: phones,
+                ivrPath: "ivr2:/system/miss",
             })
 
             //update isSentTzintuk

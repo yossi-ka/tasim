@@ -360,5 +360,42 @@
             "type": "lookup",
             "lookup": "collectionsGroupLines"
         }
+    ],
+    "MissingProductsCredit": [
+        {
+            "name": "collectionGroupOrder",
+            "label": "מספר סדר",
+            "type": "text"
+        },
+        {
+            "name": "nbsOrderId",
+            "label": "מספר הזמנה",
+            "type": "text"
+        },
+        {
+            "name": "lastName",
+            "label": "שם משפחה",
+            "type": "text"
+        },
+        {
+            "name": "firstName",
+            "label": "שם פרטי",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "label": "כמות מוצרים חסרים",
+            "name": "missingProductsCount",
+            "type": "number"
+        },
+        {
+            "label": "סכום זיכוי",
+            "name": "creditAmount",
+            "type": "currency"
+        }
     ]
 }

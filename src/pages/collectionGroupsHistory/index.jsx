@@ -3,7 +3,7 @@ import GenericTable from '../../components/GenericTable';
 import useTerms from '../../terms';
 import { useQuery } from 'react-query';
 import { getCollectionGroupsHistory } from '../../api/services/collectionGroups';
-import { Stack, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import PrintActionsCell from './PrintActionsCell';
 
 const CollectionGroupsHistory = () => {
@@ -15,7 +15,7 @@ const CollectionGroupsHistory = () => {
     const columns = [
         ...term.table(),
         {
-            cb: (row) => <PrintActionsCell collectionGroupId={row.id} />,
+            cb: (row) => <PrintActionsCell collectionGroupId={row.id} isMissingSendTzintuk={row.isMissingSendTzintuk} />,
         }
     ]
     return (
