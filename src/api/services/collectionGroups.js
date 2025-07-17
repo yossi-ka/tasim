@@ -159,6 +159,15 @@ export const saveCollectionGroupOrder = async (collectionGroupId, organized, uno
 
 }
 
+export const getCollectionGroupById = async (collectionGroupId) => {
+    const docRef = doc(db, 'collectionsGroups', collectionGroupId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+}
+
 export const closeCollectionGroup = async (collectionGroupId, userId) => {
 
     const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
@@ -281,15 +290,6 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
     });
 };
 
-export const getCollectionGroupById = async (collectionGroupId) => {
-    const docRef = doc(db, 'collectionsGroups', collectionGroupId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
-    } else {
-        throw new Error("No such document!");
-    }
-}
 
 export const getCollectionGroupProducts = async (collectionGroupId) => {
     const q = query(
@@ -617,7 +617,7 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 export const moveAllOrdersFrom4To5 = async (userId) => {
     const q = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "==", "XFWUA2duxnEAA3aFNPYk")
+        where("collectionGroupId", "==", "yGTlK3GZeMgx1jklPLvu")
     );
     const querySnapshot = await getDocs(q);
     const orderDocs = querySnapshot.docs;

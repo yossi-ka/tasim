@@ -27,7 +27,7 @@ const Test = () => {
             {/* <Button
                 variant='contained'
                 onClick={updateOrdersStatus}
-            >העברת הזמנות מסטטוס 4 ל5</Button> */}
+            >העברת הזמנות בקבוצה לסטטוס 1</Button> */}
         </div>
     );
 }
