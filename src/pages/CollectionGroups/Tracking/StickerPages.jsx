@@ -57,14 +57,16 @@ const StickerPages = ({ orders, title }) => {
                             {`${order.firstName || ''} ${order.lastName || ''}`.trim()}
                         </Typography>
                         {/* כתובת */}
-                        <Typography sx={{ fontSize: "15px", color: "#000", textAlign: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontSize: "12px", color: "#000", textAlign: "center", mb: 0.5 }}>
                             {order.street}
+                        </Typography>
+                        <Typography sx={{ fontSize: "12px", color: "#000", textAlign: "center", mb: 0.5 }}>
+                            {order.phones ? order.phones.join(" | ") : ""}
                         </Typography>
                         {/* מספר המדבקה בפינה */}
                         <Typography sx={{ position: "absolute", left: 12, bottom: 10, fontSize: "13px", color: "#000", fontWeight: 700, opacity: 0.7 }}>
                             {idx + 1}
                         </Typography>
-                        {/* מספר המדבקה בפינה */}
                         {title && <Typography sx={{ position: "absolute", right: 12, bottom: 10, fontSize: "13px", color: "#000", fontWeight: 700, opacity: 0.7 }}>
                             {title}
                         </Typography>}
