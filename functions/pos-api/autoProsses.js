@@ -225,7 +225,7 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
 
     const phones = Array.isArray(after.phones) ? after.phones : [];
     // נבדוק אם הסטטוס השתנה ל-5
-    if (before.orderStatus !== 5 && after.orderStatus === 5) {
+    if (before.orderStatus !== 5 && after.orderStatus === 5 && after.isSentTzintuk != false) {
         if (phones.length > 0) {
             console.log("Sending IVR message to phones:", phones);
             await yemotRequest("CallExtensionBridging", {

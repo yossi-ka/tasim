@@ -24,10 +24,10 @@ const Test = () => {
     return (
         <div>
 
-            {/* <Button
+            <Button
                 variant='contained'
                 onClick={updateOrdersStatus}
-            >העברת הזמנות בקבוצה לסטטוס 1</Button> */}
+            >העברת הזמנות בקבוצה לסטטוס 1</Button>
         </div>
     );
 }

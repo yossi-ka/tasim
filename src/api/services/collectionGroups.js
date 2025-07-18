@@ -617,7 +617,7 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 export const moveAllOrdersFrom4To5 = async (userId) => {
     const q = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "==", "yGTlK3GZeMgx1jklPLvu")
+        where("collectionGroupId", "==", "Lu4ZLhg1TLagxdOxg46C")
     );
     const querySnapshot = await getDocs(q);
     const orderDocs = querySnapshot.docs;
@@ -642,7 +642,8 @@ export const moveAllOrdersFrom4To5 = async (userId) => {
     orderDocs.forEach(orderDoc => {
         const orderRef = doc(db, 'orders', orderDoc.id);
         batch.update(orderRef, {
-            orderStatus: 6, // סיום
+            orderStatus: 5,
+            isSentTzintuk: false
             // employeeId: "h6iEY6mmMkvCsWI2MW8g",
             // updatedAt: Timestamp.now(),
             // updatedBy: userId,
