@@ -21,6 +21,8 @@ const path = require('path');
 
 const BASE_NBS_URL = "https://sales-v2.nbs-app.net/api/crm/";
 
+const SALE_IDS = [8539]
+
 // פונקציה לקבלת טוקן מ-NBS
 const getNbsToken = async () => {
     console.log('🔐 Starting authentication process...');
@@ -79,7 +81,7 @@ const getNbsToken = async () => {
 // פונקציה לשליפת נתונים מ-NBS
 const getNbsOrders = async (token, filters, exportType) => {
     console.log(`📦 Fetching orders with exportType: ${exportType}`);
-    
+
     const config = {
         method: 'get',
         maxBodyLength: Infinity,
@@ -135,7 +137,7 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
 
     console.log('📋 Excel workbook parsed, processing sheet...');
 
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
         defval: '',
         raw: false
@@ -151,7 +153,7 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
 
     console.log(`🔄 Processing ${jsonData.length - 1} data rows...`);
     const structuredData = [];
-    
+
     for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
         const rowData = {};
@@ -185,11 +187,11 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
 };
 
 // פונקציה לשליפת הזמנות
-const getOrders = async (token) => {
+const getOrders = async (token, amountDaysToImport = 1) => {
     try {
         const filtersObject = {
             searchTerm: "",
-            saleIds: [],
+            saleIds: SALE_IDS,
             branchIds: [],
             paymentMethod: [],
             status: ["paid"],
@@ -201,7 +203,7 @@ const getOrders = async (token) => {
             },
             updatedRange: {
                 unit: "days",
-                amount: 1
+                amount: amountDaysToImport
             }
         };
 
@@ -233,6 +235,7 @@ const getOrders = async (token) => {
 
         const headerMapping = {
             "מספר הזמנה": "nbsOrderId",
+            "מזהה לקוח": "nbsCustomerId",
             "שם פרטי": "firstName",
             "שם משפחה": "lastName",
             "ת.ז": "idNumber",
@@ -271,7 +274,7 @@ const getOrders = async (token) => {
             });
 
             // עיבוד מספרים
-            ['totalPrice', 'nbsOrderId'].forEach(numberField => {
+            ['totalPrice', 'nbsOrderId', 'nbsCustomerId'].forEach(numberField => {
                 if (orderData[numberField] && !isNaN(orderData[numberField])) {
                     orderData[numberField] = Number(orderData[numberField]);
                 }
@@ -294,11 +297,11 @@ const getOrders = async (token) => {
 };
 
 // פונקציה לשליפת מוצרים של הזמנות
-const getOrderProducts = async (token, orderIds = null) => {
+const getOrderProducts = async (token, orderIds = null, amountDaysToImport = 1) => {
     try {
         const filtersObject = {
             searchTerm: "",
-            saleIds: [],
+            saleIds: SALE_IDS,
             branchIds: [],
             paymentMethod: [],
             status: ["paid"],
@@ -310,7 +313,7 @@ const getOrderProducts = async (token, orderIds = null) => {
             },
             updatedRange: {
                 unit: "days",
-                amount: 1
+                amount: amountDaysToImport
             }
         };
 
@@ -342,6 +345,7 @@ const getOrderProducts = async (token, orderIds = null) => {
 
         const headerMapping = {
             "מספר הזמנה": "nbsOrderId",
+            "מזהה פריט": "nbsProductId",
             "פריט": "productName",
             "משקל פריט": "weights",
             "מחיר פריט": "price"
@@ -352,7 +356,7 @@ const getOrderProducts = async (token, orderIds = null) => {
                 return null;
             }
 
-            ['nbsOrderId', 'weights', 'price'].forEach(numberField => {
+            ['nbsOrderId', 'nbsProductId', 'weights', 'price'].forEach(numberField => {
                 if (orderData[numberField] && !isNaN(orderData[numberField])) {
                     orderData[numberField] = Number(orderData[numberField]);
                 }
@@ -432,13 +436,13 @@ const getOrderProducts = async (token, orderIds = null) => {
 const fetchAndNormalizeOrders = async () => {
     try {
         console.log('🚀 Starting NBS data fetch and normalization...');
-
+        const amountDaysToImport = await getAmountDaysToImport();
         // קבלת טוקן
         const token = await getNbsToken();
 
         // שליפת הזמנות
         console.log('📋 Fetching orders...');
-        const orders = await getOrders(token);
+        const orders = await getOrders(token, amountDaysToImport);
 
         if (orders.length === 0) {
             console.log('⚠️ No orders found');
@@ -451,8 +455,9 @@ const fetchAndNormalizeOrders = async () => {
 
         // שליפת מוצרים
         console.log('📦 Fetching order products...');
-        const orderProducts = await getOrderProducts(token, orderIds);
+        const orderProducts = await getOrderProducts(token, orderIds, amountDaysToImport);
 
+        console.log(orderProducts[0], "orderProducts[0]");
         // יצירת מיפוי מוצרים לפי הזמנה
         console.log('🔄 Creating orders with products structure...');
         const productsByOrder = new Map();
@@ -466,7 +471,8 @@ const fetchAndNormalizeOrders = async () => {
                 productName: product.productName,
                 quantityOrWeight: product.quantityOrWeight,
                 weights: product.weights,
-                price: product.price
+                price: product.price,
+                nbsProductId: product.nbsProductId
             });
         });
 
@@ -491,7 +497,8 @@ const fetchAndNormalizeOrders = async () => {
                 ordersWithProducts,
                 {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer fromNodeService`
                     },
                     timeout: 300000 // 5 minutes timeout
                 }
@@ -542,6 +549,49 @@ if (require.main === module) {
             process.exit(1);
         });
 }
+
+const getAmountDaysToImport = async () => {
+    try {
+        console.log('\n� Getting last import date from server...');
+        const response = await axios.get(
+            'https://us-central1-kanfei-nesharim.cloudfunctions.net/lastOrderImportDate',
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000 // 30 seconds timeout
+            }
+        );
+
+        if (response.status !== 200 || !response.data.lastImportDate) {
+            console.log('⚠️ Could not get last import date, defaulting to 1 day');
+            return 1;
+        }
+
+        // המרת התאריך שהתקבל לאובייקט Date
+        const lastImportDate = new Date(response.data.lastImportDate);
+        const currentDate = new Date();
+
+        // חישוב ההפרש בימים
+        const timeDifference = currentDate - lastImportDate;
+        const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+
+        // עיגול כלפי מעלה
+        const daysToImport = Math.ceil(daysDifference);
+
+        console.log(`📅 Last import: ${lastImportDate.toISOString()}`);
+        console.log(`📅 Current date: ${currentDate.toISOString()}`);
+        console.log(`📊 Days to import: ${daysToImport}`);
+
+        // וידוא שהערך לא יהיה קטן מ-1
+        return Math.max(daysToImport, 1);
+
+    } catch (error) {
+        console.error('❌ Error getting last import date:', error.message);
+        console.log('⚠️ Defaulting to 1 day import');
+        return 1;
+    }
+};
 
 // ייצוא הפונקציות לשימוש חיצוני
 module.exports = {

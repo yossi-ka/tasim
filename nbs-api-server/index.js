@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/test', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', version: '1.0.2' });
 });
 
 app.post('/fetch-and-normalize', async (req, res) => {

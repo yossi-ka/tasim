@@ -26,11 +26,15 @@ const SyncStatus = ({ refetch }) => {
     const { user } = React.useContext(Context);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isLocalSyncAvailable, setIsLocalSyncAvailable] = useState(null); // null=unknown, true=ok, false=down
+    const [localSyncVersion, setLocalSyncVersion] = useState(null);
+    const REQUIRED_VERSION = '1.0.2';
+    
     // בדיקת זמינות סנכרון מקומי בכניסה לקומפוננטה
     useEffect(() => {
         const checkService = async () => {
-            const available = await checkLocalSyncService();
-            setIsLocalSyncAvailable(available);
+            const result = await checkLocalSyncService();
+            setIsLocalSyncAvailable(result.available);
+            setLocalSyncVersion(result.version);
         };
         checkService();
     }, []);
@@ -104,8 +108,9 @@ const SyncStatus = ({ refetch }) => {
     // פונקציה לחידוש בדיקת שירות מקומי
     const handleCheckAgain = async () => {
         setIsRefreshing(true);
-        const available = await checkLocalSyncService();
-        setIsLocalSyncAvailable(available);
+        const result = await checkLocalSyncService();
+        setIsLocalSyncAvailable(result.available);
+        setLocalSyncVersion(result.version);
         setIsRefreshing(false);
     };
 
@@ -123,6 +128,11 @@ const SyncStatus = ({ refetch }) => {
         } finally {
             setIsRefreshing(false);
         }
+    };
+
+    // פונקציה לבדוק אם הגירסה מעודכנת
+    const isVersionUpToDate = () => {
+        return localSyncVersion === REQUIRED_VERSION;
     };
 
 
@@ -161,7 +171,7 @@ const SyncStatus = ({ refetch }) => {
                         startIcon={<RefreshIcon />}
                         onClick={handleManualRefresh}
                         size="large"
-                        disabled={isRefreshing || isLocalSyncAvailable === false}
+                        disabled={isRefreshing || isLocalSyncAvailable === false || !isVersionUpToDate()}
                     >
                         {isRefreshing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
                         ביצוע סנכרון ראשון
@@ -263,7 +273,7 @@ const SyncStatus = ({ refetch }) => {
                                 startIcon={<RefreshIcon />}
                                 onClick={handleManualRefresh}
                                 size="large"
-                                disabled={isRefreshing || isLocalSyncAvailable === false}
+                                disabled={isRefreshing || isLocalSyncAvailable === false || !isVersionUpToDate()}
                             >
                                 {isRefreshing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
                                 ביצוע רענון ידני
@@ -279,6 +289,21 @@ const SyncStatus = ({ refetch }) => {
                                 </Button>
                             )}
                         </Box>
+
+                        {isLocalSyncAvailable === true && (
+                            <>
+                                <Divider />
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        גירסת שירות סנכרון מקומי:
+                                    </Typography>
+                                    <Typography variant="body1" color={isVersionUpToDate() ? 'success.main' : 'warning.main'}>
+                                        {localSyncVersion || 'לא ידועה'} 
+                                        {isVersionUpToDate() ? ' ✓' : ` (נדרש: ${REQUIRED_VERSION})`}
+                                    </Typography>
+                                </Box>
+                            </>
+                        )}
                     </Stack>
                 </CardContent>
             </Card>
@@ -287,6 +312,14 @@ const SyncStatus = ({ refetch }) => {
                 <Alert severity="error">
                     שירות הסנכרון המקומי אינו פעיל. יש להפעיל את השירות במחשב זה.<br />
                     לא ניתן לבצע סנכרון הזמנות דרך שירות זה.
+                </Alert>
+            )}
+
+            {isLocalSyncAvailable === true && !isVersionUpToDate() && (
+                <Alert severity="warning">
+                    גירסת הסנכרון במחשב לא מעודכנת.<br />
+                    גירסה נוכחית: {localSyncVersion || 'לא ידועה'} | גירסה נדרשת: {REQUIRED_VERSION}<br />
+                    אנא עדכן את שירות הסנכרון המקומי לגירסה האחרונה.
                 </Alert>
             )}
 

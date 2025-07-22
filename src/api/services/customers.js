@@ -149,3 +149,119 @@ export const getCustomersCount = async () => {
         throw new Error(`שגיאה בקבלת מספר הלקוחות: ${error.message}`);
     }
 }
+
+export const updateCustomersDeliveryIndex = async (deliveryData, userId) => {
+    const FIRESTORE_BATCH_SIZE = 500; // מגבלת Firestore לbatch writes
+
+    try {
+        console.log('Starting delivery index update process...');
+        
+        // שלב 1: משיכת כל הלקוחות
+        console.log('Fetching all customers...');
+        const customersRef = collection(db, "customers");
+        const customersSnapshot = await getDocs(customersRef);
+        
+        // שלב 2: יצירת מפה לפי customerNumber
+        console.log('Creating customer number to ID mapping...');
+        const customerNumberToIdMap = new Map();
+        customersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.customerNumber) {
+                customerNumberToIdMap.set(data.customerNumber, doc.id);
+            }
+        });
+        
+        console.log(`Found ${customerNumberToIdMap.size} customers with customer numbers`);
+        
+        // שלב 3: סינון הנתונים - רק שורות תקינות
+        const validDeliveryData = [];
+        const skippedRows = [];
+        const notFoundCustomers = [];
+        
+        for (let i = 0; i < deliveryData.length; i++) {
+            const row = deliveryData[i];
+            const { deliveryIndex, customerNumber } = row;
+            
+            // דילוג על שורות עם עמודות ריקות
+            if (!deliveryIndex || !customerNumber) {
+                console.log(`Skipping row ${i + 1}: missing deliveryIndex (${deliveryIndex}) or customerNumber (${customerNumber})`);
+                skippedRows.push({
+                    rowIndex: i + 1,
+                    reason: 'Missing deliveryIndex or customerNumber',
+                    data: row
+                });
+                continue;
+            }
+            
+            // איתור ID לפי מספר לקוח
+            const customerId = customerNumberToIdMap.get(customerNumber);
+            if (!customerId) {
+                console.log(`Customer number ${customerNumber} not found in database`);
+                notFoundCustomers.push({
+                    rowIndex: i + 1,
+                    customerNumber,
+                    data: row
+                });
+                continue;
+            }
+            
+            // הוספה לרשימת הנתונים התקינים
+            validDeliveryData.push({
+                customerId,
+                customerNumber,
+                deliveryIndex,
+                rowIndex: i + 1
+            });
+        }
+        
+        console.log(`Processing ${validDeliveryData.length} valid updates, skipping ${skippedRows.length} rows, ${notFoundCustomers.length} customers not found`);
+        
+        // שלב 4: עדכון בbatches של Firestore
+        const updatedCustomers = [];
+        for (let i = 0; i < validDeliveryData.length; i += FIRESTORE_BATCH_SIZE) {
+            const batch = writeBatch(db);
+            const batchData = validDeliveryData.slice(i, i + FIRESTORE_BATCH_SIZE);
+            const batchResults = [];
+            
+            for (const item of batchData) {
+                const { customerId, customerNumber, deliveryIndex } = item;
+                
+                // הוספת העדכון לbatch
+                const customerDocRef = doc(db, 'customers', customerId);
+                batch.update(customerDocRef, {
+                    deliveryIndex: deliveryIndex,
+                    updateBy: userId,
+                    updateDate: Timestamp.now(),
+                });
+                
+                batchResults.push(item);
+            }
+            
+            // ביצוע הbatch הנוכחי
+            if (batchResults.length > 0) {
+                await batch.commit();
+                updatedCustomers.push(...batchResults);
+                console.log(`Updated batch ${Math.floor(i / FIRESTORE_BATCH_SIZE) + 1}: ${batchResults.length} customers`);
+            }
+        }
+        
+        console.log(`Update process completed. Updated: ${updatedCustomers.length}, Skipped: ${skippedRows.length}, Not found: ${notFoundCustomers.length}`);
+        
+        return {
+            success: true,
+            totalProcessed: deliveryData.length,
+            updatedCount: updatedCustomers.length,
+            skippedCount: skippedRows.length,
+            notFoundCount: notFoundCustomers.length,
+            updatedCustomers,
+            skippedRows,
+            notFoundCustomers
+        };
+        
+    } catch (error) {
+        console.error('Error updating customers delivery index:', error);
+        throw new Error(`שגיאה בעדכון אינדקס משלוח הלקוחות: ${error.message}`);
+    }
+}
+
+

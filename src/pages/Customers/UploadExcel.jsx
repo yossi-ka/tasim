@@ -1,7 +1,7 @@
-import { Button, Stack, Typography, Alert, CircularProgress } from "@mui/material";
+import { Button, Stack, Typography, Alert, CircularProgress, Divider } from "@mui/material";
 import React, { useState } from "react";
 import { useMutation } from 'react-query';
-import { uploadCustomers } from '../../api/services/customers';
+import { uploadCustomers, updateCustomersDeliveryIndex } from '../../api/services/customers';
 import Context from "../../context";
 import * as XLSX from 'xlsx';
 
@@ -34,6 +34,37 @@ const UploadExcel = ({ refetch }) => {
             setMessage({
                 type: 'error',
                 text: error.message || 'שגיאה בהעלאת הלקוחות'
+            });
+        }
+    });
+
+    // useMutation לעדכון deliveryIndex
+    const updateDeliveryIndexMutation = useMutation((deliveryData) => updateCustomersDeliveryIndex(deliveryData, user.id), {
+        onSuccess: (result) => {
+            // הכנת הודעה מפורטת
+            let successMessage = `עובדו ${result.totalProcessed} שורות: `;
+            successMessage += `${result.updatedCount} לקוחות עודכנו`;
+            if (result.skippedCount > 0) {
+                successMessage += `, ${result.skippedCount} שורות דולגו`;
+            }
+            if (result.notFoundCount > 0) {
+                successMessage += `, ${result.notFoundCount} לקוחות לא נמצאו`;
+            }
+
+            setMessage({
+                type: result.updatedCount > 0 ? 'success' : 'warning',
+                text: successMessage
+            });
+            setLoading(false);
+            console.log("end delivery update", new Date().getTime())
+            refetch()
+
+        },
+        onError: (error) => {
+            console.error('Error updating delivery index:', error);
+            setMessage({
+                type: 'error',
+                text: error.message || 'שגיאה בעדכון אינדקס המשלוח'
             });
         }
     });
@@ -197,6 +228,120 @@ const UploadExcel = ({ refetch }) => {
         input.click();
     };
 
+    const handleDeliveryIndexUpload = () => {
+        // יצירת אלמנט input מסוג file
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+
+        input.onchange = async (e) => {
+            setLoading(true);
+            console.log("start delivery index update", new Date().getTime())
+
+            const file = e.target.files[0];
+            if (!file) return;
+
+            setMessage({ type: '', text: '' });
+
+            try {
+                // קריאת הקובץ CSV באמצעות xlsx
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+                // קבלת השמות של כל הגיליונות
+                const sheetNames = workbook.SheetNames;
+                if (sheetNames.length === 0) {
+                    throw new Error('הקובץ לא מכיל גיליונות');
+                }
+
+                // קריאת הגיליון הראשון
+                const worksheet = workbook.Sheets[sheetNames[0]];
+
+                // המרה ל-JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length === 0) {
+                    throw new Error('הקובץ ריק');
+                }
+
+                // שורת הכותרות
+                const headers = jsonData[0];
+                const dataRows = jsonData.slice(1);
+
+                console.log('Headers found:', headers);
+                console.log('Sample data row:', dataRows[0]);
+
+                // ולידציה של הכותרות - צריך להיות בדיוק 2 עמודות
+                const expectedDeliveryHeaders = ["מספר סדר", "מספר לקוח"];
+                const missingHeaders = expectedDeliveryHeaders.filter(header => !headers.includes(header));
+                if (missingHeaders.length > 0) {
+                    throw new Error(`חסרות כותרות: ${missingHeaders.join(', ')}`);
+                }
+
+                // מיפוי הכותרות
+                const deliveryHeaderMapping = {
+                    "מספר סדר": "deliveryIndex",
+                    "מספר לקוח": "customerNumber"
+                };
+
+                // המרת הנתונים
+                const deliveryData = [];
+                
+                for (let i = 0; i < dataRows.length; i++) {
+                    const row = dataRows[i];
+                    
+                    // דילוג על שורות ריקות
+                    if (!row || row.every(cell => !cell)) continue;
+
+                    const deliveryItem = {};
+                    
+                    // מיפוי כל עמודה
+                    headers.forEach((header, index) => {
+                        const fieldName = deliveryHeaderMapping[header];
+                        if (fieldName && row[index] !== undefined && row[index] !== null && row[index] !== '') {
+                            let value = row[index];
+                            
+                            // המרה למספר עבור deliveryIndex ו-customerNumber
+                            if (fieldName === 'deliveryIndex' || fieldName === 'customerNumber') {
+                                deliveryItem[fieldName] = parseInt(value) || value;
+                            } else {
+                                deliveryItem[fieldName] = value;
+                            }
+                        }
+                    });
+
+                    // ולידציה - חובה שיהיה גם deliveryIndex וגם customerNumber
+                    if (!deliveryItem.deliveryIndex || !deliveryItem.customerNumber) {
+                        console.warn(`שורה ${i + 2}: חסר מספר סדר או מספר לקוח, מדלג על השורה`);
+                        continue;
+                    }
+
+                    deliveryData.push(deliveryItem);
+                }
+
+                console.log(`Processed ${deliveryData.length} delivery updates from ${dataRows.length} rows`);
+
+                if (deliveryData.length === 0) {
+                    throw new Error('לא נמצאו שורות תקינות בקובץ');
+                }
+
+                // עדכון deliveryIndex
+                await updateDeliveryIndexMutation.mutateAsync(deliveryData);
+
+            } catch (error) {
+                console.error('Error processing delivery file:', error);
+                setMessage({
+                    type: 'error',
+                    text: error.message || 'שגיאה בעיבוד קובץ אינדקס המשלוח'
+                });
+                setLoading(false);
+            }
+        };
+
+        // הפעלת בחירת הקובץ
+        input.click();
+    };
+
     return (<>
         {!message.text ? <Stack direction="column" spacing={3}>
             <Typography color="primary.main" variant="h4">כאן ניתן לעלות קובץ לקוחות</Typography>
@@ -226,6 +371,28 @@ const UploadExcel = ({ refetch }) => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                 {expectedHeaders.join(' | ')}
+            </Typography>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography color="primary.main" variant="h4">עדכון אינדקס משלוח</Typography>
+            <Typography color="primary.main" variant="h5">העלאת קובץ עם מספר סדר ומספר לקוח לעדכון אינדקס המשלוח</Typography>
+
+            <Button
+                color="secondary"
+                variant="contained"
+                onClick={handleDeliveryIndexUpload}
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+            >
+                {loading ? 'מעדכן אינדקס משלוח...' : 'עדכון אינדקס משלוח (CSV)'}
+            </Button>
+
+            <Typography variant="body2" color="text.secondary">
+                הכותרות הצפויות בקובץ אינדקס משלוח:
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                מספר סדר | מספר לקוח
             </Typography>
         </Stack>
             :

@@ -11,7 +11,7 @@ const { Timestamp } = require("firebase-admin/firestore");
  */
 const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
     console.log('🚀 Starting orders import from JSON...');
-    
+
     if (!ordersWithProducts || !Array.isArray(ordersWithProducts)) {
         throw new Error('Invalid input: ordersWithProducts must be an array');
     }
@@ -45,7 +45,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
         // מציאת מינימום ומקסימום של מספרי הזמנה
         const minOrderId = Math.min(...orderIds);
         const maxOrderId = Math.max(...orderIds);
-        
+
         console.log(`📊 Order ID range: ${minOrderId} - ${maxOrderId} (Total: ${orderIds.length} orders)`);
 
         // שליפת הזמנות קיימות בטווח
@@ -70,6 +70,8 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
         console.log('🔄 Loading product mapping...');
         const productMapping = await loadProductMapping();
 
+        const customerMapping = await loadCustomerMapping();
+
         // הגדרות batch
         const BATCH_SIZE = 500;
         let currentBatchOperations = 0;
@@ -91,8 +93,8 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             }
 
             // סינון מוצרים קיימים במיפוי
-            const validProducts = (order.products || []).filter(product => 
-                product.productName && productMapping.has(product.productName)
+            const validProducts = (order.products || []).filter(product =>
+                product.nbsProductId && productMapping.has(product.nbsProductId)
             );
 
             const skippedProducts = (order.products || []).length - validProducts.length;
@@ -119,20 +121,22 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 
                 // הוספת ההזמנה
                 const orderRef = db.collection('orders').doc();
-                const orderData = createOrderData(order, userId, importDoc.id);
+                const mappedCustomer = customerMapping.get(order.nbsCustomerId) || null;
+                const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer);
                 largeBatch.set(orderRef, orderData);
 
                 // הוספת כל המוצרים
                 validProducts.forEach(product => {
-                    const mappedProduct = productMapping.get(product.productName);
+                    const mappedProduct = productMapping.get(product.nbsProductId);
                     const productRef = db.collection('orderProducts').doc();
                     const productData = createOrderProductData(
-                        orderRef.id, 
-                        order.nbsOrderId, 
-                        product, 
-                        mappedProduct, 
-                        userId, 
-                        importDoc.id
+                        orderRef.id,
+                        order.nbsOrderId,
+                        product,
+                        mappedProduct,
+                        userId,
+                        importDoc.id,
+                        mappedCustomer
                     );
                     largeBatch.set(productRef, productData);
                     totalProductsAdded++;
@@ -163,21 +167,23 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 
             // הוספת ההזמנה ל-batch
             const orderRef = db.collection('orders').doc();
-            const orderData = createOrderData(order, userId, importDoc.id);
+            const mappedCustomer = customerMapping.get(order.nbsCustomerId) || null;
+
+            const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer);
             batch.set(orderRef, orderData);
             currentBatchOperations++;
             totalNewOrders++;
 
             // הוספת המוצרים ל-batch
             validProducts.forEach(product => {
-                const mappedProduct = productMapping.get(product.productName);
+                const mappedProduct = productMapping.get(product.nbsProductId);
                 const productRef = db.collection('orderProducts').doc();
                 const productData = createOrderProductData(
-                    orderRef.id, 
-                    order.nbsOrderId, 
-                    product, 
-                    mappedProduct, 
-                    userId, 
+                    orderRef.id,
+                    order.nbsOrderId,
+                    product,
+                    mappedProduct,
+                    userId,
                     importDoc.id
                 );
                 batch.set(productRef, productData);
@@ -199,7 +205,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 
         // עדכון רשומת הייבוא
         const successMessage = `Import completed successfully. New orders: ${totalNewOrders}, Products added: ${totalProductsAdded}, Skipped orders: ${totalSkippedOrders}`;
-        
+
         await importDoc.update({
             status: 'completed',
             message: successMessage,
@@ -221,7 +227,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 
     } catch (error) {
         console.error('💥 Error during import:', error.message);
-        
+
         await importDoc.update({
             status: 'failed',
             message: `Import failed: ${error.message}`,
@@ -235,9 +241,9 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 /**
  * יצירת אובייקט הזמנה לשמירה ב-Firebase
  */
-const createOrderData = (order, userId, importId) => {
+const createOrderData = (order, userId, importId, mappedCustomer) => {
     const { products, ...orderWithoutProducts } = order; // הסרת מערך המוצרים
-    
+
     return {
         ...orderWithoutProducts,
         orderStatus: 1,
@@ -247,6 +253,8 @@ const createOrderData = (order, userId, importId) => {
         updateDate: Timestamp.now(),
         isActive: true,
         importId: importId,
+        customerId: mappedCustomer ? mappedCustomer.id : null,
+        deliveryIndex: mappedCustomer ? mappedCustomer.deliveryIndex : null,
         // המרת תאריכים אם הם מגיעים כ-string
         openedAt: order.openedAt ? (typeof order.openedAt === 'string' ? new Date(order.openedAt) : order.openedAt) : null,
         closedAt: order.closedAt ? (typeof order.closedAt === 'string' ? new Date(order.closedAt) : order.closedAt) : null
@@ -267,7 +275,8 @@ const createOrderProductData = (orderId, nbsOrderId, product, mappedProduct, use
         price: product.price || 0,
         createdAt: Timestamp.now(),
         createdBy: userId,
-        importId: importId
+        importId: importId,
+
     };
 };
 
@@ -278,16 +287,16 @@ const loadProductMapping = async () => {
     try {
         console.log('🔄 Loading product mapping...');
         const productsSnapshot = await db.collection('products')
-            .select('orginalFullName')
+            .select('nbsProductId')
             .get();
 
         const productMapping = new Map();
         productsSnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.orginalFullName) {
-                productMapping.set(data.orginalFullName, {
+            if (data.nbsProductId) {
+                productMapping.set(data.nbsProductId, {
                     id: doc.id,
-                    orginalFullName: data.orginalFullName
+                    nbsProductId: data.nbsProductId
                 });
             }
         });
@@ -300,6 +309,43 @@ const loadProductMapping = async () => {
     }
 };
 
+const loadCustomerMapping = async () => {
+    try {
+        console.log('🔄 Loading customer mapping...');
+        const customersSnapshot = await db.collection('customers')
+            .select('customerNumber')
+            .get();
+
+        const customerMapping = new Map();
+        customersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.customerNumber) {
+                customerMapping.set(data.customerNumber, {
+                    id: doc.id,
+                    customerNumber: data.customerNumber,
+                    deliveryIndex: data.deliveryIndex || null
+                });
+            }
+        });
+
+        console.log(`📋 Loaded ${customerMapping.size} customers for mapping`);
+        return customerMapping;
+    } catch (error) {
+        console.error('💥 Error loading customer mapping:', error.message);
+        throw error;
+    }
+};
+
+const getLastOrderImportDate = async () => {
+    const importDoc = await db.collection('importOrders').orderBy('createdAt', 'desc').limit(1).get();
+    if (!importDoc.empty) {
+        const lastImport = importDoc.docs[0];
+        return lastImport.data().createdAt.toDate().toISOString();
+    }
+    return null;
+};
+
 module.exports = {
-    importOrdersFromJson
+    importOrdersFromJson,
+    getLastOrderImportDate
 };

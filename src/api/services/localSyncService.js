@@ -5,9 +5,10 @@ export async function checkLocalSyncService() {
     try {
         const response = await fetch('http://localhost:5800/test');
         if (!response.ok) throw new Error('Sync service not available');
-        return true;
+        const data = await response.json();
+        return { available: true, version: data.version };
     } catch (err) {
-        return false;
+        return { available: false, version: null };
     }
 }
 

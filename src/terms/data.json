@@ -71,7 +71,12 @@
     "ordersTable": [
         {
             "name": "collectionGroupOrder",
-            "label": "מספר סדר",
+            "label": "מספר סדר בקבוצה",
+            "type": "text"
+        },
+        {
+            "name": "deliveryIndex",
+            "label": "מספר במסלול",
             "type": "text"
         },
         {
@@ -156,6 +161,28 @@
             "lookup": "employees"
         }
     ],
+    "ordersSearch": [
+        {
+            "name": "startdeliveryIndex",
+            "label": "ממספר במסלול",
+            "type": "text"
+        },
+        {
+            "name": "enddeliveryIndex",
+            "label": "עד מספר במסלול",
+            "type": "text"
+        },
+        {
+            "name": "startnbsOrderId",
+            "label": "ממספר הזמנה",
+            "type": "text"
+        },
+        {
+            "name": "endnbsOrderId",
+            "label": "עד מספר הזמנה",
+            "type": "text"
+        }
+    ],
     "addContacts": [
         {
             "name": "phone",
@@ -172,6 +199,11 @@
         {
             "name": "customerNumber",
             "label": "מספר לקוח",
+            "type": "copy"
+        },
+        {
+            "name": "deliveryIndex",
+            "label": "מספר במסלול",
             "type": "text"
         },
         {
