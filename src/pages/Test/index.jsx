@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@mui/material';
-import { moveAllOrdersFrom4To5, updateCollectionGroupProducts } from '../../api/services/collectionGroups';
+import { amountByOrders, moveAllOrdersFrom4To5, updateCollectionGroupProducts } from '../../api/services/collectionGroups';
 
 const Test = () => {
 
@@ -21,13 +21,24 @@ const Test = () => {
         }
     }
 
+    const amountInOrder = async () => {
+        amountByOrders()
+            .then((res) => {
+                console.log("Amount in orders:", res);
+            });
+    }
+
     return (
         <div>
 
             {/* <Button
                 variant='contained'
                 onClick={updateOrdersStatus}
-            >העברת הזמנות מסטטוס 4 ל5</Button> */}
+            >העברת הזמנות בקבוצה לסטטוס 1</Button> */}
+            <Button
+                variant='contained'
+                onClick={amountInOrder}
+            >בדיקת כמויות להזמנות</Button>
         </div>
     );
 }

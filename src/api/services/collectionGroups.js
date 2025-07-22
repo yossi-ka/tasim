@@ -159,6 +159,15 @@ export const saveCollectionGroupOrder = async (collectionGroupId, organized, uno
 
 }
 
+export const getCollectionGroupById = async (collectionGroupId) => {
+    const docRef = doc(db, 'collectionsGroups', collectionGroupId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+}
+
 export const closeCollectionGroup = async (collectionGroupId, userId) => {
 
     const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
@@ -281,15 +290,6 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
     });
 };
 
-export const getCollectionGroupById = async (collectionGroupId) => {
-    const docRef = doc(db, 'collectionsGroups', collectionGroupId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
-    } else {
-        throw new Error("No such document!");
-    }
-}
 
 export const getCollectionGroupProducts = async (collectionGroupId) => {
     const q = query(
@@ -617,7 +617,7 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 export const moveAllOrdersFrom4To5 = async (userId) => {
     const q = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "==", "XFWUA2duxnEAA3aFNPYk")
+        where("collectionGroupId", "==", "Lu4ZLhg1TLagxdOxg46C")
     );
     const querySnapshot = await getDocs(q);
     const orderDocs = querySnapshot.docs;
@@ -642,7 +642,8 @@ export const moveAllOrdersFrom4To5 = async (userId) => {
     orderDocs.forEach(orderDoc => {
         const orderRef = doc(db, 'orders', orderDoc.id);
         batch.update(orderRef, {
-            orderStatus: 6, // סיום
+            orderStatus: 5,
+            isSentTzintuk: false
             // employeeId: "h6iEY6mmMkvCsWI2MW8g",
             // updatedAt: Timestamp.now(),
             // updatedBy: userId,
@@ -992,4 +993,52 @@ export const removeOrderFromCollectionGroup = async (orderId, userId) => {
     });
 
     await batch.commit();
+}
+
+
+export const amountByOrders = async () => {
+
+    console.log("start");
+    const q = query(
+        collection(db, 'orderProducts'),
+    )
+    const querySnapshot = await getDocs(q);
+    const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //אני צריך לקבל מערך לפי מזהה הזמנה כמה רשומות יש לו
+    const orderCountMap = products.reduce((acc, product) => {
+        if (!acc[product.orderId]) {
+            acc[product.orderId] = 0;
+        }
+        acc[product.orderId]++;
+        return acc;
+    }, {});
+    console.log(`Found ${Object.keys(orderCountMap).length} unique orders with products`);
+
+    //אני צריך לקבל אוביקט שהמפתח יהיה מספר והערך יהיה מספר של כמות הזמנות שיש להם כמות כזו של מוצרים
+    const amountCountMap = Object.values(orderCountMap).reduce((acc, count) => {
+        if (!acc[count]) {
+            acc[count] = 0;
+        }
+        acc[count]++;
+        return acc;
+    }, {});
+
+    console.log(`Found ${Object.keys(amountCountMap).length} unique order amounts`);
+
+    // אני רוצה להדפיס ללוג סיכום של כל הערכים של האוביק amountCountMap
+    const sum = Object.entries(amountCountMap).reduce((acc, [key, value]) => {
+        // console.log(`Amount: ${key}, Count: ${value}`);
+        return acc + value;
+    }, 0);
+
+    console.log(sum, "sum");
+
+    //אני צריך לקבל סיכום כזה
+    //
+
+    console.log("end");
+    return {
+        orderCountMap,
+        amountCountMap
+    };
 }

@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { completeCollectionGroup, getUnprocessedProductsCount } from "../../../api/services/collectionGroups";
+import { completeCollectionGroup, getCollectionGroupById, getUnprocessedProductsCount } from "../../../api/services/collectionGroups";
 import Context from "../../../context";
 import GenericForm from "../../../components/GenericForm";
 
@@ -20,8 +20,12 @@ const Completion = ({ currentCollectionGroup }) => {
     const { data } = useQuery(["collectionGroup", currentCollectionGroup.id],
         () => getUnprocessedProductsCount(currentCollectionGroup.id), {
         enabled: !!currentCollectionGroup.id,
-    }
-    );
+    });
+
+    const collectionGroup = useQuery(["collectionGroupDetails", currentCollectionGroup.id],
+        () => getCollectionGroupById(currentCollectionGroup.id), {
+        enabled: !!currentCollectionGroup.id,
+    });
 
     return (
         <Box sx={{ p: 3 }}>
@@ -44,19 +48,24 @@ const Completion = ({ currentCollectionGroup }) => {
                             title: "סגירת קבוצה",
                             content: <CompletedPopup currentCollectionGroup={currentCollectionGroup} />,
                         })}
-                        disabled={data === undefined || data !== 0}
+                        disabled={data === undefined || data !== 0 || collectionGroup.isLoading || collectionGroup?.data?.status != 2}
                         startIcon={<CheckCircleIcon />}
                     >
                         {'סיום וסגירת ההזמנה'}
                     </Button>
-                    {data === undefined ? (
+                    {(data === undefined || !collectionGroup.data) ? (
                         <CircularProgress />
                     ) : (
-                        data !== 0 && <Typography variant="body1" color="error.secondary">
-                            אין אפשרות לסגור את הקבוצה,
-                            <br />
-                            יש <strong>{data}</strong> מוצרים לא מטופלים
-                        </Typography>
+                        <>
+                            {data !== 0 && <Typography variant="body1" color="error.secondary">
+                                אין אפשרות לסגור את הקבוצה,
+                                <br />
+                                יש <strong>{data}</strong> מוצרים לא מטופלים
+                            </Typography>}
+                            {collectionGroup.data.status !== 2 && <Typography variant="body1" color="error.secondary">
+                                אין אפשרות לסגור קבוצה שעדיין לא סודרה
+                            </Typography>}
+                        </>
                     )}
                 </Stack>
             </Paper>
