@@ -994,3 +994,51 @@ export const removeOrderFromCollectionGroup = async (orderId, userId) => {
 
     await batch.commit();
 }
+
+
+export const amountByOrders = async () => {
+
+    console.log("start");
+    const q = query(
+        collection(db, 'orderProducts'),
+    )
+    const querySnapshot = await getDocs(q);
+    const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //אני צריך לקבל מערך לפי מזהה הזמנה כמה רשומות יש לו
+    const orderCountMap = products.reduce((acc, product) => {
+        if (!acc[product.orderId]) {
+            acc[product.orderId] = 0;
+        }
+        acc[product.orderId]++;
+        return acc;
+    }, {});
+    console.log(`Found ${Object.keys(orderCountMap).length} unique orders with products`);
+
+    //אני צריך לקבל אוביקט שהמפתח יהיה מספר והערך יהיה מספר של כמות הזמנות שיש להם כמות כזו של מוצרים
+    const amountCountMap = Object.values(orderCountMap).reduce((acc, count) => {
+        if (!acc[count]) {
+            acc[count] = 0;
+        }
+        acc[count]++;
+        return acc;
+    }, {});
+
+    console.log(`Found ${Object.keys(amountCountMap).length} unique order amounts`);
+
+    // אני רוצה להדפיס ללוג סיכום של כל הערכים של האוביק amountCountMap
+    const sum = Object.entries(amountCountMap).reduce((acc, [key, value]) => {
+        // console.log(`Amount: ${key}, Count: ${value}`);
+        return acc + value;
+    }, 0);
+
+    console.log(sum, "sum");
+
+    //אני צריך לקבל סיכום כזה
+    //
+
+    console.log("end");
+    return {
+        orderCountMap,
+        amountCountMap
+    };
+}
