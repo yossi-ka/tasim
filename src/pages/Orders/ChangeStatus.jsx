@@ -115,36 +115,36 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                 <Chip label="ליקוט פרטני" size="small" />
             </Divider>} */}
 
-            {/* <Typography variant="h4" color="success.main">העברת הזמנה ל{statusName}</Typography>
-            <GenericForm
-                fields={[
-                    {
-                        name: "employeeId",
-                        variant: "outlined",
-                        size: 6,
-                        label: "עובד",
-                        type: "lookup",
-                        lookup: "employeesActive",
-                        required: true,
-                        displayConditionGrid: () => status !== 2
-                    },
-                    {
-                        variant: "contained",
-                        disabled: handleSubmit.isLoading || handleSubmitCollection.isLoading,
-                        type: "submit",
-                        size: 6,
-                        label: "אישור שינוי סטטוס",
-                    }
-                ]}
-                onSubmit={(data) => {
-                    const objToSend = {
-                        orderStatus: status + 1, // סטטוס ליקוט
-                        employeeId: data.employeeId ? data.employeeId : null // אם יש עובד ליקוט,
-                    }
+            {status !== 1 && <>  <Typography variant="h4" color="success.main">העברת הזמנה ל{statusName}</Typography>
+                <GenericForm
+                    fields={[
+                        {
+                            name: "employeeId",
+                            variant: "outlined",
+                            size: 6,
+                            label: "עובד",
+                            type: "lookup",
+                            lookup: "employeesActive",
+                            required: true,
+                            displayConditionGrid: () => status !== 2
+                        },
+                        {
+                            variant: "contained",
+                            disabled: handleSubmit.isLoading || handleSubmitCollection.isLoading,
+                            type: "submit",
+                            size: 6,
+                            label: "אישור שינוי סטטוס",
+                        }
+                    ]}
+                    onSubmit={(data) => {
+                        const objToSend = {
+                            orderStatus: status + 1, // סטטוס ליקוט
+                            employeeId: data.employeeId ? data.employeeId : null // אם יש עובד ליקוט,
+                        }
 
-                    handleSubmit.mutate(objToSend);
-                }}
-            /> */}
+                        handleSubmit.mutate(objToSend);
+                    }}
+                /></>}
         </Stack>
     );
 }

@@ -114,11 +114,16 @@ export const getProccessingCollectionGroups = async () => {
 export const getOrdersByCollectionGroup = async (collectionGroupId) => {
     const q = query(collection(db, 'orders'), where("collectionGroupId", "==", collectionGroupId));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => {
-        const aStreet = a.street || '';
-        const bStreet = b.street || '';
-        return aStreet.localeCompare(bStreet) //|| (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0);
-    });
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), }))
+        .sort((a, b) => {
+            //a.deliveryIndex - b.deliveryIndex
+            if (a.deliveryIndex && b.deliveryIndex) {
+                return a.deliveryIndex - b.deliveryIndex;
+            }
+            const aStreet = a.street || '';
+            const bStreet = b.street || '';
+            return aStreet.localeCompare(bStreet) //|| (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0);
+        });
 }
 
 export const saveCollectionGroupOrder = async (collectionGroupId, organized, unorganized, userId) => {

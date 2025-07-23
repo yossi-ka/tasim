@@ -215,6 +215,35 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
             await db.collection('orders').doc(orderId).update({ orderStatus: 3 });
         }
     }
+
+    if (before.status !== after.status && after.collectionGroupId) {
+        //
+        const collectionGroup = await db.collection('collectionGroups').doc(after.collectionGroupId).get();
+        if (!collectionGroup.exists) return;
+        const collectionGroupData = collectionGroup.data();
+
+        // נעדכן את הסטטוס של הקבוצה אם צריך
+        if (collectionGroupData.status !== 2) return;
+
+        const countSnap = await db.collection('orderProducts')
+            .where('collectionGroupId', '==', after.collectionGroupId)
+            .where('status', 'not-in', [3, 4])
+            .count().get();
+        if (countSnap.data().count !== 0) return;
+
+        const batch = db.batch();
+        const collectionGroupProducts = await db.collection('collectionGroupProducts')
+            .where('collectionGroupId', '==', after.collectionGroupId)
+            .where('status', '!=', 3)
+            .get();
+        collectionGroupProducts.forEach(doc => {
+            batch.update(doc.ref, { status: 3 });
+        });
+
+        batch.update(db.collection('collectionGroups').doc(after.collectionGroupId), { status: 3 });
+
+        await batch.commit();
+    }
 });
 
 //כשההזמנה מגיעה ליעד

@@ -54,7 +54,7 @@ export const DropZone = ({ id, isActive, draggedUser }) => {
                     <SortableUserItem
                         user={draggedUser}
                         showDragHandle={false}
-                        onDelete={() => {}} // פונקציה ריקה ל-preview
+                        onDelete={() => { }} // פונקציה ריקה ל-preview
                     />
                 </Box>
             ) : (
@@ -234,7 +234,7 @@ export const SortableUserItem = ({
                             <Box display="flex" alignItems="center">
                                 <PersonIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
                                 <Typography variant="subtitle1" component="div" fontWeight={600}>
-                                    {[user.firstName, user.lastName].filter(Boolean).join(' ')}
+                                    {[user.deliveryIndex ? "(" + user.deliveryIndex + ") " : null, user.firstName, user.lastName].filter(Boolean).join(' ')}
                                 </Typography>
                             </Box>
                             <Box display="flex" alignItems="center">

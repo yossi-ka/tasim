@@ -138,7 +138,7 @@ const Tracking = ({ currentCollectionGroup }) => {
             }
             console.log(orders)
             const title = getLookupName("globalProductCategories", category);
-            const pages = StickerPages({ orders, title });
+            const pages = StickerPages({ orders, title, amountStickers: 1 });
             handlePrint(pages);
         },
         onError: (error) => {

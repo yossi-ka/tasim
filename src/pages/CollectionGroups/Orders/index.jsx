@@ -67,7 +67,7 @@ const OrdersManagement = ({ currentCollectionGroup, refetchCollectionGroup }) =>
                 .sort((a, b) => a.collectionGroupOrder - b.collectionGroupOrder);
             setOrganizedUsers(organized);
 
-            const unorganized = orders.filter(order => order.collectionGroupOrder === 0)
+            const unorganized = orders.filter(order => order.collectionGroupOrder === 0);
             setUnorganizedUsers(unorganized);
 
             // איפוס מצב השינויים כשנטענים נתונים חדשים מהשרת

@@ -1,16 +1,18 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import BusinessIcon from '@mui/icons-material/Business';
 
 /**
  * יוצר דפי מדבקות להזמנות - 8 מדבקות בעמוד, כל עמוד עם אותה הזמנה
  * @param {Array} orders - מערך ההזמנות
  * @returns JSX של עמודי המדבקות
  */
-const StickerPages = ({ orders, title }) => {
+const StickerPages = ({ orders, title, amountStickers = 8 }) => {
     // מיין את ההזמנות לפי collectionGroupOrder
     const sortedOrders = [...orders].sort((a, b) => (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0));
     // צור מערך של 8 מדבקות לכל הזמנה
-    const stickers = sortedOrders.flatMap(order => Array(8).fill(order));
+    const stickers = sortedOrders.flatMap(order => Array(amountStickers).fill(order));
     // חלק לעמודים של 8
     const pages = [];
     for (let i = 0; i < stickers.length; i += 8) {
@@ -47,10 +49,106 @@ const StickerPages = ({ orders, title }) => {
                         alignItems: "center",
                         background: "#fff"
                     }}>
-                        {/* מספר ההזמנה - גדול מאוד, מודגש, עם קו תחתון */}
-                        <Typography sx={{ fontWeight: 900, fontSize: "100px", color: "#000", textAlign: "center", mb: 1, letterSpacing: 2, lineHeight: 1 }}>
-                            {order.collectionGroupOrder}
-                        </Typography>
+                        {/* מספר ההזמנה ומספר המשלוח - זה ליד זה עם קו מפריד ואייקונים */}
+                        <Stack direction="row" spacing={0} sx={{ textAlign: "center", width: "100%", height: "120px", mb: 1 }}>
+                            {/* חלק מספר ההזמנה עם אייקון קופסה */}
+                            <Box sx={{ 
+                                flex: 1, 
+                                display: "flex", 
+                                flexDirection: "column",
+                                alignItems: "center", 
+                                justifyContent: "center",
+                                position: "relative",
+                                overflow: "hidden"
+                            }}>
+                                {/* אייקון קופסה ברקע */}
+                                <Inventory2Icon sx={{ 
+                                    position: "absolute",
+                                    fontSize: "80px",
+                                    color: "#d0d0d0",
+                                    zIndex: 0,
+                                    opacity: 0.5
+                                }} />
+                                <Typography sx={{ 
+                                    fontWeight: 900, 
+                                    fontSize: "60px", 
+                                    color: "#000", 
+                                    textAlign: "center", 
+                                    letterSpacing: 2, 
+                                    lineHeight: 1,
+                                    position: "relative",
+                                    zIndex: 1
+                                }}>
+                                    {order.collectionGroupOrder}
+                                </Typography>
+                                {order.collectionGroupOrder && (
+                                    <Typography sx={{ 
+                                        fontSize: "14px", 
+                                        color: "#666", 
+                                        textAlign: "center",
+                                        fontWeight: 600,
+                                        mt: 0.5,
+                                        position: "relative",
+                                        zIndex: 1
+                                    }}>
+                                        קרטון
+                                    </Typography>
+                                )}
+                            </Box>
+                            
+                            {/* קו מפריד */}
+                            <Box sx={{ 
+                                width: "2px", 
+                                backgroundColor: "#ddd", 
+                                alignSelf: "stretch",
+                                mx: 1
+                            }} />
+                            
+                            {/* חלק מספר המשלוח עם אייקון בניין */}
+                            <Box sx={{ 
+                                flex: 1, 
+                                display: "flex", 
+                                flexDirection: "column",
+                                alignItems: "center", 
+                                justifyContent: "center",
+                                position: "relative",
+                                overflow: "hidden"
+                            }}>
+                                {/* אייקון בניין ברקע */}
+                                <BusinessIcon sx={{ 
+                                    position: "absolute",
+                                    fontSize: "80px",
+                                    color: "#d0d0d0",
+                                    zIndex: 0,
+                                    opacity: 0.5
+                                }} />
+                                <Typography sx={{ 
+                                    fontWeight: 900, 
+                                    fontSize: "60px", 
+                                    color: "#000", 
+                                    textAlign: "center", 
+                                    letterSpacing: 2, 
+                                    lineHeight: 1,
+                                    position: "relative",
+                                    zIndex: 1
+                                }}>
+                                    {order.deliveryIndex}
+                                </Typography>
+                                {order.deliveryIndex && (
+                                    <Typography sx={{ 
+                                        fontSize: "14px", 
+                                        color: "#666", 
+                                        textAlign: "center",
+                                        fontWeight: 600,
+                                        mt: 0.5,
+                                        position: "relative",
+                                        zIndex: 1
+                                    }}>
+                                        בנין
+                                    </Typography>
+                                )}
+                            </Box>
+                        </Stack>
                         <Box sx={{ width: "60%", borderBottom: "2px solid #000", mb: 1 }} />
                         {/* שם הלקוח */}
                         <Typography sx={{ fontWeight: 700, fontSize: "18px", color: "#888", textAlign: "center", mb: 0.5, letterSpacing: 0.5 }}>

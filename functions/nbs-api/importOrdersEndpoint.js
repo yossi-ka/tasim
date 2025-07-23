@@ -105,6 +105,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             // חישוב מספר פעולות (1 הזמנה + מספר מוצרים)
             const operationsForThisOrder = 1 + validProducts.length;
 
+            console.log("----test----")
             // טיפול בהזמנות עם יותר מ-BATCH_SIZE מוצרים
             if (operationsForThisOrder > BATCH_SIZE) {
                 console.log(`⚠️ Order ${order.nbsOrderId} has ${validProducts.length} products (>${BATCH_SIZE}), processing in dedicated batch`);
@@ -168,7 +169,8 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             // הוספת ההזמנה ל-batch
             const orderRef = db.collection('orders').doc();
             const mappedCustomer = customerMapping.get(order.nbsCustomerId) || null;
-
+            console.log("----test----")
+            console.log("----test---- customer in order: " + order.nbsOrderId + "----" + order.nbsCustomerId, mappedCustomer);
             const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer);
             batch.set(orderRef, orderData);
             currentBatchOperations++;
@@ -243,7 +245,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
  */
 const createOrderData = (order, userId, importId, mappedCustomer) => {
     const { products, ...orderWithoutProducts } = order; // הסרת מערך המוצרים
-
+    console.log('customer in order: ' + order.nbsOrderId, mappedCustomer);
     return {
         ...orderWithoutProducts,
         orderStatus: 1,
@@ -313,7 +315,7 @@ const loadCustomerMapping = async () => {
     try {
         console.log('🔄 Loading customer mapping...');
         const customersSnapshot = await db.collection('customers')
-            .select('customerNumber')
+            .select('customerNumber', 'deliveryIndex')
             .get();
 
         const customerMapping = new Map();

@@ -43,11 +43,11 @@ const steps = [
         icon: <TrackChanges />,
         component: Tracking
     },
-    {
-        label: 'סיום',
-        icon: <CheckCircle />,
-        component: Completion
-    }
+    // {
+    //     label: 'סיום',
+    //     icon: <CheckCircle />,
+    //     component: Completion
+    // }
 ];
 
 const CollectionGroups = () => {
