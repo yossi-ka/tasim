@@ -387,26 +387,26 @@ const getOrders = async (userId) => {
         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();
         return obj
     }).sort((a, b) => {
-        const aHasDeliveryIndex = a.deliveryIndex !== undefined && a.deliveryIndex !== null;
-        const bHasDeliveryIndex = b.deliveryIndex !== undefined && b.deliveryIndex !== null;
+        // const aHasDeliveryIndex = a.deliveryIndex !== undefined && a.deliveryIndex !== null;
+        // const bHasDeliveryIndex = b.deliveryIndex !== undefined && b.deliveryIndex !== null;
         
-        // אם לשניהם יש deliveryIndex - מיון לפי deliveryIndex ואז לפי collectionGroupOrder
-        if (aHasDeliveryIndex && bHasDeliveryIndex) {
-            if (a.deliveryIndex !== b.deliveryIndex) {
-                return a.deliveryIndex - b.deliveryIndex;
-            }
-            return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
-        }
+        // // אם לשניהם יש deliveryIndex - מיון לפי deliveryIndex ואז לפי collectionGroupOrder
+        // if (aHasDeliveryIndex && bHasDeliveryIndex) {
+        //     if (a.deliveryIndex !== b.deliveryIndex) {
+        //         return a.deliveryIndex - b.deliveryIndex;
+        //     }
+        //     return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
+        // }
         
-        // אם רק ל-a יש deliveryIndex - a קודם
-        if (aHasDeliveryIndex && !bHasDeliveryIndex) {
-            return -1;
-        }
+        // // אם רק ל-a יש deliveryIndex - a קודם
+        // if (aHasDeliveryIndex && !bHasDeliveryIndex) {
+        //     return -1;
+        // }
         
-        // אם רק ל-b יש deliveryIndex - b קודם
-        if (!aHasDeliveryIndex && bHasDeliveryIndex) {
-            return 1;
-        }
+        // // אם רק ל-b יש deliveryIndex - b קודם
+        // if (!aHasDeliveryIndex && bHasDeliveryIndex) {
+        //     return 1;
+        // }
         
         // אם לאף אחד אין deliveryIndex - מיון לפי collectionGroupIndex
         return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);

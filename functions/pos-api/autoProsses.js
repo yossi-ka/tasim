@@ -218,8 +218,8 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
 
     if (before.status !== after.status && after.collectionGroupId) {
         console.log(`Status changed from ${before.status} to ${after.status} for orderProduct in collectionGroup: ${after.collectionGroupId}`);
-        
-        const collectionGroup = await db.collection('collectionGroups').doc(after.collectionGroupId).get();
+
+        const collectionGroup = await db.collection('collectionsGroups').doc(after.collectionGroupId).get();
         if (!collectionGroup.exists) {
             console.log(`CollectionGroup ${after.collectionGroupId} not found`);
             return;
@@ -227,7 +227,7 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
         const collectionGroupData = collectionGroup.data();
 
         console.log(`CollectionGroup current status: ${collectionGroupData.status}`);
-        
+
         // נעדכן את הסטטוס של הקבוצה אם צריך
         if (collectionGroupData.status !== 2) {
             console.log(`CollectionGroup status is not 2, skipping update`);
@@ -239,10 +239,10 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
             .where('status', '==', 2)
             .count()
             .get();
-        
+
         const remainingCount = countSnap.data().count;
         console.log(`Remaining orderProducts with status 2 in collectionGroup ${after.collectionGroupId}: ${remainingCount}`);
-        
+
         if (remainingCount !== 0) {
             console.log(`Still have ${remainingCount} orderProducts with status 2, not updating collectionGroup`);
             return;
@@ -255,12 +255,15 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
             .get();
 
         console.log(`Found ${collectionGroupProducts.docs.length} collectionGroupProducts to update:`, collectionGroupProducts.docs.map(doc => doc.id));
-        
+
         // collectionGroupProducts.forEach(doc => {
         //     batch.update(doc.ref, { status: 3 });
         // });
 
-        batch.update(db.collection('collectionGroups').doc(after.collectionGroupId), { status: 3 });
+        batch.update(db.collection('collectionsGroups').doc(after.collectionGroupId), {
+            status: 3,
+            updatedAt: Timestamp.now()
+        });
         console.log(`Updating collectionGroup ${after.collectionGroupId} status to 3`);
 
         await batch.commit();
