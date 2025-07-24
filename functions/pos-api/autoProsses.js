@@ -179,7 +179,7 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
     const after = event.data.after.data();
     if (!before || !after) return;
     // נבדוק אם הסטטוס השתנה מ-2 ל-3
-    if (before.status === 2 && after.status === 3) {
+    if (before.status === 2 && (after.status === 3 || after.status === 4)) {
         const { productId, collectionGroupId, orderId } = after;
         if (!productId || !collectionGroupId || !orderId) return;
         // בדיקה אם יש עוד orderProducts עם אותו productId ו-collectionGroupId בסטטוס 2 (באמצעות count)
