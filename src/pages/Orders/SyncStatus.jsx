@@ -28,7 +28,7 @@ const SyncStatus = ({ refetch }) => {
     const [isLocalSyncAvailable, setIsLocalSyncAvailable] = useState(null); // null=unknown, true=ok, false=down
     const [localSyncVersion, setLocalSyncVersion] = useState(null);
     const REQUIRED_VERSION = '1.0.2';
-    
+
     // בדיקת זמינות סנכרון מקומי בכניסה לקומפוננטה
     useEffect(() => {
         const checkService = async () => {
@@ -187,6 +187,11 @@ const SyncStatus = ({ refetch }) => {
         <Stack spacing={3}>
             <Card elevation={3}>
                 <CardContent>
+                    <Alert severity="info">
+                        <Typography variant="body2">
+                            לפני ביצוע סנכרון שים לב שברשימת הלקוחות יש מספרי סדר..
+                        </Typography>
+                    </Alert>
                     <Stack spacing={2}>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                             <Typography variant="h5" component="h2">
@@ -298,7 +303,7 @@ const SyncStatus = ({ refetch }) => {
                                         גירסת שירות סנכרון מקומי:
                                     </Typography>
                                     <Typography variant="body1" color={isVersionUpToDate() ? 'success.main' : 'warning.main'}>
-                                        {localSyncVersion || 'לא ידועה'} 
+                                        {localSyncVersion || 'לא ידועה'}
                                         {isVersionUpToDate() ? ' ✓' : ` (נדרש: ${REQUIRED_VERSION})`}
                                     </Typography>
                                 </Box>
@@ -323,11 +328,7 @@ const SyncStatus = ({ refetch }) => {
                 </Alert>
             )}
 
-            <Alert severity="info">
-                <Typography variant="body2">
-                    הסנכרון לא פועל בצורה אוטומטית וכרגע נדרש לבצע רענון ידני.
-                </Typography>
-            </Alert>
+
         </Stack>
     );
 };

@@ -59,6 +59,17 @@ const ChangeStatus = ({ rows, refetch, status }) => {
         }
     }, [status]);
 
+    const options = React.useMemo(() => {
+        return [
+            // { value: 1, label: "ראשוני" },
+            { value: 3, label: "ממתין למשלוח" },
+            { value: 4, label: "משלוח" },
+            { value: 5, label: "הסתיים" }
+        ].filter(option => option.value !== status);
+    }, [status]);
+
+    console.log(initInputs.status, "initInputs.status")
+
     return (
         <Stack direction="column" spacing={2}>
             <Typography variant="h4" color="primary.main">{rows.length == 1 ? "הזמנת משפחת " + (rows[0].lastName || "") : rows.length + " הזמנות נבחרו"}</Typography>
@@ -115,9 +126,25 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                 <Chip label="ליקוט פרטני" size="small" />
             </Divider>} */}
 
-            {status !== 1 && <>  <Typography variant="h4" color="success.main">העברת הזמנה ל{statusName}</Typography>
+            {status !== 1 && <>
+                <Alert severity="info">
+                    <AlertTitle>שים לב להעביר לסטטוס הנכון!</AlertTitle>
+                    <Typography variant="body2">בהעברה לסטטוס הסתיים לא נשלח צינתוק</Typography>
+                </Alert>
                 <GenericForm
+                    initInputs={initInputs}
+                    setInitInput={setInitInputs}
                     fields={[
+                        {
+                            name: "status",
+                            variant: "outlined",
+                            size: 6,
+                            label: "העברה לסטטוס",
+                            type: "select",
+                            options: options,
+                            required: true,
+                            // displayConditionGrid: () => status !== 2
+                        },
                         {
                             name: "employeeId",
                             variant: "outlined",
@@ -126,20 +153,24 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                             type: "lookup",
                             lookup: "employeesActive",
                             required: true,
-                            displayConditionGrid: () => status !== 2
+                            displayConditionGrid: () => initInputs.status === 4
                         },
                         {
                             variant: "contained",
                             disabled: handleSubmit.isLoading || handleSubmitCollection.isLoading,
                             type: "submit",
-                            size: 6,
+                            size: 12,
                             label: "אישור שינוי סטטוס",
                         }
                     ]}
                     onSubmit={(data) => {
                         const objToSend = {
-                            orderStatus: status + 1, // סטטוס ליקוט
+                            // orderStatus: status + 1, // סטטוס ליקוט
+                            orderStatus: data.status, // סטטוס ליקוט
                             employeeId: data.employeeId ? data.employeeId : null // אם יש עובד ליקוט,
+                        }
+                        if (objToSend.orderStatus === 5) {
+                            objToSend.isSentTzintuk = false; // אם סטטוס סיום, לא נשלח טופס צינטוק
                         }
 
                         handleSubmit.mutate(objToSend);
