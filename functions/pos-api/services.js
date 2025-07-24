@@ -165,12 +165,15 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     const groupIds = [...new Set(groupProducts.map(doc => doc.collectionGroupId).filter(Boolean))];
     const productIds = [...new Set(groupProducts.map(doc => doc.productId).filter(Boolean))];
 
+    console.log(groupIds)
     // שלב 2: שליפת orderProducts במנות של 30
     let orderProducts = [];
-    for (let i = 0; i < groupIds.length; i += 30) {
-        const groupBatch = groupIds.slice(i, i + 30);
+    for (let i = 0; i < groupIds.length; i += 1) {
+        const groupBatch = groupIds.slice(i, i + 1);
         for (let j = 0; j < productIds.length; j += 30) {
             const productBatch = productIds.slice(j, j + 30);
+
+            console.log("amount groups:", groupBatch.length, "amount products:", productBatch.length);
             const snap = await db
                 .collection('orderProducts')
                 .where("collectionGroupId", "in", groupBatch)
@@ -187,6 +190,7 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     let ordersMap = {};
     for (let i = 0; i < orderIds.length; i += 30) {
         const batch = orderIds.slice(i, i + 30);
+        console.log("amount orders:", batch.length);
         const snap = await db
             .collection('orders')
             .where("__name__", "in", batch)
