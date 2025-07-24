@@ -378,6 +378,8 @@ const getOrders = async (userId) => {
             apartment: docData.apartment || "",
             phone: docData.phones.join(",") || "",
             notes: Array.from(uniqueCategories), // מערך של שמות קטגוריות ייחודיות
+            deliveryIndex: docData.deliveryIndex || null,
+            collectionGroupIndex: docData.collectionGroupOrder || "",
             // note: docData.note || "הערה",
             // notes: ["אבטיח", "ביצים", "מוצרי חלב"]
         }
@@ -393,7 +395,7 @@ const getOrders = async (userId) => {
             if (a.deliveryIndex !== b.deliveryIndex) {
                 return a.deliveryIndex - b.deliveryIndex;
             }
-            return (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0);
+            return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
         }
         
         // אם רק ל-a יש deliveryIndex - a קודם
@@ -406,8 +408,8 @@ const getOrders = async (userId) => {
             return 1;
         }
         
-        // אם לאף אחד אין deliveryIndex - מיון לפי collectionGroupOrder
-        return (a.collectionGroupOrder || 0) - (b.collectionGroupOrder || 0);
+        // אם לאף אחד אין deliveryIndex - מיון לפי collectionGroupIndex
+        return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
     })
     return res;
 }
