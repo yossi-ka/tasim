@@ -365,10 +365,11 @@ const getOrders = async (userId) => {
             }
         });
 
+        const collectionGroupOrder = [docData.deliveryIndex || "", docData.collectionGroupOrder || ""].filter(Boolean).join("-");
         const obj = {
             orderId: doc.id,
             nbsOrderId: docData.nbsOrderId,
-            collectionGroupOrder: docData.collectionGroupOrder || 0,
+            collectionGroupOrder,
             fullName: (docData.lastName || "") + "-" + (docData.firstName || ""),
             street: docData.street || "",
             houseNumber: docData.houseNumber || "",
@@ -377,6 +378,8 @@ const getOrders = async (userId) => {
             apartment: docData.apartment || "",
             phone: docData.phones.join(",") || "",
             notes: Array.from(uniqueCategories), // מערך של שמות קטגוריות ייחודיות
+            deliveryIndex: docData.deliveryIndex || null,
+            collectionGroupIndex: docData.collectionGroupOrder || "",
             // note: docData.note || "הערה",
             // notes: ["אבטיח", "ביצים", "מוצרי חלב"]
         }
@@ -384,7 +387,29 @@ const getOrders = async (userId) => {
         obj.fullSearch = `${obj.nbsOrderId} ${obj.fullName} ${obj.street} ${obj.phone}`.toLowerCase();
         return obj
     }).sort((a, b) => {
-        return a.collectionGroupOrder - b.collectionGroupOrder;
+        // const aHasDeliveryIndex = a.deliveryIndex !== undefined && a.deliveryIndex !== null;
+        // const bHasDeliveryIndex = b.deliveryIndex !== undefined && b.deliveryIndex !== null;
+        
+        // // אם לשניהם יש deliveryIndex - מיון לפי deliveryIndex ואז לפי collectionGroupOrder
+        // if (aHasDeliveryIndex && bHasDeliveryIndex) {
+        //     if (a.deliveryIndex !== b.deliveryIndex) {
+        //         return a.deliveryIndex - b.deliveryIndex;
+        //     }
+        //     return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
+        // }
+        
+        // // אם רק ל-a יש deliveryIndex - a קודם
+        // if (aHasDeliveryIndex && !bHasDeliveryIndex) {
+        //     return -1;
+        // }
+        
+        // // אם רק ל-b יש deliveryIndex - b קודם
+        // if (!aHasDeliveryIndex && bHasDeliveryIndex) {
+        //     return 1;
+        // }
+        
+        // אם לאף אחד אין deliveryIndex - מיון לפי collectionGroupIndex
+        return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
     })
     return res;
 }

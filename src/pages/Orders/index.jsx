@@ -73,7 +73,7 @@ const Orders = () => {
         return data.length
     }, [data, status]);
 
-    const isAllowChangeStatus = React.useMemo(() => [1, 2, 3].includes(getStatusId(statusOrders)), [statusOrders]);
+    const isAllowChangeStatus = React.useMemo(() => [1, 2, 3, 4].includes(getStatusId(statusOrders)), [statusOrders]);
 
     const columns = [
         isAllowChangeStatus && {
@@ -153,6 +153,7 @@ const Orders = () => {
             ] : null}
             statuses={statuses}
             statusBarHandleChange={(index, key) => {
+                setSelected([]);
                 setStatusOrders(key)
             }}
         />
