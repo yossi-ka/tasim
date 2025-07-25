@@ -114,11 +114,17 @@ export const getProccessingCollectionGroups = async () => {
 export const getOrdersByCollectionGroup = async (collectionGroupId) => {
     const q = query(collection(db, 'orders'), where("collectionGroupId", "==", collectionGroupId));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), }))
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), deliveryIndex: isNaN(doc.data().deliveryIndex) ? null : doc.data().deliveryIndex }))
         .sort((a, b) => {
             //a.deliveryIndex - b.deliveryIndex
             if (a.deliveryIndex && b.deliveryIndex) {
                 return a.deliveryIndex - b.deliveryIndex;
+            }
+            if(a.deliveryIndex && !b.deliveryIndex) {
+                return -1; // a לפני b
+            }
+            if(!a.deliveryIndex && b.deliveryIndex) {
+                return 1; // b לפני a
             }
             const aStreet = a.street || '';
             const bStreet = b.street || '';
