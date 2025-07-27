@@ -71,7 +71,7 @@ const ChangeStatus = ({ rows, refetch, status }) => {
     console.log(initInputs.status, "initInputs.status")
 
     return (
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={2} sx={{ pb: 5 }}>
             <Typography variant="h4" color="primary.main">{rows.length == 1 ? "הזמנת משפחת " + (rows[0].lastName || "") : rows.length + " הזמנות נבחרו"}</Typography>
 
             {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
