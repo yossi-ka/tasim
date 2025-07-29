@@ -2,14 +2,16 @@ import React from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SyncIcon from '@mui/icons-material/Sync';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { exportExcel } from "../../utils/excel";
 
 import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
 import SyncStatus from "./SyncStatus";
 import useTerms from "../../terms";
 
-const Search = ({ refetch, params, setParams }) => {
-    const { popup, smallPopup } = React.useContext(Context);
+const Search = ({ refetch, params, setParams, dataForExcel, termForExcel }) => {
+    const { popup, convertArray } = React.useContext(Context);
 
 
     const searchTerm = useTerms("ordersSearch");
@@ -17,7 +19,7 @@ const Search = ({ refetch, params, setParams }) => {
     const fields = [
         searchTerm.field("startdeliveryIndex", { variant: "outlined", size: 2 }),
         searchTerm.field("enddeliveryIndex", { variant: "outlined", size: 2 }),
-        {type:"empty"},
+        { type: "empty" },
         searchTerm.field("startnbsOrderId", { variant: "outlined", size: 2 }),
         searchTerm.field("endnbsOrderId", { variant: "outlined", size: 2 }),
     ]
@@ -42,7 +44,14 @@ const Search = ({ refetch, params, setParams }) => {
                 onClick: () => {
                     refetch();
                 }
-            }
+            },
+            {
+                title: "הפקת אקסל",
+                icon: <FileDownloadIcon color="primary" />,
+                onClick: () => {
+                    exportExcel(convertArray(dataForExcel, termForExcel), "הזמנות", termForExcel)
+                }
+            },
         ]}
         term="ordersSearch"
     />

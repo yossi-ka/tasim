@@ -10,7 +10,9 @@ const { login,
     getProducts,
     approveProducts,
     getOrderProducts,
-    approveOrderProducts
+    approveOrderProducts,
+    getProductsShipping,
+    approveProductsShipping
 } = require('./services')
 
 const app = express();
@@ -153,10 +155,10 @@ app.get('/orders', checkUserFunc, async (req, res) => {
 
 app.post('/approveOrders', checkUserFunc, async (req, res) => {
     try {
-        const { orders } = req.body;
+        const { orders, isTzintuk = true } = req.body;
 
         if (Array.isArray(orders) && orders.length > 0) {
-            const approve = approveOrders(orders, req.userId)
+            const approve = approveOrders(orders, isTzintuk, req.userId)
             if (!approve) return res.json({
                 status: "error",
                 massege: "שגיאה"
@@ -177,6 +179,19 @@ app.post('/approveOrders', checkUserFunc, async (req, res) => {
         })
     }
 })
+
+
+app.get('/productsShipping', checkUserFunc, async (req, res) => {
+    // const { isAll, areaId } = req.query;
+
+    const data = await getProductsShipping(req.userId)
+
+    return res.json({
+        status: 'ok',
+        data,
+    })
+})
+
 
 app.post('/message', checkUserFunc, async (req, res) => {
     try {

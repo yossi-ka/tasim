@@ -175,3 +175,19 @@ export const updateCategories = async (products, category, type, userId) => {
 
     await batch.commit();
 }
+
+export const updateIsQuantityForShipping = async (products, isQuantityForShipping, userId) => {
+    const batch = writeBatch(db);
+    const productsCollection = collection(db, 'products');
+
+    products.forEach(product => {
+        const productRef = doc(productsCollection, product);
+        batch.update(productRef, {
+            isQuantityForShipping,
+            updateBy: userId,
+            updateDate: Timestamp.now(),
+        });
+    });
+
+    await batch.commit();
+}

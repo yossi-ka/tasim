@@ -356,7 +356,10 @@ const getOrders = async (userId) => {
 
         orderProducts.forEach(op => {
             const product = productsMap[op.productId];
-            if (product && product.categories && Array.isArray(product.categories)) {
+            if (product && product.isQuantityForShipping && op.status === 3) {
+                const text = op.quantityOrWeight ? `${op.quantityOrWeight} - ${product.name || ""}` : "";
+                uniqueCategories.add(text);
+            } else if (product && product.categories && Array.isArray(product.categories)) {
                 product.categories.forEach(categoryId => {
                     if (categoriesMap[categoryId]) {
                         uniqueCategories.add(categoriesMap[categoryId]);
@@ -389,7 +392,7 @@ const getOrders = async (userId) => {
     }).sort((a, b) => {
         const aHasDeliveryIndex = a.deliveryIndex !== undefined && a.deliveryIndex !== null;
         const bHasDeliveryIndex = b.deliveryIndex !== undefined && b.deliveryIndex !== null;
-        
+
         // אם לשניהם יש deliveryIndex - מיון לפי deliveryIndex ואז לפי collectionGroupOrder
         if (aHasDeliveryIndex && bHasDeliveryIndex) {
             if (a.deliveryIndex !== b.deliveryIndex) {
@@ -397,29 +400,30 @@ const getOrders = async (userId) => {
             }
             return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
         }
-        
+
         // אם רק ל-a יש deliveryIndex - a קודם
         if (aHasDeliveryIndex && !bHasDeliveryIndex) {
             return -1;
         }
-        
+
         // אם רק ל-b יש deliveryIndex - b קודם
         if (!aHasDeliveryIndex && bHasDeliveryIndex) {
             return 1;
         }
-        
+
         // אם לאף אחד אין deliveryIndex - מיון לפי collectionGroupIndex
         return (a.collectionGroupIndex || 0) - (b.collectionGroupIndex || 0);
     })
     return res;
 }
 
-const approveOrders = async (orders, userId) => {
+const approveOrders = async (orders, isTzintuk, userId) => {
     const batch = db.batch();
     for (const order of orders) {
 
         batch.update(db.doc('orders/' + order), {
             orderStatus: 5,
+            isSentTzintuk: isTzintuk,
             employeeId: userId,
             updateBy: "pos",
             updateDate: Timestamp.now(),
@@ -437,6 +441,72 @@ const approveOrders = async (orders, userId) => {
     }
     await batch.commit();
     return true;
+}
+
+const getProductsShipping = async (userId) => {
+    const orders = await db.collection('orders')
+        .where("employeeId", "==", userId)
+        .where("orderStatus", "==", 4).get();
+
+    if (orders.empty) {
+        return [];
+    }
+    const orderIds = orders.docs.map(doc => doc.id);
+
+    console.log("orderIds", orderIds.length)
+    let allOrderProducts = [];
+    for (let i = 0; i < orderIds.length; i += 30) {
+        const batch = orderIds.slice(i, i + 30);
+        const snap = await db
+            .collection('orderProducts')
+            .where("orderId", "in", batch)
+            .get();
+        allOrderProducts.push(...snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    const uniqueProductIds = [...new Set(allOrderProducts.map(op => op.productId).filter(Boolean))];
+
+    console.log("uniqueProductIds", uniqueProductIds.length)
+    let productsMap = {};
+    for (let i = 0; i < uniqueProductIds.length; i += 30) {
+        const batch = uniqueProductIds.slice(i, i + 30);
+        const snap = await db
+            .collection('products')
+            .where("__name__", "in", batch)
+            .where("isQuantityForShipping", "==", true)
+            .get();
+        snap.docs.forEach(doc => {
+            productsMap[doc.id] = doc.data();
+        });
+    }
+
+    // שלב 4: סיכום הכמויות לפי מוצר
+    const productQuantityMap = {};
+
+    allOrderProducts.forEach(orderProduct => {
+        const product = productsMap[orderProduct.productId];
+        if (product) {
+            const quantity = orderProduct.quantityOrWeight || 0;
+            if (productQuantityMap[orderProduct.productId]) {
+                productQuantityMap[orderProduct.productId].totalQuantity += quantity;
+            } else {
+                productQuantityMap[orderProduct.productId] = {
+                    id: orderProduct.productId,
+                    productName: product.name || orderProduct.productName || '',
+                    quantityOrWeight: quantity,
+                    productPlace: product.productPlace || '',
+                    // unit: product.unit || 'יחידות'
+                };
+            }
+        }
+    });
+
+    // שלב 5: המרה למערך ומיון לפי שם המוצר
+    const result = Object.values(productQuantityMap)
+        .filter(item => item.quantityOrWeight > 0)
+        .sort((a, b) => a.productName.localeCompare(b.productName, 'he'));
+
+    return result;
 }
 
 
@@ -470,6 +540,7 @@ module.exports = {
     approveOrders,
     sendMessage,
     getOrderProducts,
-    approveOrderProducts
+    approveOrderProducts,
+    getProductsShipping
 
 }

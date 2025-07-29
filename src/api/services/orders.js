@@ -7,7 +7,17 @@ export const getOrdersByStatus = async (status) => {
     const ordersRef = collection(db, "orders");
     const q = query(ordersRef, status ? where("orderStatus", "==", status) : null, orderBy("updateDate", "desc"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map(doc => {
+
+        const [phone1 = "", phone2 = "", phone3 = ""] = doc.data().phones || [];
+        return {
+            id: doc.id,
+            ...doc.data(),
+            phone1,
+            phone2,
+            phone3
+        }
+    });
 }
 
 export const getOrderById = async (id) => {

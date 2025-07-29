@@ -145,8 +145,18 @@
             "type": "text"
         },
         {
-            "name": "phone",
-            "label": "טלפון",
+            "name": "phone1",
+            "label": "טלפון 1",
+            "type": "text"
+        },
+        {
+            "name": "phone2",
+            "label": "טלפון 2",
+            "type": "text"
+        },
+        {
+            "name": "phone3",
+            "label": "טלפון 3",
             "type": "text"
         },
         {
@@ -371,6 +381,11 @@
         {
             "name": "isVatExempt",
             "label": "פטור ממע\"מ",
+            "type": "boolean"
+        },
+        {
+            "name": "isQuantityForShipping",
+            "label": "כמות במשלוח?",
             "type": "boolean"
         },
         {

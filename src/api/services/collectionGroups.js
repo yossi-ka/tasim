@@ -120,10 +120,10 @@ export const getOrdersByCollectionGroup = async (collectionGroupId) => {
             if (a.deliveryIndex && b.deliveryIndex) {
                 return a.deliveryIndex - b.deliveryIndex;
             }
-            if(a.deliveryIndex && !b.deliveryIndex) {
+            if (a.deliveryIndex && !b.deliveryIndex) {
                 return -1; // a לפני b
             }
-            if(!a.deliveryIndex && b.deliveryIndex) {
+            if (!a.deliveryIndex && b.deliveryIndex) {
                 return 1; // b לפני a
             }
             const aStreet = a.street || '';
@@ -1007,49 +1007,93 @@ export const removeOrderFromCollectionGroup = async (orderId, userId) => {
 }
 
 
-export const amountByOrders = async () => {
+// export const amountByOrders = async () => {
 
-    console.log("start");
+//     console.log("start");
+//     const q = query(
+//         collection(db, 'orderProducts'),
+//     )
+//     const querySnapshot = await getDocs(q);
+//     const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+//     //אני צריך לקבל מערך לפי מזהה הזמנה כמה רשומות יש לו
+//     const orderCountMap = products.reduce((acc, product) => {
+//         if (!acc[product.orderId]) {
+//             acc[product.orderId] = 0;
+//         }
+//         acc[product.orderId]++;
+//         return acc;
+//     }, {});
+//     console.log(`Found ${Object.keys(orderCountMap).length} unique orders with products`);
+
+//     //אני צריך לקבל אוביקט שהמפתח יהיה מספר והערך יהיה מספר של כמות הזמנות שיש להם כמות כזו של מוצרים
+//     const amountCountMap = Object.values(orderCountMap).reduce((acc, count) => {
+//         if (!acc[count]) {
+//             acc[count] = 0;
+//         }
+//         acc[count]++;
+//         return acc;
+//     }, {});
+
+//     console.log(`Found ${Object.keys(amountCountMap).length} unique order amounts`);
+
+//     // אני רוצה להדפיס ללוג סיכום של כל הערכים של האוביק amountCountMap
+//     const sum = Object.entries(amountCountMap).reduce((acc, [key, value]) => {
+//         // console.log(`Amount: ${key}, Count: ${value}`);
+//         return acc + value;
+//     }, 0);
+
+//     console.log(sum, "sum");
+
+//     //אני צריך לקבל סיכום כזה
+//     //
+
+//     console.log("end");
+//     return {
+//         orderCountMap,
+//         amountCountMap
+//     };
+// }
+
+export const updateCustomerIndex = async () => {
+
     const q = query(
-        collection(db, 'orderProducts'),
-    )
+        collection(db, 'orders'),
+        where('orderStatus', 'in', [1, 6])
+    );
     const querySnapshot = await getDocs(q);
-    const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    //אני צריך לקבל מערך לפי מזהה הזמנה כמה רשומות יש לו
-    const orderCountMap = products.reduce((acc, product) => {
-        if (!acc[product.orderId]) {
-            acc[product.orderId] = 0;
+    const orders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log(orders);
+
+    const customers = orders.map(order => order.nbsCustomerId).filter(Boolean);
+    console.log(`Found ${customers.length} unique customers in orders`);
+
+    const customersData = [];
+    for (let i = 0; i < customers.length; i += 30) {
+        const batchCustomerIds = customers.slice(i, i + 30);
+        console.log(`Processing customers batch ${i / 30 + 1}`, batchCustomerIds);
+        const customersQuery = query(
+            collection(db, 'customers'),
+            where("customerNumber", "in", batchCustomerIds)
+        );
+        const customersSnapshot = await getDocs(customersQuery);
+        customersSnapshot.docs.forEach(doc => {
+            customersData.push({ id: doc.id, ...doc.data() });
+        });
+    }
+
+    console.log(customersData);
+    const batch = writeBatch(db);
+    orders.forEach(order => {
+        const customer = customersData.find(c => c.customerNumber === order.nbsCustomerId);
+        if (customer) {
+            const orderRef = doc(db, 'orders', order.id);
+            batch.update(orderRef, {
+                deliveryIndex: customer.deliveryIndex || 0,
+                updatedAt: Timestamp.now(),
+            });
         }
-        acc[product.orderId]++;
-        return acc;
-    }, {});
-    console.log(`Found ${Object.keys(orderCountMap).length} unique orders with products`);
+    });
 
-    //אני צריך לקבל אוביקט שהמפתח יהיה מספר והערך יהיה מספר של כמות הזמנות שיש להם כמות כזו של מוצרים
-    const amountCountMap = Object.values(orderCountMap).reduce((acc, count) => {
-        if (!acc[count]) {
-            acc[count] = 0;
-        }
-        acc[count]++;
-        return acc;
-    }, {});
-
-    console.log(`Found ${Object.keys(amountCountMap).length} unique order amounts`);
-
-    // אני רוצה להדפיס ללוג סיכום של כל הערכים של האוביק amountCountMap
-    const sum = Object.entries(amountCountMap).reduce((acc, [key, value]) => {
-        // console.log(`Amount: ${key}, Count: ${value}`);
-        return acc + value;
-    }, 0);
-
-    console.log(sum, "sum");
-
-    //אני צריך לקבל סיכום כזה
-    //
-
-    console.log("end");
-    return {
-        orderCountMap,
-        amountCountMap
-    };
+    await batch.commit();
+    console.log("Customer index updated successfully");
 }

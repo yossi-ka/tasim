@@ -50,7 +50,8 @@ const Orders = () => {
         return status ? status.id : null;
     }
 
-    const { data, status, refetch } = useQuery(["ordersTable", getStatusId(statusOrders)], () => getOrdersByStatus(getStatusId(statusOrders)), {
+    const { data, status, refetch } = useQuery(["ordersTable", getStatusId(statusOrders)],
+     () => getOrdersByStatus(getStatusId(statusOrders)), {
         refetchOnWindowFocus: false,
     })
 
@@ -132,6 +133,8 @@ const Orders = () => {
                 params={params}
                 setParams={setParams}
                 refetch={refetchAll}
+                dataForExcel={filterdData}
+                termForExcel={terms.getTerms()}
             />}
             innerPagination
 
