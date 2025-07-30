@@ -24,6 +24,9 @@ const Search = ({ refetch, params, setParams, dataForExcel, termForExcel, select
         { type: "empty" },
         searchTerm.field("startnbsOrderId", { variant: "outlined", size: 2 }),
         searchTerm.field("endnbsOrderId", { variant: "outlined", size: 2 }),
+        { type: "empty" },
+        searchTerm.field("starttotalPrice", { variant: "outlined", size: 2 }),
+        searchTerm.field("endtotalPrice", { variant: "outlined", size: 2 }),
     ]
 
     const amountTotalPrice = React.useMemo(() => {

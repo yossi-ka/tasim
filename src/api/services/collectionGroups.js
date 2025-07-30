@@ -1054,46 +1054,149 @@ export const removeOrderFromCollectionGroup = async (orderId, userId) => {
 //     };
 // }
 
-export const updateCustomerIndex = async () => {
+// export const updateCustomerIndex = async () => {
 
-    const q = query(
-        collection(db, 'orders'),
-        where('orderStatus', 'in', [1, 6])
-    );
-    const querySnapshot = await getDocs(q);
-    const orders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log(orders);
+//     const q = query(
+//         collection(db, 'orders'),
+//         where('orderStatus', 'in', [1, 6])
+//     );
+//     const querySnapshot = await getDocs(q);
+//     const orders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+//     console.log(orders);
 
-    const customers = orders.map(order => order.nbsCustomerId).filter(Boolean);
-    console.log(`Found ${customers.length} unique customers in orders`);
+//     const customers = orders.map(order => order.nbsCustomerId).filter(Boolean);
+//     console.log(`Found ${customers.length} unique customers in orders`);
 
-    const customersData = [];
-    for (let i = 0; i < customers.length; i += 30) {
-        const batchCustomerIds = customers.slice(i, i + 30);
-        console.log(`Processing customers batch ${i / 30 + 1}`, batchCustomerIds);
-        const customersQuery = query(
-            collection(db, 'customers'),
-            where("customerNumber", "in", batchCustomerIds)
-        );
-        const customersSnapshot = await getDocs(customersQuery);
-        customersSnapshot.docs.forEach(doc => {
-            customersData.push({ id: doc.id, ...doc.data() });
-        });
-    }
+//     const customersData = [];
+//     for (let i = 0; i < customers.length; i += 30) {
+//         const batchCustomerIds = customers.slice(i, i + 30);
+//         console.log(`Processing customers batch ${i / 30 + 1}`, batchCustomerIds);
+//         const customersQuery = query(
+//             collection(db, 'customers'),
+//             where("customerNumber", "in", batchCustomerIds)
+//         );
+//         const customersSnapshot = await getDocs(customersQuery);
+//         customersSnapshot.docs.forEach(doc => {
+//             customersData.push({ id: doc.id, ...doc.data() });
+//         });
+//     }
 
-    console.log(customersData);
-    const batch = writeBatch(db);
-    orders.forEach(order => {
-        const customer = customersData.find(c => c.customerNumber === order.nbsCustomerId);
-        if (customer) {
-            const orderRef = doc(db, 'orders', order.id);
-            batch.update(orderRef, {
-                deliveryIndex: customer.deliveryIndex || 0,
-                updatedAt: Timestamp.now(),
-            });
-        }
-    });
+//     console.log(customersData);
+//     const batch = writeBatch(db);
+//     orders.forEach(order => {
+//         const customer = customersData.find(c => c.customerNumber === order.nbsCustomerId);
+//         if (customer) {
+//             const orderRef = doc(db, 'orders', order.id);
+//             batch.update(orderRef, {
+//                 deliveryIndex: customer.deliveryIndex || 0,
+//                 updatedAt: Timestamp.now(),
+//             });
+//         }
+//     });
 
-    await batch.commit();
-    console.log("Customer index updated successfully");
-}
+//     await batch.commit();
+//     console.log("Customer index updated successfully");
+// }
+
+// export const fixGroup = async () => {
+//     const collectionGroupId = "bxDEM0IB5l2A0NpjIjtz";
+
+//     const collectionGroupProducts = await getDocs(query(collection(db, 'collectionGroupProducts'), where("collectionGroupId", "==", collectionGroupId)));
+//     const data = collectionGroupProducts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+//     console.log(`Found ${data.length} products in collection group ${collectionGroupId}`);
+
+//     //-----
+//     const ordersQuery = query(
+//         collection(db, 'orders'),
+//         where("collectionGroupId", "==", collectionGroupId)
+//     );
+//     const ordersSnapshot = await getDocs(ordersQuery);
+//     const orderIds = ordersSnapshot.docs.map(doc => doc.id);
+
+//     const products = [];
+//     const allProductRefs = [];
+
+//     //אני צריך לבצע לולאות על כל קבוצה של 30 הזמנות ולקבל את המוצרים שלהם ולהוסיף למערך products
+//     for (let i = 0; i < orderIds.length; i += 30) {
+//         const batchOrderIds = orderIds.slice(i, i + 30);
+//         const ordersQuery = query(
+//             collection(db, 'orderProducts'),
+//             where("orderId", "in", batchOrderIds)
+//         );
+//         const orderProductsSnapshot = await getDocs(ordersQuery);
+
+//         orderProductsSnapshot.docs.forEach(productDoc => {
+//             products.push(productDoc.data());
+//             allProductRefs.push({
+//                 ref: productDoc.ref,
+//                 data: {
+//                     collectionGroupId: collectionGroupId,
+//                     status: 2,
+//                 }
+//             });
+//         });
+//     }
+
+//     const productSummary = products.reduce((acc, product) => {
+//         const productId = product.productId;
+//         if (!acc[productId]) {
+//             acc[productId] = {
+//                 productId: productId,
+//                 productName: product.productName || '',
+//                 quantityOrWeight: 0
+//             };
+//         }
+//         acc[productId].quantityOrWeight += product.quantityOrWeight || 0;
+//         return acc;
+//     }, {});
+
+//     // יצירת רשימת כל העדכונים שצריך לבצע
+//     const allUpdates = [];
+
+//     // הוספת עדכוני המוצרים הקיימים
+//     allProductRefs.forEach(productRef => {
+//         allUpdates.push({
+//             type: 'update',
+//             ref: productRef.ref,
+//             data: productRef.data
+//         });
+//     });
+
+//     // הוספת יצירת מוצרי הסיכום - כולל productPlace
+//     // שליפת productPlace לכל productId במנות של 30
+//     const allProductIds = Object.keys(productSummary);
+//     const productPlaces = {};
+//     for (let i = 0; i < allProductIds.length; i += 30) {
+//         const batchProductIds = allProductIds.slice(i, i + 30);
+//         const productsDetailsQuery = query(
+//             collection(db, 'products'),
+//             where("__name__", "in", batchProductIds)
+//         );
+//         const productsDetailsSnapshot = await getDocs(productsDetailsQuery);
+//         productsDetailsSnapshot.docs.forEach(doc => {
+//             productPlaces[doc.id] = doc.data().productPlace || null;
+//         });
+//     }
+//     for (const productId in productSummary) {
+//         const productData = productSummary[productId];
+//         const productRef = doc(collection(db, 'collectionGroupProducts'));
+//         allUpdates.push({
+//             type: 'set',
+//             ref: productRef,
+//             data: {
+//                 ...productData,
+//                 productPlace: productPlaces[productId] || null,
+//                 collectionGroupId,
+//                 status: 1,
+//                 assignedEmployeeId: null,
+//                 updatedAt: Timestamp.now(),
+//                 // updatedBy: userId,
+//             }
+//         });
+//     }
+
+//     console.log(productSummary, "productSummary", Object.keys(productSummary).length, "unique products");
+
+
+
+// }

@@ -196,6 +196,16 @@
             "name": "endnbsOrderId",
             "label": "עד מספר הזמנה",
             "type": "text"
+        },
+        {
+            "name": "endtotalPrice",
+            "label": "מסכום לתשלום",
+            "type": "text"
+        },
+        {
+            "name": "endtotalPrice",
+            "label": "עד סכום לתשלום",
+            "type": "text"
         }
     ],
     "addContacts": [

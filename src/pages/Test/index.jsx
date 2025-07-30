@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@mui/material';
-import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts } from '../../api/services/collectionGroups';
+import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts, } from '../../api/services/collectionGroups';
 
 const Test = () => {
 
@@ -22,10 +22,10 @@ const Test = () => {
     }
 
     const amountInOrder = async () => {
-        updateCustomerIndex()
-            .then((res) => {
-                console.log("Amount in orders:", res);
-            });
+        // updateCustomerIndex()
+        //     .then((res) => {
+        //         console.log("Amount in orders:", res);
+        //     });
     }
 
     return (
@@ -35,10 +35,14 @@ const Test = () => {
                 variant='contained'
                 onClick={updateOrdersStatus}
             >העברת הזמנות בקבוצה לסטטוס 1</Button> */}
-            <Button
+            {/* <Button
                 variant='contained'
                 onClick={amountInOrder}
-            >בדיקת כמויות להזמנות</Button>
+            >בדיקת כמויות להזמנות</Button> */}
+            {/* <Button
+                variant='contained'
+                onClick={async () => fixGroup()}
+            >תיקון קבוצה לא תקינה</Button> */}
         </div>
     );
 }
