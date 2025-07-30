@@ -488,7 +488,7 @@ const getProductsShipping = async (userId) => {
         if (product) {
             const quantity = orderProduct.quantityOrWeight || 0;
             if (productQuantityMap[orderProduct.productId]) {
-                productQuantityMap[orderProduct.productId].totalQuantity += quantity;
+                productQuantityMap[orderProduct.productId].quantityOrWeight += quantity;
             } else {
                 productQuantityMap[orderProduct.productId] = {
                     id: orderProduct.productId,

@@ -9,8 +9,10 @@ import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
 import SyncStatus from "./SyncStatus";
 import useTerms from "../../terms";
+import { Stack, Typography } from "@mui/material";
+import { formatCurrencyIL } from "../../utils/func";
 
-const Search = ({ refetch, params, setParams, dataForExcel, termForExcel }) => {
+const Search = ({ refetch, params, setParams, dataForExcel, termForExcel, selected }) => {
     const { popup, convertArray } = React.useContext(Context);
 
 
@@ -23,12 +25,25 @@ const Search = ({ refetch, params, setParams, dataForExcel, termForExcel }) => {
         searchTerm.field("startnbsOrderId", { variant: "outlined", size: 2 }),
         searchTerm.field("endnbsOrderId", { variant: "outlined", size: 2 }),
     ]
+
+    const amountTotalPrice = React.useMemo(() => {
+        if (!selected || selected.length === 0) return 0;
+        return selected.reduce((acc, item) => {
+            return acc + (item.totalPrice || 0);
+        }, 0);
+    }, [selected]);
+
     return <GlobalSearch
         quickSearchFields={[{ name: 'globalSearch', label: 'חיפוש כללי', size: 12, variant: "outlined" }]}
         quickSearchOnTyping={true}
         params={params}
         setParams={setParams}
         fields={fields}
+        header={amountTotalPrice > 0 && <Stack >
+            <Typography variant="body2" color="primary.main" sx={{}}>סך לתשלום: <b>{formatCurrencyIL(amountTotalPrice)}</b></Typography>
+            {/* <Typography variant="body2" sx={{}}>סך לתשלום: <strong>12,522</strong></Typography>
+            <Typography variant="body2" sx={{}}>סך לתשלום: <strong>12,522</strong></Typography> */}
+        </Stack>}
         actions={[
             {
                 title: "סטטוס סנכרון",

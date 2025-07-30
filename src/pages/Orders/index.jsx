@@ -135,6 +135,7 @@ const Orders = () => {
                 refetch={refetchAll}
                 dataForExcel={filterdData}
                 termForExcel={terms.getTerms()}
+                selected={selected}
             />}
             innerPagination
 
