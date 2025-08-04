@@ -229,7 +229,7 @@
         {
             "name": "deliveryIndex",
             "label": "מספר במסלול",
-            "type": "text"
+            "type": "number"
         },
         {
             "name": "lastName",
@@ -463,6 +463,57 @@
             "label": "סכום זיכוי",
             "name": "creditAmount",
             "type": "currency"
+        }
+    ],
+    "routeOrdersTable": [
+        {
+            "name": "street",
+            "label": "רחוב",
+            "type": "text"
+        },
+        {
+            "name": "buildingNumber",
+            "label": "בנין",
+            "type": "number"
+        },
+        {
+            "name": "orderNumber",
+            "label": "מספר סדר",
+            "type": "text"
+        }
+    ],
+    "routeOrdersUpdate": [
+        {
+            "name": "street",
+            "label": "רחוב",
+            "type": "text"
+        },
+        {
+            "name": "buildingNumber",
+            "label": "בנין",
+            "type": "number"
+        },
+        {
+            "name": "orderNumber",
+            "label": "מספר סדר",
+            "type": "number"
+        },
+        {
+            "name": "notes",
+            "label": "הערות",
+            "type": "textarea"
+        }
+    ],
+    "customersSearch": [
+        {
+            "name": "startdeliveryIndex",
+            "label": "ממספר במסלול",
+            "type": "text"
+        },
+        {
+            "name": "enddeliveryIndex",
+            "label": "עד מספר במסלול",
+            "type": "text"
         }
     ]
 }

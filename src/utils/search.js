@@ -23,16 +23,16 @@ export const search = ({ params, data, setData, getLookupName, terms }) => {
 
             } else if (key.startsWith("start")) {
                 const keyName = key.replace("start", "")
-                if (!item[keyName]) return false
+                if (!item[keyName] && item[keyName] !== 0) return false
                 if (isArray(terms) && terms.find((term) => term.name === keyName)?.type === "date") {
                     searchParams[key] = new Date(searchParams[key])
                 }
-                if (item[keyName] <= searchParams[key]) {
+                if (item[keyName] < searchParams[key]) {
                     return false;
                 }
             } else if (key.startsWith("end")) {
                 const keyName = key.replace("end", "")
-                if (!item[keyName]) return false
+                if (!item[keyName] && item[keyName] !== 0) return false
                 if (isArray(terms) && terms.find((term) => term.name === keyName)?.type === "date") {
                     searchParams[key] = new Date(searchParams[key])
                 }

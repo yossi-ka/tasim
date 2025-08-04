@@ -13,6 +13,7 @@ import VoiceMsg from "../pages/VoiceMsg";
 import CollectionGroups from "../pages/CollectionGroups";
 import Test from "../pages/Test";
 import CollectionGroupsHistory from "../pages/collectionGroupsHistory";
+import RouteOrders from "../pages/RouteOrders";
 
 
 const ProjectRoutes = () => {
@@ -40,6 +41,7 @@ const ProjectRoutes = () => {
                 <Route path="collection-groups-history" element={<CollectionGroupsHistory />} />
                 <Route path="customers" element={<Customers />} />
                 <Route path="products" element={<Products />} />
+                <Route path="route-orders" element={<RouteOrders />} />
                 <Route path="voice-msg" element={<VoiceMsg />} />
                 <Route path="test" element={<Test />} />
             </Route>

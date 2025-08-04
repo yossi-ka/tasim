@@ -1,34 +1,36 @@
 import React from "react";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import AddIcon from '@mui/icons-material/Add';
 
 import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
-import UploadExcel from "./UploadExcel";
-import useTerms from "../../terms";
+import UploadRouteOrders from "./UploadExcel";
+import AddOrEditRouteOrder from "./AddOrEdit";
 
 const Search = ({ refetch, params, setParams }) => {
     const { popup } = React.useContext(Context);
 
-    const searchTerm = useTerms("customersSearch");
-
-    const fields = [
-        searchTerm.field("startdeliveryIndex", { variant: "outlined", size: 2 }),
-        searchTerm.field("enddeliveryIndex", { variant: "outlined", size: 2 }),
-    ]
     return <GlobalSearch
         quickSearchFields={[{ name: 'globalSearch', label: 'חיפוש כללי', size: 12, variant: "outlined" }]}
         quickSearchOnTyping={true}
         params={params}
         setParams={setParams}
-        fields={fields}
         actions={[
             {
-                title: "הוספת לקוחות",
+                title: "הוספת קובץ סדרי מסלולים",
                 icon: <FileUploadIcon color='primary' />,
                 onClick: () => popup({
-                    title: "הוספת לקוחות",
-                    content: <UploadExcel refetch={refetch} />,
+                    title: "הוספת סדרי מסלולים",
+                    content: <UploadRouteOrders refetch={refetch} />,
+                })
+            },
+            {
+                title: "הוספת בניין למסלול",
+                icon: <AddIcon color='primary' />,
+                onClick: () => popup({
+                    title: "הוספת בניין למסלול",
+                    content: <AddOrEditRouteOrder refetch={refetch} />,
                 })
             },
             {
@@ -39,7 +41,6 @@ const Search = ({ refetch, params, setParams }) => {
                 }
             },
         ]}
-        term="customersSearch"
     />
 }
 

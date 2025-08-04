@@ -122,6 +122,7 @@ const getProducts = async (userId) => {
         const line = group ? linesMap[group.lineId] || null : null;
         return {
             ...product,
+            cartIndex: 10,
             color: line ? line.color : null,
         };
     });

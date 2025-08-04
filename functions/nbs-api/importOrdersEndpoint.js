@@ -72,6 +72,10 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 
         const customerMapping = await loadCustomerMapping();
 
+        // טעינת מיפוי מסלולים
+        console.log('🔄 Loading route orders mapping...');
+        const routeMapping = await loadRouteMapping();
+
         // הגדרות batch
         const BATCH_SIZE = 500;
         let currentBatchOperations = 0;
@@ -123,7 +127,18 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
                 // הוספת ההזמנה
                 const orderRef = db.collection('orders').doc();
                 const mappedCustomer = customerMapping.get(order.nbsCustomerId) || null;
-                const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer);
+                
+                // חישוב deliveryIndex מטבלת המסלולים
+                let deliveryIndex = 0;
+                if (mappedCustomer && mappedCustomer.street && mappedCustomer.houseNumber) {
+                    const routeKey = `${mappedCustomer.street}-${mappedCustomer.houseNumber}`;
+                    const routeOrder = routeMapping.get(routeKey);
+                    if (routeOrder) {
+                        deliveryIndex = routeOrder.orderNumber;
+                    }
+                }
+                
+                const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer, deliveryIndex);
                 largeBatch.set(orderRef, orderData);
 
                 // הוספת כל המוצרים
@@ -169,9 +184,20 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             // הוספת ההזמנה ל-batch
             const orderRef = db.collection('orders').doc();
             const mappedCustomer = customerMapping.get(order.nbsCustomerId) || null;
+            
+            // חישוב deliveryIndex מטבלת המסלולים
+            let deliveryIndex = 0;
+            if (mappedCustomer && mappedCustomer.street && mappedCustomer.houseNumber) {
+                const routeKey = `${mappedCustomer.street}-${mappedCustomer.houseNumber}`;
+                const routeOrder = routeMapping.get(routeKey);
+                if (routeOrder) {
+                    deliveryIndex = routeOrder.orderNumber;
+                }
+            }
+            
             console.log("----test----")
-            console.log("----test---- customer in order: " + order.nbsOrderId + "----" + order.nbsCustomerId, mappedCustomer);
-            const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer);
+            console.log("----test---- customer in order: " + order.nbsOrderId + "----" + order.nbsCustomerId, mappedCustomer, "deliveryIndex:", deliveryIndex);
+            const orderData = createOrderData(order, userId, importDoc.id, mappedCustomer, deliveryIndex);
             batch.set(orderRef, orderData);
             currentBatchOperations++;
             totalNewOrders++;
@@ -243,7 +269,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 /**
  * יצירת אובייקט הזמנה לשמירה ב-Firebase
  */
-const createOrderData = (order, userId, importId, mappedCustomer) => {
+const createOrderData = (order, userId, importId, mappedCustomer, deliveryIndex = 0) => {
     const { products, ...orderWithoutProducts } = order; // הסרת מערך המוצרים
     console.log('customer in order: ' + order.nbsOrderId, mappedCustomer);
     return {
@@ -256,7 +282,7 @@ const createOrderData = (order, userId, importId, mappedCustomer) => {
         isActive: true,
         importId: importId,
         customerId: mappedCustomer ? mappedCustomer.id : null,
-        deliveryIndex: mappedCustomer ? mappedCustomer.deliveryIndex : null,
+        deliveryIndex: deliveryIndex, // משתמש בערך המחושב מטבלת המסלולים
         // המרת תאריכים אם הם מגיעים כ-string
         openedAt: order.openedAt ? (typeof order.openedAt === 'string' ? new Date(order.openedAt) : order.openedAt) : null,
         closedAt: order.closedAt ? (typeof order.closedAt === 'string' ? new Date(order.closedAt) : order.closedAt) : null
@@ -315,7 +341,7 @@ const loadCustomerMapping = async () => {
     try {
         console.log('🔄 Loading customer mapping...');
         const customersSnapshot = await db.collection('customers')
-            .select('customerNumber', 'deliveryIndex')
+            .select('customerNumber', 'street', 'houseNumber') // הוספת street ו-houseNumber
             .get();
 
         const customerMapping = new Map();
@@ -325,7 +351,8 @@ const loadCustomerMapping = async () => {
                 customerMapping.set(data.customerNumber, {
                     id: doc.id,
                     customerNumber: data.customerNumber,
-                    deliveryIndex: data.deliveryIndex || null
+                    street: data.street || null,
+                    houseNumber: data.houseNumber || null
                 });
             }
         });
@@ -334,6 +361,35 @@ const loadCustomerMapping = async () => {
         return customerMapping;
     } catch (error) {
         console.error('💥 Error loading customer mapping:', error.message);
+        throw error;
+    }
+};
+
+const loadRouteMapping = async () => {
+    try {
+        console.log('🔄 Loading route orders mapping...');
+        const routeOrdersSnapshot = await db.collection('routeOrders')
+            .where('isActive', '==', true)
+            .select('street', 'buildingNumber', 'orderNumber')
+            .get();
+
+        const routeMapping = new Map();
+        routeOrdersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.street && data.buildingNumber && data.orderNumber !== undefined) {
+                const key = `${data.street}-${data.buildingNumber}`;
+                routeMapping.set(key, {
+                    street: data.street,
+                    buildingNumber: data.buildingNumber,
+                    orderNumber: data.orderNumber
+                });
+            }
+        });
+
+        console.log(`📋 Loaded ${routeMapping.size} route orders for mapping`);
+        return routeMapping;
+    } catch (error) {
+        console.error('💥 Error loading route orders mapping:', error.message);
         throw error;
     }
 };

@@ -9,6 +9,7 @@ import PermPhoneMsgIcon from '@mui/icons-material/PermPhoneMsg';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import RouteIcon from '@mui/icons-material/Route';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
@@ -32,6 +33,7 @@ const DrawerContent = () => {
         { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
         { title: "לקוחות", to: "customers", icon: <GroupsIcon color='primary' /> },
         { title: "מוצרים", to: "products", icon: <InventoryIcon color='primary' /> },
+        { title: "סדר מסלולים", to: "route-orders", icon: <RouteIcon color='primary' /> },
         { title: "עובדים", to: "employees", icon: <EngineeringIcon color='primary' /> },
 
     ]

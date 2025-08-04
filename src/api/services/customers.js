@@ -1,13 +1,61 @@
 import { db } from '../../firebase-config'
+import { getAllRouteOrders } from './routeOrders';
 
 import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer } from "firebase/firestore";
 
 export const getAllCustomers = async () => {
     console.log('Fetching all customers');
-    const customersRef = collection(db, "customers");
-    const q = query(customersRef, orderBy("registrationDate", "desc"));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    try {
+        // שלב 1: קבלת כל הלקוחות
+        const customersRef = collection(db, "customers");
+        const q = query(customersRef, orderBy("registrationDate", "desc"));
+        const querySnapshot = await getDocs(q);
+        const customers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // שלב 2: קבלת כל המסלולים
+        console.log('Fetching all route orders');
+        const routeOrders = await getAllRouteOrders();
+        
+        // שלב 3: יצירת Map למסלולים לפי רחוב ובנין לחיפוש מהיר
+        const routeMap = new Map();
+        routeOrders.forEach(route => {
+            if (route.street && route.buildingNumber) {
+                const key = `${route.street}-${route.buildingNumber}`;
+                routeMap.set(key, route.orderNumber || 0);
+            }
+        });
+        
+        console.log(`Created route map with ${routeMap.size} entries`);
+        
+        // שלב 4: שילוב הנתונים - הוספת deliveryIndex לכל לקוח
+        const customersWithDeliveryIndex = customers.map(customer => {
+            const street = customer.street;
+            const buildingNumber = customer.houseNumber; // מיפוי houseNumber -> buildingNumber
+            
+            let deliveryIndex = 0; // ערך ברירת מחדל
+            
+            if (street && buildingNumber) {
+                const key = `${street}-${buildingNumber}`;
+                const routeOrderNumber = routeMap.get(key);
+                if (routeOrderNumber !== undefined) {
+                    deliveryIndex = routeOrderNumber;
+                }
+            }
+            
+            return {
+                ...customer,
+                deliveryIndex
+            };
+        });
+        
+        console.log(`Successfully processed ${customersWithDeliveryIndex.length} customers with delivery index`);
+        return customersWithDeliveryIndex;
+        
+    } catch (error) {
+        console.error('Error fetching customers with delivery index:', error);
+        throw new Error(`שגיאה בקבלת לקוחות עם אינדקס משלוח: ${error.message}`);
+    }
 }
 
 export const getCustomerById = async (id) => {
