@@ -97,24 +97,28 @@ export const uploadCustomers = async (customersData, userId) => {
     const FIRESTORE_BATCH_SIZE = 500; // מגבלת Firestore לbatch writes
 
     try {
-        // קריאה אחת לקבלת כל מספרי הלקוחות הקיימים
-        console.log('Fetching existing customer IDs...');
+        // קריאה אחת לקבלת כל הלקוחות הקיימים
+        console.log('Fetching existing customers...');
         const existingCustomersQuery = query(customersCollection);
         const existingCustomersSnapshot = await getDocs(existingCustomersQuery);
 
-        // יצירת Set של מספרי לקוחות קיימים לבדיקה מהירה
-        const existingCustomerIds = new Set();
+        // יצירת Map של לקוחות קיימים לפי customerNumber
+        const existingCustomersMap = new Map();
         existingCustomersSnapshot.forEach(doc => {
             const data = doc.data();
             if (data.customerNumber) {
-                existingCustomerIds.add(data.customerNumber);
+                existingCustomersMap.set(data.customerNumber, {
+                    id: doc.id,
+                    data: data
+                });
             }
         });
 
-        console.log(`Found ${existingCustomerIds.size} existing customers`);
+        console.log(`Found ${existingCustomersMap.size} existing customers`);
 
-        // סינון הלקוחות - רק אלה שלא קיימים
+        // הפרדה בין לקוחות חדשים ולקוחות לעדכון
         const newCustomers = [];
+        const customersToUpdate = [];
         const skippedCustomers = [];
 
         for (const customerData of customersData) {
@@ -122,23 +126,32 @@ export const uploadCustomers = async (customersData, userId) => {
 
             if (!customerNumber) {
                 console.warn('Customer without customerNumber, skipping:', customerData);
+                skippedCustomers.push({ reason: 'Missing customerNumber', data: customerData });
                 continue;
             }
 
-            if (existingCustomerIds.has(customerNumber)) {
-                // הלקוח כבר קיים - דילוג
-                skippedCustomers.push(customerNumber);
-                console.log(`Customer ${customerNumber} already exists, skipping`);
+            if (existingCustomersMap.has(customerNumber)) {
+                // לקוח קיים - הוספה לרשימת העדכונים
+                const existingCustomer = existingCustomersMap.get(customerNumber);
+                customersToUpdate.push({
+                    id: existingCustomer.id,
+                    customerNumber,
+                    newData: customerData,
+                    existingData: existingCustomer.data
+                });
+                console.log(`Customer ${customerNumber} exists, will be updated`);
             } else {
                 // לקוח חדש
                 newCustomers.push(customerData);
             }
         }
 
-        console.log(`Processing ${newCustomers.length} new customers, skipping ${skippedCustomers.length} existing customers`);
+        console.log(`Processing ${newCustomers.length} new customers and ${customersToUpdate.length} existing customers for update`);
 
-        // העלאה של הלקוחות החדשים בbatches של Firestore
-        const uploadedCustomers = [];
+        const addedCustomers = [];
+        const updatedCustomers = [];
+
+        // שלב 1: הוספת לקוחות חדשים
         for (let i = 0; i < newCustomers.length; i += FIRESTORE_BATCH_SIZE) {
             const batch = writeBatch(db);
             const batchCustomers = newCustomers.slice(i, i + FIRESTORE_BATCH_SIZE);
@@ -165,23 +178,57 @@ export const uploadCustomers = async (customersData, userId) => {
             // ביצוע הbatch הנוכחי
             if (batchResults.length > 0) {
                 await batch.commit();
-                uploadedCustomers.push(...batchResults);
-                console.log(`Uploaded batch ${Math.floor(i / FIRESTORE_BATCH_SIZE) + 1}: ${batchResults.length} customers`);
+                addedCustomers.push(...batchResults);
+                console.log(`Added batch ${Math.floor(i / FIRESTORE_BATCH_SIZE) + 1}: ${batchResults.length} new customers`);
+            }
+        }
+
+        // שלב 2: עדכון לקוחות קיימים
+        for (let i = 0; i < customersToUpdate.length; i += FIRESTORE_BATCH_SIZE) {
+            const batch = writeBatch(db);
+            const batchCustomers = customersToUpdate.slice(i, i + FIRESTORE_BATCH_SIZE);
+            const batchResults = [];
+
+            for (const customerUpdate of batchCustomers) {
+                const { id, newData, existingData } = customerUpdate;
+                
+                // שמירה על נתונים קיימים חשובים
+                const updatedCustomerData = {
+                    ...newData,
+                    createdBy: existingData.createdBy || userId, // שמירה על יוצר המקורי
+                    createdDate: existingData.createdDate || Timestamp.now(), // שמירה על תאריך יצירה מקורי
+                    updateBy: userId,
+                    updateDate: Timestamp.now(),
+                    isActive: existingData.isActive !== undefined ? existingData.isActive : true, // שמירה על סטטוס קיים
+                };
+
+                const customerDocRef = doc(db, 'customers', id);
+                batch.update(customerDocRef, updatedCustomerData);
+                batchResults.push({ id, ...updatedCustomerData });
+            }
+
+            // ביצוע הbatch הנוכחי
+            if (batchResults.length > 0) {
+                await batch.commit();
+                updatedCustomers.push(...batchResults);
+                console.log(`Updated batch ${Math.floor(i / FIRESTORE_BATCH_SIZE) + 1}: ${batchResults.length} existing customers`);
             }
         }
 
         return {
             success: true,
             totalProcessed: customersData.length,
-            newCustomersCount: uploadedCustomers.length,
+            newCustomersCount: addedCustomers.length,
+            updatedCustomersCount: updatedCustomers.length,
             skippedCount: skippedCustomers.length,
-            newCustomers: uploadedCustomers,
-            skippedCustomerIds: skippedCustomers
+            addedCustomers,
+            updatedCustomers,
+            skippedCustomers
         };
 
     } catch (error) {
-        console.error('Error uploading customers:', error);
-        throw new Error(`שגיאה בהעלאת הלקוחות: ${error.message}`);
+        console.error('Error uploading/updating customers:', error);
+        throw new Error(`שגיאה בהעלאת/עדכון הלקוחות: ${error.message}`);
     }
 }
 
