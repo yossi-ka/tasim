@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@mui/material';
 import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts, } from '../../api/services/collectionGroups';
+import { trimStreetNamesInRouteOrders } from '../../api/services/routeOrders';
 
 const Test = () => {
 
@@ -43,6 +44,11 @@ const Test = () => {
                 variant='contained'
                 onClick={async () => fixGroup()}
             >תיקון קבוצה לא תקינה</Button> */}
+
+            <Button
+                variant='contained'
+                onClick={trimStreetNamesInRouteOrders}
+            >תיקון שמות רחובות בהזמנות מסלול</Button>
         </div>
     );
 }
