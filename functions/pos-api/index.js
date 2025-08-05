@@ -79,6 +79,20 @@ app.post('/approveProducts', checkUserFunc, async (req, res) => {
         const { products } = req.body;
 
         if (Array.isArray(products) && products.length > 0) {
+            // Validate that each product has required fields
+            const isValidFormat = products.every(product => 
+                product && typeof product === 'object' && 
+                typeof product.id === 'string' && 
+                typeof product.cartIndex === 'number'
+            );
+            
+            if (!isValidFormat) {
+                return res.json({
+                    status: "error",
+                    massege: "פורמט לא תקין - נדרש מערך של אובייקטים עם id ו-cartIndex"
+                })
+            }
+
             const approve = await approveProducts(products, req.userId)
             if (!approve) return res.json({
                 status: "error",

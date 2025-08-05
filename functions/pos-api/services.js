@@ -122,19 +122,20 @@ const getProducts = async (userId) => {
         const line = group ? linesMap[group.lineId] || null : null;
         return {
             ...product,
-            cartIndex: 10,
+            cartIndex: product.cartIndex || 0,
             color: line ? line.color : null,
         };
     });
     return products;
 };
 
-const approveProducts = async (products, userId) => {
+const approveProducts = async (productsData, userId) => {
     const batch = db.batch();
-    for (const product of products) {
-        const docRef = db.doc('collectionGroupProducts/' + product);
+    for (const productData of productsData) {
+        const docRef = db.doc('collectionGroupProducts/' + productData.id);
         batch.update(docRef, {
             status: 2,
+            cartIndex: productData.cartIndex,
             updateBy: "pos",
             updateDate: Timestamp.now(),
             updateStatus: Timestamp.now(),
