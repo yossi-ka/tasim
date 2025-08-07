@@ -3,7 +3,10 @@ import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SyncIcon from '@mui/icons-material/Sync';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import { exportExcel } from "../../utils/excel";
+import { useMutation } from "react-query";
+import { syncOrderNumbers } from "../../api/services/orders";
 
 import GlobalSearch from "../../global/GlobalSearch";
 import Context from "../../context";
@@ -13,10 +16,23 @@ import { Stack, Typography } from "@mui/material";
 import { formatCurrencyIL } from "../../utils/func";
 
 const Search = ({ refetch, params, setParams, dataForExcel, termForExcel, selected }) => {
-    const { popup, convertArray } = React.useContext(Context);
-
+    const { popup, convertArray, user, snackbar } = React.useContext(Context);
 
     const searchTerm = useTerms("ordersSearch");
+
+    // מיוטיישן לסנכרון מספרים
+    const syncNumbersMutation = useMutation(
+        () => syncOrderNumbers(user.id),
+        {
+            onSuccess: (data) => {
+                snackbar("עדכון מספרי הזמנה בוצע בהצלחה", 'success');
+                refetch(); // רענון הנתונים לאחר הצלחה
+            },
+            onError: (error) => {
+                snackbar(error.message || 'שגיאה בסנכרון מספרים', 'error');
+            }
+        }
+    );
 
     const fields = [
         searchTerm.field("startdeliveryIndex", { variant: "outlined", size: 2 }),
@@ -55,6 +71,14 @@ const Search = ({ refetch, params, setParams, dataForExcel, termForExcel, select
                     title: "סטטוס סנכרון הזמנות",
                     content: <SyncStatus refetch={refetch} />
                 })
+            },
+            {
+                title: "סנכרון מספרים",
+                icon: <FormatListNumberedIcon color='primary' />,
+                onClick: () => {
+                    syncNumbersMutation.mutate();
+                },
+                loading: syncNumbersMutation.isLoading
             },
             {
                 title: "רענן מסך",

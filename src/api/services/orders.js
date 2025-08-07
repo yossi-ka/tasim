@@ -255,3 +255,149 @@ export const getLatestImportStatus = async () => {
         throw error;
     }
 }
+
+export const syncOrderNumbers = async (userId) => {
+    try {
+        console.log('🚀 Starting order numbers sync...');
+        
+        // 1. שליפת הזמנות בסטטוס 1
+        console.log('🔍 Fetching orders with status 1...');
+        const ordersRef = collection(db, "orders");
+        const ordersQuery = query(ordersRef, where("orderStatus", "==", 1));
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        if (ordersSnapshot.empty) {
+            return {
+                success: true,
+                message: 'לא נמצאו הזמנות בסטטוס 1 לסנכרון',
+                updatedCount: 0
+            };
+        }
+        
+        console.log(`📋 Found ${ordersSnapshot.size} orders with status 1`);
+        
+        // 2. טעינת מיפוי לקוחות (לפי nbsCustomerId)
+        console.log('🔄 Loading customer mapping...');
+        const customersRef = collection(db, "customers");
+        const customersSnapshot = await getDocs(customersRef);
+        
+        const customerMapping = new Map();
+        customersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.customerNumber) {
+                customerMapping.set(data.customerNumber, {
+                    id: doc.id,
+                    customerNumber: data.customerNumber,
+                    street: data.street || null,
+                    houseNumber: data.houseNumber || null
+                });
+            }
+        });
+        console.log(`📋 Loaded ${customerMapping.size} customers for mapping`);
+        
+        // 3. טעינת מיפוי מסלולים (רשימה עם סדר כתובות)
+        console.log('🔄 Loading route orders mapping...');
+        const routeOrdersRef = collection(db, "routeOrders");
+        const routeOrdersQuery = query(routeOrdersRef, where("isActive", "==", true));
+        const routeOrdersSnapshot = await getDocs(routeOrdersQuery);
+        
+        const routeMapping = new Map();
+        routeOrdersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.street && data.buildingNumber && data.orderNumber !== undefined) {
+                const key = `${data.street}-${data.buildingNumber}`;
+                routeMapping.set(key, {
+                    street: data.street,
+                    buildingNumber: data.buildingNumber,
+                    orderNumber: data.orderNumber
+                });
+            }
+        });
+        console.log(`📋 Loaded ${routeMapping.size} route orders for mapping`);
+        
+        // 4. עדכון deliveryIndex להזמנות
+        const BATCH_SIZE = 500;
+        let currentBatch = writeBatch(db);
+        let batchOperations = 0;
+        let totalUpdated = 0;
+        let totalSkipped = 0;
+        
+        console.log('🔄 Processing orders for delivery index update...');
+        
+        for (const orderDoc of ordersSnapshot.docs) {
+            const orderData = orderDoc.data();
+            const nbsCustomerId = orderData.nbsCustomerId;
+            
+            if (!nbsCustomerId) {
+                console.log(`⚠️ Order ${orderData.nbsOrderId} has no nbsCustomerId, skipping`);
+                totalSkipped++;
+                continue;
+            }
+            
+            // מציאת הלקוח לפי nbsCustomerId
+            const mappedCustomer = customerMapping.get(nbsCustomerId);
+            if (!mappedCustomer) {
+                console.log(`⚠️ Customer ${nbsCustomerId} not found for order ${orderData.nbsOrderId}, skipping`);
+                totalSkipped++;
+                continue;
+            }
+            
+            // חישוב deliveryIndex מטבלת המסלולים
+            let newDeliveryIndex = 0;
+            if (mappedCustomer.street && mappedCustomer.houseNumber) {
+                const routeKey = `${mappedCustomer.street}-${mappedCustomer.houseNumber}`;
+                const routeOrder = routeMapping.get(routeKey);
+                if (routeOrder) {
+                    newDeliveryIndex = routeOrder.orderNumber;
+                }
+            }
+            
+            // בדיקה אם יש צורך בעדכון
+            const currentDeliveryIndex = orderData.deliveryIndex || 0;
+            if (currentDeliveryIndex === newDeliveryIndex) {
+                continue; // אין צורך בעדכון
+            }
+            
+            console.log(`📦 Updating order ${orderData.nbsOrderId}: deliveryIndex ${currentDeliveryIndex} -> ${newDeliveryIndex}`);
+            
+            // הוספה לbatch
+            const orderRef = doc(db, 'orders', orderDoc.id);
+            currentBatch.update(orderRef, {
+                deliveryIndex: newDeliveryIndex,
+                updateBy: userId,
+                updateDate: Timestamp.now()
+            });
+            
+            batchOperations++;
+            totalUpdated++;
+            
+            // שליחת batch כשמגיעים לגבול
+            if (batchOperations >= BATCH_SIZE) {
+                await currentBatch.commit();
+                console.log(`✅ Batch committed with ${batchOperations} operations`);
+                currentBatch = writeBatch(db);
+                batchOperations = 0;
+            }
+        }
+        
+        // שליחת batch אחרון אם יש פעולות
+        if (batchOperations > 0) {
+            await currentBatch.commit();
+            console.log(`✅ Final batch committed with ${batchOperations} operations`);
+        }
+        
+        const message = `סנכרון מספרים הושלם בהצלחה. עודכנו: ${totalUpdated} הזמנות, דולגו: ${totalSkipped} הזמנות`;
+        console.log(`✅ ${message}`);
+        
+        return {
+            success: true,
+            message,
+            updatedCount: totalUpdated,
+            skippedCount: totalSkipped
+        };
+        
+    } catch (error) {
+        console.error('💥 Error syncing order numbers:', error);
+        throw new Error(`שגיאה בסנכרון מספרים: ${error.message}`);
+    }
+}

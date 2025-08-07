@@ -19,7 +19,9 @@ const app = express();
 
 app.use(cors())
 
+// Middleware to handle CORS preflight requests
 app.use(express.json())
+app.use(express.urlencoded({ extended: true })) // For parsing form data
 
 const checkUserFunc = (req, res, next) => {
     try {
@@ -76,16 +78,50 @@ app.get('/products', checkUserFunc, async (req, res) => {
 
 app.post('/approveProducts', checkUserFunc, async (req, res) => {
     try {
-        const { products } = req.body;
+        let products;
+
+        // Parse form data to convert it to proper array format
+        if (req.body.products && !Array.isArray(req.body.products)) {
+            // Convert form data format to array
+            products = [];
+            const formData = req.body.products;
+
+            // Get all indices from form data
+            const indices = new Set();
+            Object.keys(formData).forEach(key => {
+                const match = key.match(/\[(\d+)\]/);
+                if (match) {
+                    indices.add(parseInt(match[1]));
+                }
+            });
+
+            // Build products array from form data
+            indices.forEach(index => {
+                const product = {};
+                if (formData[`[${index}][id]`]) product.id = formData[`[${index}][id]`];
+                if (formData[`[${index}][cartIndex]`]) product.cartIndex = parseInt(formData[`[${index}][cartIndex]`]);
+                products.push(product);
+            });
+        } else {
+            // Original JSON format - keep this for when client is updated
+            products = req.body.products;
+        }
 
         if (Array.isArray(products) && products.length > 0) {
-            // Validate that each product has required fields
-            const isValidFormat = products.every(product => 
-                product && typeof product === 'object' && 
-                typeof product.id === 'string' && 
-                typeof product.cartIndex === 'number'
+            // Original validation code - keep this for when client sends JSON
+            // const isValidFormat = products.every(product => 
+            //     product && typeof product === 'object' && 
+            //     typeof product.id === 'string' && 
+            //     typeof product.cartIndex === 'number'
+            // );
+
+            // Modified validation for form data compatibility
+            const isValidFormat = products.every(product =>
+                product && typeof product === 'object' &&
+                typeof product.id === 'string' &&
+                (typeof product.cartIndex === 'number' || typeof product.cartIndex === 'string')
             );
-            
+
             if (!isValidFormat) {
                 return res.json({
                     status: "error",
@@ -109,6 +145,7 @@ app.post('/approveProducts', checkUserFunc, async (req, res) => {
         })
     }
     catch (e) {
+        console.error("Error in approveProducts:", e);
         return res.json({
             status: "error",
             massege: e.massege || "שגיאה בעדכון המוצרים"

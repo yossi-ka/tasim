@@ -246,6 +246,7 @@ const getOrderProducts = async (userId, viewMode = "order") => {
             lastName: order.lastName,
             productPlace: groupProduct.productPlace || '',
             orderProductId: op.id,
+            cartIndex: groupProduct.cartIndex || 0,
             // color: line.color || null
         };
     });
