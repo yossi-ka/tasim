@@ -180,32 +180,32 @@
         {
             "name": "startdeliveryIndex",
             "label": "ממספר במסלול",
-            "type": "text"
+            "type": "number"
         },
         {
             "name": "enddeliveryIndex",
             "label": "עד מספר במסלול",
-            "type": "text"
+            "type": "number"
         },
         {
             "name": "startnbsOrderId",
             "label": "ממספר הזמנה",
-            "type": "text"
+            "type": "number"
         },
         {
             "name": "endnbsOrderId",
             "label": "עד מספר הזמנה",
-            "type": "text"
+            "type": "number"
         },
         {
-            "name": "endtotalPrice",
+            "name": "starttotalPrice",
             "label": "מסכום לתשלום",
-            "type": "text"
+            "type": "number"
         },
         {
             "name": "endtotalPrice",
             "label": "עד סכום לתשלום",
-            "type": "text"
+            "type": "number"
         }
     ],
     "addContacts": [
