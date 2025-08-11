@@ -12,6 +12,16 @@ const ChangeStatus = ({ rows, refetch, status }) => {
     const { closePopup, user, snackbar, getLookupName } = React.useContext(Context);
 
     const [initInputs, setInitInputs] = React.useState({});
+
+    React.useEffect(() => {
+        if (rows.length > 0 && status === 4) {
+            setInitInputs({
+                status: 4,
+                employeeId: rows[0].employeeId || null,
+            });
+        }
+    }, [rows, status]);
+
     const ids = React.useMemo(() => rows.map((row) => row.id), [rows]);
     const handleSubmit = useMutation((data) => changeOrdersStatus(ids, data, user.id), {
         onSuccess: () => {
@@ -65,7 +75,7 @@ const ChangeStatus = ({ rows, refetch, status }) => {
             { value: 3, label: "ממתין למשלוח" },
             { value: 4, label: "משלוח" },
             { value: 5, label: "הסתיים" }
-        ].filter(option => option.value !== status);
+        ].filter(option => status == 4 || option.value !== status);
     }, [status]);
 
     console.log(initInputs.status, "initInputs.status")
@@ -154,6 +164,9 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                             lookup: "employeesActive",
                             required: true,
                             displayConditionGrid: () => initInputs.status === 4
+                        },
+                        {
+                            cb: () => <Box sx={{ h: 20 }}></Box>
                         },
                         {
                             variant: "contained",

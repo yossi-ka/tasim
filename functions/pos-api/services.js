@@ -72,11 +72,6 @@ const getProducts = async (userId) => {
     let products = collectionGroupProductsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     // מיון products לפי הערך המספרי ב-productPlace
-    const extractNumber = (val) => {
-        if (!val) return Infinity;
-        const match = String(val).match(/\d+/);
-        return match ? parseInt(match[0], 10) : Infinity;
-    };
     products = products.sort((a, b) => {
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
@@ -167,7 +162,6 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     const groupIds = [...new Set(groupProducts.map(doc => doc.collectionGroupId).filter(Boolean))];
     const productIds = [...new Set(groupProducts.map(doc => doc.productId).filter(Boolean))];
 
-    console.log(groupIds)
     // שלב 2: שליפת orderProducts במנות של 30
     let orderProducts = [];
     for (let i = 0; i < groupIds.length; i += 1) {
@@ -175,7 +169,6 @@ const getOrderProducts = async (userId, viewMode = "order") => {
         for (let j = 0; j < productIds.length; j += 30) {
             const productBatch = productIds.slice(j, j + 30);
 
-            console.log("amount groups:", groupBatch.length, "amount products:", productBatch.length);
             const snap = await db
                 .collection('orderProducts')
                 .where("collectionGroupId", "in", groupBatch)
@@ -192,7 +185,6 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     let ordersMap = {};
     for (let i = 0; i < orderIds.length; i += 30) {
         const batch = orderIds.slice(i, i + 30);
-        console.log("amount orders:", batch.length);
         const snap = await db
             .collection('orders')
             .where("__name__", "in", batch)
@@ -252,12 +244,6 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     });
 
     // מיון לפי collectionGroupOrder ואז לפי productPlace
-    const extractNumber = (val) => {
-        if (!val) return Infinity;
-        const match = String(val).match(/\d+/);
-        return match ? parseInt(match[0], 10) : Infinity;
-    };
-
     result.sort((a, b) => {
 
         if (viewMode === "order") {
@@ -456,7 +442,6 @@ const getProductsShipping = async (userId) => {
     }
     const orderIds = orders.docs.map(doc => doc.id);
 
-    console.log("orderIds", orderIds.length)
     let allOrderProducts = [];
     for (let i = 0; i < orderIds.length; i += 30) {
         const batch = orderIds.slice(i, i + 30);
@@ -469,7 +454,6 @@ const getProductsShipping = async (userId) => {
 
     const uniqueProductIds = [...new Set(allOrderProducts.map(op => op.productId).filter(Boolean))];
 
-    console.log("uniqueProductIds", uniqueProductIds.length)
     let productsMap = {};
     for (let i = 0; i < uniqueProductIds.length; i += 30) {
         const batch = uniqueProductIds.slice(i, i + 30);
@@ -531,6 +515,12 @@ const sendMessage = async (orderId, message, user) => {
     return true;
 }
 
+
+const extractNumber = (val) => {
+    if (!val) return Infinity;
+    const match = String(val).match(/\d+/);
+    return match ? parseInt(match[0], 10) : Infinity;
+};
 
 
 
