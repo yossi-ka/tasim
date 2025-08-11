@@ -452,6 +452,36 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
+                                    onClick={() => printCategoryStickers.mutate("LD8yDMDfxrt1hV8dgIhQ")}
+                                    disabled={printCategoryStickers.isLoading}
+                                    startIcon={printCategoryStickers.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
+                                    sx={{
+                                        height: 56,
+                                        backgroundColor: '#2196f3',
+                                        borderRadius: 3,
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        textTransform: 'none',
+                                        boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            backgroundColor: '#1976d2',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(33, 150, 243, 0.4)'
+                                        },
+                                        '&:disabled': {
+                                            backgroundColor: '#bdc3c7',
+                                            transform: 'none'
+                                        }
+                                    }}
+                                >
+                                    {printCategoryStickers.isLoading ? 'מכין מדבקות...' : 'דפי מדבקות לקפואים'}
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
                                     onClick={print.mutate}
                                     disabled={print.isLoading}
                                     startIcon={print.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
