@@ -56,8 +56,8 @@ const AddOrEditRouteOrder = ({ row, refetch }) => {
 
     const term = useTerms("routeOrdersUpdate")
     const fields = [
-        term.field("street", { variant: "outlined", size: 8, required: true, disabled: row ? true : false }),
-        term.field("buildingNumber", { variant: "outlined", size: 2, required: true, disabled: row ? true : false }),
+        term.field("street", { variant: "outlined", size: 8, required: true }),
+        term.field("buildingNumber", { variant: "outlined", size: 2, required: true }),
         term.field("orderNumber", { variant: "outlined", size: 2, required: true }),
         {
             cb: () => <Alert severity="info" sx={{ mb: 2 }}>
