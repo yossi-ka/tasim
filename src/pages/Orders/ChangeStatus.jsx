@@ -132,11 +132,11 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                 setInitInput={setInitInputs}
             />}
 
-            {/* {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
+            {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
                 <Chip label="ליקוט פרטני" size="small" />
-            </Divider>} */}
+            </Divider>} 
 
-            {status !== 1 && <>
+            { <>
                 <Alert severity="info">
                     <AlertTitle>שים לב להעביר לסטטוס הנכון!</AlertTitle>
                     <Typography variant="body2">בהעברה לסטטוס הסתיים לא נשלח צינתוק</Typography>

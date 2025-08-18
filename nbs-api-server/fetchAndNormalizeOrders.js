@@ -492,15 +492,19 @@ const fetchAndNormalizeOrders = async () => {
         // שליחת הנתונים לאנדפוינט Firebase Function
         try {
             console.log('\n🚀 Sending data to Firebase Function...');
+            console.log(`📊 Data size: ${JSON.stringify(ordersWithProducts).length} characters`);
+            console.log(`📦 Number of orders: ${ordersWithProducts.length}`);
             const response = await axios.post(
-                'https://us-central1-kanfei-nesharim.cloudfunctions.net/test3',
+                'https://us-central1-kanfei-nesharim2.cloudfunctions.net/test3',
                 ordersWithProducts,
                 {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer fromNodeService`
                     },
-                    timeout: 300000 // 5 minutes timeout
+                    timeout: 540000, // 9 minutes timeout (match Firebase Function)
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity
                 }
             );
             console.log(`✅ Data successfully sent to Firebase Function`);
@@ -508,16 +512,59 @@ const fetchAndNormalizeOrders = async () => {
             console.log(`📋 Response data: ${response.data}`);
         } catch (sendError) {
             console.error(`\n❌ Error sending data to Firebase Function: ${sendError.message}`);
+            console.error(`🔍 Error code: ${sendError.code}`);
+            
             if (sendError.response) {
-                console.error(`� Response status: ${sendError.response.status}`);
-                console.error(`📥 Response data: ${sendError.response.data}`);
+                console.error(`📊 Response status: ${sendError.response.status}`);
+                console.error(`📥 Response data:`, sendError.response.data);
+            } else if (sendError.request) {
+                console.error(`📡 Request was made but no response received`);
+                console.error(`🔍 Request details:`, {
+                    timeout: sendError.config?.timeout,
+                    method: sendError.config?.method,
+                    url: sendError.config?.url
+                });
             }
+            
             // במקרה של כשל, נשמור גם לקובץ מקומי כגיבוי
             console.log('\n💾 Saving data locally as backup...');
             const outputPath = path.join(__dirname, 'orders_with_products_backup.json');
             fs.writeFileSync(outputPath, JSON.stringify(ordersWithProducts, null, 2), 'utf8');
             console.log(`💾 Backup saved to: ${outputPath}`);
-            throw sendError;
+            
+            // Try once more if it's a network error
+            const isRetryableError = sendError.code === 'ECONNRESET' || 
+                                   sendError.code === 'ETIMEDOUT' || 
+                                   sendError.message.includes('socket hang up') ||
+                                   sendError.message.includes('timeout');
+                                   
+            if (isRetryableError) {
+                console.log('\n🔄 Attempting retry due to connection issue...');
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+                    
+                    const retryResponse = await axios.post(
+                        'https://us-central1-kanfei-nesharim2.cloudfunctions.net/test3',
+                        ordersWithProducts,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer fromNodeService`
+                            },
+                            timeout: 540000,
+                            maxContentLength: Infinity,
+                            maxBodyLength: Infinity
+                        }
+                    );
+                    console.log(`✅ Retry successful! Response status: ${retryResponse.status}`);
+                    console.log(`📋 Retry response data:`, retryResponse.data);
+                } catch (retryError) {
+                    console.error(`❌ Retry also failed: ${retryError.message}`);
+                    throw sendError; // Throw original error
+                }
+            } else {
+                throw sendError;
+            }
         }
 
         return ordersWithProducts;
@@ -554,7 +601,7 @@ const getAmountDaysToImport = async () => {
     try {
         console.log('\n� Getting last import date from server...');
         const response = await axios.get(
-            'https://us-central1-kanfei-nesharim.cloudfunctions.net/lastOrderImportDate',
+            'https://us-central1-kanfei-nesharim2.cloudfunctions.net/lastOrderImportDate',
             {
                 headers: {
                     'Content-Type': 'application/json'

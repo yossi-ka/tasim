@@ -315,5 +315,5 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
 module.exports = {
     newChalukaMessage,
     onOrderProductStatusChange,
-    onOrderStatusChangeTo5
+    // onOrderStatusChangeTo5
 };

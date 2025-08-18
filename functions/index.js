@@ -32,8 +32,8 @@ exports.test3 = onRequest(
         memory: "8GiB",
         cpu: 4,
         timeoutSeconds: 540,
-        maxInstances: 1,
-        concurrency: 1
+        // maxInstances: 1,
+        // concurrency: 1
     },
     async (request, response) => {
         try {

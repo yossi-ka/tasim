@@ -27,7 +27,7 @@ const SyncStatus = ({ refetch }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isLocalSyncAvailable, setIsLocalSyncAvailable] = useState(null); // null=unknown, true=ok, false=down
     const [localSyncVersion, setLocalSyncVersion] = useState(null);
-    const REQUIRED_VERSION = '1.0.2';
+    const REQUIRED_VERSION = '1.0.3';
 
     // בדיקת זמינות סנכרון מקומי בכניסה לקומפוננטה
     useEffect(() => {
