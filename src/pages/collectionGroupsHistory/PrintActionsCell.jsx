@@ -175,7 +175,7 @@ const PrintActionsCell = ({ collectionGroupId, isMissingSendTzintuk }) => {
             key: 'dairy',
             tooltip: 'מדבקות חלבי',
             icon: <ReceiptIcon fontSize="small" />,
-            onClick: () => printCategoryStickers.mutate("iMhnv6W2DwApDpRQ2lfl"),
+            onClick: () => printCategoryStickers.mutate("EMqF46IO87uoCUKEXgpT"),
             loading: printCategoryStickers.isLoading,
             color: '#27ae60'
         }

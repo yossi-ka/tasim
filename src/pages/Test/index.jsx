@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts, } from '../../api/services/collectionGroups';
 import { trimStreetNamesInRouteOrders } from '../../api/services/routeOrders';
+import { getLastOrdersByUpdate, getProductWithQuantityForShipping } from '../../api/services/test';
 
 const Test = () => {
 
@@ -45,10 +46,24 @@ const Test = () => {
                 onClick={async () => fixGroup()}
             >תיקון קבוצה לא תקינה</Button> */}
 
-            <Button
+            {/* <Button
                 variant='contained'
                 onClick={trimStreetNamesInRouteOrders}
-            >תיקון שמות רחובות בהזמנות מסלול</Button>
+            >תיקון שמות רחובות בהזמנות מסלול</Button> */}
+            {/* <Button
+                variant='contained'
+                onClick={async () => {
+                    const x = await getLastOrdersByUpdate();
+                    console.log("Last updated orders:", x);
+                }}
+            >הזמנות אחרונות</Button> */}
+            {/* <Button
+                variant='contained'
+                onClick={async () => {
+                    const x = await getProductWithQuantityForShipping();
+                    console.log("Products with quantity for shipping:", x);
+                }}
+            >מוצרים עם כמות למשלוח</Button> */}
         </div>
     );
 }

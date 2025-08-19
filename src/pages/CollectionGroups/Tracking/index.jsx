@@ -422,7 +422,7 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    onClick={() => printCategoryStickers.mutate("iMhnv6W2DwApDpRQ2lfl")}
+                                    onClick={() => printCategoryStickers.mutate("EMqF46IO87uoCUKEXgpT")}
                                     disabled={printCategoryStickers.isLoading}
                                     startIcon={printCategoryStickers.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
                                     sx={{
@@ -452,7 +452,7 @@ const Tracking = ({ currentCollectionGroup }) => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    onClick={() => printCategoryStickers.mutate("LD8yDMDfxrt1hV8dgIhQ")}
+                                    onClick={() => printCategoryStickers.mutate("JsP3G6mja3K5dpzAeqqS")}
                                     disabled={printCategoryStickers.isLoading}
                                     startIcon={printCategoryStickers.isLoading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : <PrintIcon />}
                                     sx={{
