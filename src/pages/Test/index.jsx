@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts, } from '../../api/services/collectionGroups';
 import { trimStreetNamesInRouteOrders } from '../../api/services/routeOrders';
-import { getLastOrdersByUpdate, getProductWithQuantityForShipping } from '../../api/services/test';
+import { getLastOrdersByUpdate, getOpenCollectionGroups, getProductWithQuantityForShipping } from '../../api/services/test';
 
 const Test = () => {
 
@@ -64,6 +64,13 @@ const Test = () => {
                     console.log("Products with quantity for shipping:", x);
                 }}
             >מוצרים עם כמות למשלוח</Button> */}
+            <Button
+                variant='contained'
+                onClick={async () => {
+                    const x = await getOpenCollectionGroups();
+                    console.log("Open collection groups:", x);
+                }}
+            >קבוצות אספקה פתוחות</Button>
         </div>
     );
 }

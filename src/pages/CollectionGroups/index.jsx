@@ -43,11 +43,11 @@ const steps = [
         icon: <TrackChanges />,
         component: Tracking
     },
-    // {
-    //     label: 'סיום',
-    //     icon: <CheckCircle />,
-    //     component: Completion
-    // }
+    {
+        label: 'סיום',
+        icon: <CheckCircle />,
+        component: Completion
+    }
 ];
 
 const CollectionGroups = () => {
@@ -133,18 +133,30 @@ const CollectionGroups = () => {
                         // onChange={(e, v) => setCurrentCollectionGroup(v)}
                         size="small"
                         orientation="vertical"
-                        sx={{ height: 'auto' }}
+                        sx={{
+                            maxHeight: '150px',
+                            overflowY: 'auto',
+                            '&::-webkit-scrollbar': {
+                                width: '8px',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                borderRadius: '4px',
+                            }
+                        }}
                         color="primary"
                     >
                         <ToggleButton value="default" disabled>
                             קבוצת ליקוט
                         </ToggleButton>
-                        {openCollectionGroups.data.map(group => <ToggleButton
-                            value={group.id}
-                            key={group.id}
-                            onClick={() => setCurrentCollectionGroup(group)}>
-                            {getLookupName("collectionsGroupLines", group.lineId)}
-                        </ToggleButton>)}
+                        {openCollectionGroups.data
+                            .sort((a, b) => getLookupName("collectionsGroupLines", a.lineId).localeCompare(getLookupName("collectionsGroupLines", b.lineId)))
+                            .map(group => <ToggleButton
+                                value={group.id}
+                                key={group.id}
+                                onClick={() => setCurrentCollectionGroup(group)}>
+                                {getLookupName("collectionsGroupLines", group.lineId)}
+                            </ToggleButton>)}
                     </ToggleButtonGroup>
 
                     <Stepper
