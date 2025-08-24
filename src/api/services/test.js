@@ -97,3 +97,28 @@ export const getOpenCollectionGroups = async () => {
     console.log("ordersData", ordersData);
     console.log("collectionGroupsData", collectionGroupsData);
 }
+
+
+export const updateCollectionGroups = async () => {
+    const collectionGroups = await getDocs(query(collection(db, "collectionsGroups"), where("status", "==", 2)));
+    const collectionData = collectionGroups.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const fData = await Promise.all(collectionData.map(async (collectionGroup) => {
+        const countOrderProducts = await getCountFromServer(query(collection(db, "orderProducts"), where("collectionGroupId", "==", collectionGroup.id), where("status", "==", 2)));
+        return { ...collectionGroup, countOrderProducts: countOrderProducts.data().count };
+    }));
+
+    console.log("Updated collection groups:", fData);
+
+    const batch = writeBatch(db);
+    fData.forEach(collectionGroup => {
+        if(collectionGroup.countOrderProducts != 0){
+            console.log("Collection group with products:", collectionGroup);
+            return;
+        }
+        const groupRef = doc(collection(db, "collectionsGroups"), collectionGroup.id);
+        batch.update(groupRef, { status: 3, updatedAt: Timestamp.now() });
+    });
+    await batch.commit();
+
+}

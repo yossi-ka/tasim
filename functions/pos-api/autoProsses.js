@@ -246,15 +246,17 @@ const onOrderProductStatusChange = onDocumentUpdated("orderProducts/{orderProduc
         if (remainingCount !== 0) {
             console.log(`Still have ${remainingCount} orderProducts with status 2, not updating collectionGroup`);
             return;
+        }else{
+            console.log(`No remaining orderProducts with status 2, updating collectionGroup ${after.collectionGroupId}`);
         }
 
         const batch = db.batch();
-        const collectionGroupProducts = await db.collection('collectionGroupProducts')
-            .where('collectionGroupId', '==', after.collectionGroupId)
-            .where('status', '!=', 3)
-            .get();
+        // const collectionGroupProducts = await db.collection('collectionGroupProducts')
+        //     .where('collectionGroupId', '==', after.collectionGroupId)
+        //     .where('status', '!=', 3)
+        //     .get();
 
-        console.log(`Found ${collectionGroupProducts.docs.length} collectionGroupProducts to update:`, collectionGroupProducts.docs.map(doc => doc.id));
+        // console.log(`Found ${collectionGroupProducts.docs.length} collectionGroupProducts to update:`, collectionGroupProducts.docs.map(doc => doc.id));
 
         // collectionGroupProducts.forEach(doc => {
         //     batch.update(doc.ref, { status: 3 });
