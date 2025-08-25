@@ -114,6 +114,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
                             const existingOrderRef = db.collection('orders').doc(existingOrder.id);
                             const updateData = {
                                 nbsOrderStatus: order.nbsOrderStatus, // עדכון הסטטוס
+                                orderStatus: 3,
                                 totalPrice: order.totalPrice, // עדכון המחיר
                                 updateBy: userId,
                                 updateDate: Timestamp.now()
@@ -122,14 +123,15 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
                             batch.update(existingOrderRef, updateData);
 
                             // עדכון המוצרים של ההזמנה הקיימת
-                            const existingOrderProductsRef = await db.collection('orderProducts').where('orderId', '==', existingOrder.id);
-                            const existingOrderProductsSnapshot = await existingOrderProductsRef.get();
-                            existingOrderProductsSnapshot.forEach(doc => {
+                            const existingOrderProducts = await db.collection('orderProducts').where('orderId', '==', existingOrder.id).get();
+                            existingOrderProducts.forEach(doc => {
                                 const data = doc.data();
+                                const updatedProduct = order.products.find(p => p.nbsProductId === data.nbsProductId);
+                                const updatedQuantityOrWeight = updatedProduct?.quantityOrWeight || 0;
                                 batch.update(doc.ref, {
-                                    quantityOrWeight: order.products.find(p => p.nbsProductId === data.nbsProductId)?.quantityOrWeight || data.quantityOrWeight,
-                                    price: order.products.find(p => p.nbsProductId === data.nbsProductId)?.price || data.price,
-                                    weights: order.products.find(p => p.nbsProductId === data.nbsProductId)?.weights || data.weights
+                                    quantityOrWeight: updatedQuantityOrWeight,
+                                    price: updatedProduct?.price || 0,
+                                    status: updatedQuantityOrWeight === 0 ? 4 : 3
                                 });
                             });
 
