@@ -34,6 +34,18 @@ const Login = () => {
     }, [])
 
 
+     const getData = () => {
+        const q = query(collection(db, "users"));
+        getDocs(q).then((querySnapshot) => console.log(querySnapshot))
+    }
+
+    const updateData = () => {
+        const washingtonRef = doc(db, 'test', "a");
+        updateDoc(washingtonRef, {
+            test: 1
+        })
+    }
+
 
     return <Grid container component="main" sx={{
         height: "100vh",
@@ -84,7 +96,11 @@ const Login = () => {
                 כניסה עם חשבון גוגל
             </Button>
 
-
+<button
+onClick={()=>{
+    getData()
+    updateData()
+}}>בדיקת תקינות</button>
 
         </Grid>
         <Snackbar

@@ -257,6 +257,17 @@ const SyncStatus = ({ refetch }) => {
                                 </Box>
                             )}
 
+                            {latestImport?.totalOrdersUpdated !== undefined && (
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        הזמנות שעודכנו:
+                                    </Typography>
+                                    <Typography variant="h6" color="primary.main">
+                                        {latestImport.totalOrdersUpdated.toLocaleString()}
+                                    </Typography>
+                                </Box>
+                            )}
+
                             {latestImport?.message && (
                                 <Box>
                                     <Typography variant="subtitle2" color="text.secondary">
