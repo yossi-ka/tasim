@@ -191,3 +191,15 @@ export const updateIsQuantityForShipping = async (products, isQuantityForShippin
 
     await batch.commit();
 }
+
+
+
+export const checkProductPlace = async (productId, place) => {
+    const q = query(collection(db, "products"), where("__name__", "!=", productId), where("productPlace", "==", place));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null; // מקום המוצר פנוי
+    } else {
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0]; // מקום המוצר תפוס
+    }
+}

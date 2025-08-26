@@ -175,7 +175,7 @@ const UploadExcel = ({ refetch }) => {
                         const locationMatch = value.match(/\(([^)]+)\)/);
                         if (locationMatch) {
                             // הכנסת המיקום לשדה נפרד
-                            productData.productPlace = locationMatch[1].trim();
+                            // productData.productPlace = locationMatch[1].trim();
                             // הסרת הסוגריים עם התוכן משם המוצר
                             value = value.replace(/\([^)]+\)/, '').trim();
                         }

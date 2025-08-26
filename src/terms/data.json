@@ -344,28 +344,48 @@
     ],
     "productsTable": [
         {
-            "name": "nbsProductId",
-            "label": "קוד מוצר",
-            "type": "text"
-        },
-        {
             "name": "name",
             "label": "שם מוצר",
             "type": "text"
         },
         {
+            "name": "nbsProductId",
+            "label": "קוד בNBS",
+            "type": "text"
+        },
+        {
             "name": "productPlace",
             "label": "מיקום מוצר",
+            "type": "number"
+        },
+        {
+            "name": "phoneCode",
+            "label": "מק\"ט טלפוני",
+            "type": "text"
+        },
+        {
+            "name": "sku",
+            "label": "מק\"ט",
+            "type": "text"
+        },
+        {
+            "name": "quantity",
+            "label": "כמות",
+            "type": "text"
+        },
+        {
+            "name": "manufacturer",
+            "label": "יצרן",
+            "type": "text"
+        },
+        {
+            "name": "hashgacha",
+            "label": "כשרות",
             "type": "text"
         },
         {
             "name": "category",
             "label": "קטגוריה",
-            "type": "text"
-        },
-        {
-            "name": "phoneCode",
-            "label": "מק\"ט טלפוני",
             "type": "text"
         },
         {
@@ -402,6 +422,69 @@
             "name": "categories",
             "label": "קטגוריות",
             "type": "lookup-array",
+            "lookup": "globalProductCategories"
+        }
+    ],
+    "updateProduct": [
+        {
+            "name": "name",
+            "label": "שם מוצר",
+            "type": "text"
+        },
+        {
+            "name": "nbsProductId",
+            "label": "קוד בNBS",
+            "type": "text"
+        },
+        {
+            "name": "price",
+            "label": "מחיר",
+            "type": "number"
+        },
+        {
+            "name": "category",
+            "label": "קטגוריה",
+            "type": "text"
+        },
+        {
+            "name": "nbsStatus",
+            "label": "מצב",
+            "type": "text"
+        },
+        {
+            "name": "productPlace",
+            "label": "מיקום מוצר",
+            "type": "number"
+        },
+        {
+            "name": "sku",
+            "label": "מק\"ט",
+            "type": "text"
+        },
+        {
+            "name": "quantity",
+            "label": "כמות",
+            "type": "text"
+        },
+        {
+            "name": "manufacturer",
+            "label": "יצרן",
+            "type": "text"
+        },
+        {
+            "name": "hashgacha",
+            "label": "כשרות",
+            "type": "text"
+        },
+        {
+            "name": "isQuantityForShipping",
+            "label": "כמות במשלוח?",
+            "type": "checkbox"
+        },
+        {
+            "name": "categories",
+            "label": "קטגוריות",
+            "type": "lookupMulti",
             "lookup": "globalProductCategories"
         }
     ],

@@ -1,14 +1,16 @@
 import React from "react";
+import { useQuery } from "react-query";
+import { Checkbox } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
 
 import Context from "../../context";
 import useTerms from "../../terms";
 import Search from "./Search";
-import { useQuery } from "react-query";
 import GenericTable from "../../components/GenericTable";
 import { search } from "../../utils/search";
 import { getAllProducts } from "../../api/services/products";
-import { Checkbox } from "@mui/material";
 import ManageCategories from "./ManageCategories";
+import AddOrEdit from "./AddOrEdit";
 
 const Products = () => {
 
@@ -32,6 +34,7 @@ const Products = () => {
 
     const refetchAll = () => {
         refetch();
+        setSelected([]);
     }
 
     const filterdDataLength = React.useMemo(() => {
@@ -64,7 +67,19 @@ const Products = () => {
                 indeterminate={selected.length > 0 && selected.length < filterdDataLength}
             />,
         },
+        {
+            actionBtn: [
+                {
+                    icon: <EditIcon color='primary' />,
+                    onClick: ({ row }) => popup({
+                        title: "עריכת מוצר",
+                        content: <AddOrEdit row={row} refetch={refetchAll} />,
+                    })
+                }
+            ]
+        },
         ...terms.table(),
+
     ]
 
     return (

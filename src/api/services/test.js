@@ -112,7 +112,7 @@ export const updateCollectionGroups = async () => {
 
     const batch = writeBatch(db);
     fData.forEach(collectionGroup => {
-        if(collectionGroup.countOrderProducts != 0){
+        if (collectionGroup.countOrderProducts != 0) {
             console.log("Collection group with products:", collectionGroup);
             return;
         }
@@ -121,4 +121,65 @@ export const updateCollectionGroups = async () => {
     });
     await batch.commit();
 
+}
+
+
+export const updateProductSku = async (productsFromFile) => {
+
+    const existingProducts = await getDocs(query(collection(db, "products")));
+    const existingProductsData = existingProducts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const mapedProducts = existingProductsData.reduce((acc, product) => {
+        acc[product.phoneCode] = product;
+        return acc;
+    }, {});
+
+    const batch = writeBatch(db);
+    productsFromFile.forEach(product => {
+        const existingProduct = mapedProducts[product.phoneCode];
+        if (existingProduct && product.phoneCode) {
+            const productRef = doc(collection(db, "products"), existingProduct.id);
+            batch.update(productRef, {
+                quantity: product.quantity || "",
+                manufacturer: product.manufacturer || "",
+                hashgacha: product.hashgacha || "",
+                sku: product.sku || ""
+            });
+        }
+    });
+    await batch.commit();
+    alert("Product SKUs updated successfully");
+}
+
+
+export const getTextPlace = async () => {
+    const existingProducts = await getDocs(query(collection(db, "products")));
+    const existingProductsData = existingProducts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const res = existingProductsData.filter(product => (product.productPlace || "").match(/[^0-9]/));
+    console.log(res.map(product => product.orginalFullName).join("\n"))
+    return res;
+}
+
+export const fixProductPlaces = async () => {
+
+    console.log(1)
+    const existingProducts = await getDocs(query(collection(db, "products")));
+    const existingProductsData = existingProducts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    console.log(2)
+    const batch = writeBatch(db);
+    existingProductsData.forEach(product => {
+        const productRef = doc(collection(db, "products"), product.id);
+
+        const place = product.productPlace || "";
+        const cleanedPlace = place.includes('-')
+            ? place.split('-')[0].replace(/[^0-9]/g, "")
+            : place.replace(/[^0-9]/g, "");
+        const numericPlace = cleanedPlace ? Number(cleanedPlace) : 0;
+        batch.update(productRef, { productPlace: numericPlace });
+    });
+    console.log(3)
+    await batch.commit();
+    alert("Product places fixed successfully");
 }

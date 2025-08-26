@@ -2,7 +2,8 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { updateCustomerIndex, moveAllOrdersFrom4To5, updateCollectionGroupProducts, } from '../../api/services/collectionGroups';
 import { trimStreetNamesInRouteOrders } from '../../api/services/routeOrders';
-import { getLastOrdersByUpdate, getOpenCollectionGroups, getProductWithQuantityForShipping, updateCollectionGroups } from '../../api/services/test';
+import { fixProductPlaces, getLastOrdersByUpdate, getOpenCollectionGroups, getProductWithQuantityForShipping, getTextPlace, updateCollectionGroups, updateProductSku } from '../../api/services/test';
+import { read, utils } from 'xlsx';
 
 const Test = () => {
 
@@ -71,13 +72,60 @@ const Test = () => {
                     console.log("Open collection groups:", x);
                 }}
             >קבוצות אספקה פתוחות</Button> */}
-            <Button
+            {/* <Button
                 variant='contained'
                 onClick={async () => {
                     const x = await updateCollectionGroups();
                     console.log("Updated collection groups:", x);
                 }}
-            >עדכון קבוצות אספקה</Button>
+            >עדכון קבוצות אספקה</Button> */}
+            <Button
+                variant='contained'
+                onClick={async () => {
+                    const x = await fixProductPlaces();
+                    console.log("Text place:", x);
+                }}
+            >תיקון מיקומים לא תקינים</Button>
+            <Button
+                variant='contained'
+                onClick={async () => {
+                    //get a excel or csv file and read it with sheetjs
+                    //create input element
+                    const element = document.createElement("input");
+                    element.type = "file";
+                    element.accept = ".xlsx, .xls, .csv";
+                    element.onchange = async (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const data = await file.arrayBuffer();
+                            const workbook = read(data);
+
+                            //set key names:
+                            const keys = [
+                                "_placeName",
+                                "phoneCode",//string
+                                "_productName1",
+                                "_productName2",
+                                "quantity",
+                                "manufacturer",
+                                "hashgacha",
+                                "sku"
+                            ]
+
+                            // שימוש במפתחות שלנו כ-headers מותאמים אישית
+                            const jsonData = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {
+                                header: keys,
+                                range: 1 // מתחיל משורה 2 (מדלג על הכותרות המקוריות)
+                            });
+
+                            await updateProductSku(jsonData);
+
+                            //   console.log("Excel data:", jsonData);
+                        }
+                    };
+                    element.click();
+                }}
+            >עדכון מקטים</Button>
         </div>
     );
 }
