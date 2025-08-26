@@ -320,9 +320,10 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 const createOrderData = (order, userId, importId, mappedCustomer, deliveryIndex = 0) => {
     const { products, ...orderWithoutProducts } = order; // הסרת מערך המוצרים
     console.log('customer in order: ' + order.nbsOrderId, mappedCustomer);
+    const orderStatus = order.nbsSaleName !== "בשר עופות דגים"? 1 : order.nbsOrderStatus === "מאושרת" ? 7 : 4;
     return {
         ...orderWithoutProducts,
-        orderStatus: 1,
+        orderStatus: orderStatus,
         createdBy: userId,
         createdDate: Timestamp.now(),
         updateBy: userId,
