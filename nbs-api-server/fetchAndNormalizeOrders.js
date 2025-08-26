@@ -410,7 +410,7 @@ const getOrderProducts = async (
 const fetchAndNormalizeOrders = async () => {
   try {
         console.log('🚀 Starting NBS data fetch and normalization...');
-        const amountDaysToImport = 3 //await getAmountDaysToImport();
+        const amountDaysToImport = await getAmountDaysToImport();
     // קבלת טוקן
     const token = await getNbsToken();
 
