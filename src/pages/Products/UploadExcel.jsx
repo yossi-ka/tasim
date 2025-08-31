@@ -1,7 +1,7 @@
-import { Button, Stack, Typography, Alert, CircularProgress } from "@mui/material";
+import { Button, Stack, Typography, Alert, CircularProgress, Divider } from "@mui/material";
 import React, { useState } from "react";
 import { useMutation } from 'react-query';
-import { uploadProducts } from '../../api/services/products';
+import { updateProductsIndex, updateProductsPrices, uploadProducts } from '../../api/services/products';
 import Context from "../../context";
 import * as XLSX from 'xlsx';
 
@@ -34,6 +34,37 @@ const UploadExcel = ({ refetch }) => {
             setMessage({
                 type: 'error',
                 text: error.message || 'שגיאה בהעלאת המוצרים'
+            });
+        }
+    });
+
+    // useMutation לעדכון מחירים
+    const updatePricesMutation = useMutation((pricesData) => updateProductsPrices(pricesData, user.id), {
+        onSuccess: (result) => {
+            // הכנת הודעה מפורטת
+            let successMessage = `עובדו ${result.totalProcessed} שורות: `;
+            successMessage += `${result.updatedCount} מחירי מוצרים עודכנו`;
+            if (result.skippedCount > 0) {
+                successMessage += `, ${result.skippedCount} שורות דולגו`;
+            }
+            if (result.notFoundCount > 0) {
+                successMessage += `, ${result.notFoundCount} מוצרים לא נמצאו`;
+            }
+
+            setMessage({
+                type: result.updatedCount > 0 ? 'success' : 'warning',
+                text: successMessage
+            });
+            setLoading(false);
+            console.log("end product prices update", new Date().getTime())
+            refetch()
+
+        },
+        onError: (error) => {
+            console.error('Error updating product prices:', error);
+            setMessage({
+                type: 'error',
+                text: error.message || 'שגיאה בעדכון מחירי המוצרים'
             });
         }
     });
@@ -129,6 +160,119 @@ const UploadExcel = ({ refetch }) => {
         input.click();
     };
 
+    const handleProductUpdateUpload = () => {
+        // יצירת אלמנט input מסוג file
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.onchange = async (e) => {
+            setLoading(true);
+            console.log("start product prices update", new Date().getTime());
+
+            const file = e.target.files[0];
+                if (!file) return;
+    
+                setMessage({ type: '', text: '' });
+    
+                try {
+                    // קריאת הקובץ CSV באמצעות xlsx
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    
+                    // קבלת השמות של כל הגיליונות
+                    const sheetNames = workbook.SheetNames;
+                    if (sheetNames.length === 0) {
+                        throw new Error('הקובץ לא מכיל גיליונות');
+                    }
+    
+                    // קריאת הגיליון הראשון
+                    const worksheet = workbook.Sheets[sheetNames[0]];
+    
+                    // המרה ל-JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+                    if (jsonData.length === 0) {
+                        throw new Error('הקובץ ריק');
+                    }
+    
+                    // שורת הכותרות
+                    const headers = jsonData[0];
+                    const dataRows = jsonData.slice(1);
+    
+                    console.log('Headers found:', headers);
+                    console.log('Sample data row:', dataRows[0]);
+    
+                    // ולידציה של הכותרות - צריך להיות בדיוק 2 עמודות
+                    const expectedDeliveryHeaders = ["קוד", "מחיר"];
+                    const missingHeaders = expectedDeliveryHeaders.filter(header => !headers.includes(header));
+                    if (missingHeaders.length > 0) {
+                        throw new Error(`חסרות כותרות: ${missingHeaders.join(', ')}`);
+                    }
+    
+                    // מיפוי הכותרות
+                    const deliveryHeaderMapping = {
+                        "קוד": "productCode",
+                        "מחיר": "price"
+                    };
+    
+                    // המרת הנתונים
+                    const deliveryData = [];
+                    
+                    for (let i = 0; i < dataRows.length; i++) {
+                        const row = dataRows[i];
+                        
+                        // דילוג על שורות ריקות
+                        if (!row || row.every(cell => !cell)) continue;
+    
+                        const deliveryItem = {};
+                        
+                        // מיפוי כל עמודה
+                        headers.forEach((header, index) => {
+                            const fieldName = deliveryHeaderMapping[header];
+                            if (fieldName && row[index] !== undefined && row[index] !== null && row[index] !== '') {
+                                let value = row[index];
+                                
+                            // המרה למספר עבור productCode ו-price
+                            if (fieldName === 'productCode') {
+                                deliveryItem[fieldName] = parseInt(value) || value;
+                            } else if (fieldName === 'price') {
+                                deliveryItem[fieldName] = parseFloat(value) || 0;
+                            } else {
+                                deliveryItem[fieldName] = value;
+                            }
+                        }
+                    });
+
+                    // ולידציה - חובה שיהיה גם productCode וגם price
+                    if (!deliveryItem.productCode || deliveryItem.price === undefined) {
+                        console.warn(`שורה ${i + 2}: חסר קוד מוצר או מחיר, מדלג על השורה`);
+                        continue;
+                    }
+
+                    deliveryData.push(deliveryItem);
+                }
+
+                console.log(`Processed ${deliveryData.length} price updates from ${dataRows.length} rows`);
+
+                if (deliveryData.length === 0) {
+                    throw new Error('לא נמצאו שורות תקינות בקובץ');
+                }
+
+                // עדכון מחירים
+                await updatePricesMutation.mutateAsync(deliveryData);                } catch (error) {
+                    console.error('Error processing price update file:', error);
+                    setMessage({
+                        type: 'error',
+                        text: error.message || 'שגיאה בעיבוד קובץ עדכון מחירים'
+                    });
+                    setLoading(false);
+                }
+            };
+    
+            // הפעלת בחירת הקובץ
+            input.click();
+        };
+
     const validateHeaders = (fileHeaders) => {
         if (fileHeaders.length !== expectedHeaders.length) {
             return false;
@@ -175,7 +319,7 @@ const UploadExcel = ({ refetch }) => {
                         const locationMatch = value.match(/\(([^)]+)\)/);
                         if (locationMatch) {
                             // הכנסת המיקום לשדה נפרד
-                            productData.productPlace = locationMatch[1].trim();
+                            // productData.productPlace = locationMatch[1].trim();
                             // הסרת הסוגריים עם התוכן משם המוצר
                             value = value.replace(/\([^)]+\)/, '').trim();
                         }
@@ -231,6 +375,28 @@ const UploadExcel = ({ refetch }) => {
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                 {expectedHeaders.join(' | ')}
             </Typography>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* <Typography color="primary.main" variant="h4">עדכון מחירי מוצרים</Typography>
+            <Typography color="primary.main" variant="h5">העלאת קובץ עם קוד מוצר ומחיר לעדכון מחירים</Typography>
+
+            <Button
+                color="secondary"
+                variant="contained"
+                onClick={handleProductUpdateUpload}
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+            >
+                {loading ? 'מעדכן מחירים...' : 'עדכון מחירים (CSV)'}
+            </Button>
+
+            <Typography variant="body2" color="text.secondary">
+                הכותרות הצפויות בקובץ עדכון:
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                קוד | מחיר
+            </Typography> */}
         </Stack>
             :
             <Alert severity={message.type === 'error' ? 'error' : message.type === 'warning' ? 'warning' : 'success'}>

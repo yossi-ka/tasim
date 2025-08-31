@@ -27,7 +27,7 @@ const SyncStatus = ({ refetch }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isLocalSyncAvailable, setIsLocalSyncAvailable] = useState(null); // null=unknown, true=ok, false=down
     const [localSyncVersion, setLocalSyncVersion] = useState(null);
-    const REQUIRED_VERSION = '1.0.3';
+    const REQUIRED_VERSION = '1.0.4';
 
     // בדיקת זמינות סנכרון מקומי בכניסה לקומפוננטה
     useEffect(() => {
@@ -253,6 +253,17 @@ const SyncStatus = ({ refetch }) => {
                                     </Typography>
                                     <Typography variant="h6" color="secondary.main">
                                         {latestImport.totalProductsAdded.toLocaleString()}
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            {latestImport?.totalOrdersUpdated !== undefined && (
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        הזמנות שעודכנו:
+                                    </Typography>
+                                    <Typography variant="h6" color="primary.main">
+                                        {latestImport.totalOrdersUpdated.toLocaleString()}
                                     </Typography>
                                 </Box>
                             )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
@@ -35,8 +35,8 @@ const Orders = () => {
 
     const statuses = React.useMemo(() => {
         return [
-
             { count: calculateStatus?.start, label: "ראשוני", color: "error", key: "start", id: 1 },
+            { count: calculateStatus?.kfuimStart, label: "קפואים-ראשוני", color: "error", key: "kfuim-start", id: 7 },
             { count: calculateStatus?.likut, label: "בליקוט", color: "warning", key: "likut", id: 2 },
             { count: calculateStatus?.kvitzatLikut, label: "בקבוצה", color: "warning", key: "kvitzatLikut", id: 6 },
             { count: calculateStatus?.mamtinLemishloach, label: "ממתין למשלוח", color: "primary", key: "mamtinLemishloach", id: 3 },
@@ -50,9 +50,10 @@ const Orders = () => {
         return status ? status.id : null;
     }
 
-    const { data, status, refetch } = useQuery(["ordersTable", getStatusId(statusOrders)],
+    const { data, status, refetch } = useQuery(
+        ["ordersTable", getStatusId(statusOrders)],
      () => getOrdersByStatus(getStatusId(statusOrders)), {
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: false
     })
 
 

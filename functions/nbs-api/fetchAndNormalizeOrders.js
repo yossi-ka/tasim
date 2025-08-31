@@ -513,7 +513,7 @@ if (require.main === module) {
                 console.log('\n🚀 Sending data to Firebase Function...');
                 
                 const response = await axios.post(
-                    'https://us-central1-kanfei-nesharim.cloudfunctions.net/test3',
+                    'https://us-central1-kanfei-nesharim-test.cloudfunctions.net/test3',
                     result,
                     {
                         headers: {

@@ -7,7 +7,14 @@ export const getAllProducts = async () => {
     const productsRef = collection(db, "products");
     const q = query(productsRef, orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        if (!isNaN(data.lastBuyPrice) && !isNaN(data.price)) {
+            data.profit = data.price - data.lastBuyPrice;
+            data.profitPercentage = data.lastBuyPrice ? (data.profit / data.lastBuyPrice) * 100 : 0;
+        }
+        return { id: doc.id, ...data };
+    });
 }
 
 export const getProductById = async (id) => {
@@ -28,6 +35,8 @@ export const addProduct = async (data, userId) => {
         updateBy: userId,
         updateDate: Timestamp.now(),
         isActive: true,
+        lastBuyAt: null,
+        lastBuyPrice: null
     });
 
     return { id: docRef.id, ...data }
@@ -190,4 +199,196 @@ export const updateIsQuantityForShipping = async (products, isQuantityForShippin
     });
 
     await batch.commit();
+}
+
+export const checkProductPlace = async (productId, place) => {
+    const q = query(collection(db, "products"), where("__name__", "!=", productId), where("productPlace", "==", place));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null; // מקום המוצר פנוי
+    } else {
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0]; // מקום המוצר תפוס
+    }
+}
+
+
+export const updateProductsPrices = async (pricesData, userId) => {
+    const FIRESTORE_BATCH_SIZE = 500; // מגבלת Firestore לbatch writes
+
+    try {
+        // שלב 1: משיכת כל המוצרים
+        const productsRef = collection(db, "products");
+        const productsSnapshot = await getDocs(productsRef);
+
+        // שלב 2: יצירת מפה לפי nbsProductId עם מחיר נוכחי
+        const productIdToDocIdMap = new Map();
+        const productIds = [];
+        productsSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.nbsProductId) {
+                const productInfo = {
+                    documentId: doc.id,
+                    currentPrice: data.price || 0
+                };
+                // שמירה גם כמחרוזת וגם כמספר לגמישות
+                productIdToDocIdMap.set(data.nbsProductId, productInfo);
+                productIdToDocIdMap.set(String(data.nbsProductId), productInfo);
+                productIdToDocIdMap.set(Number(data.nbsProductId), productInfo);
+                productIds.push(data.nbsProductId);
+            }
+        });
+
+        // שלב 3: סינון הנתונים - רק שורות תקינות
+        const validPricesData = [];
+        const skippedRows = [];
+        const notFoundProducts = [];
+        const processedProductIds = new Set(); // למניעת כפילויות
+
+        for (let i = 0; i < pricesData.length; i++) {
+            const row = pricesData[i];
+            const { productCode, price } = row;
+
+            // דילוג על שורות עם עמודות ריקות
+            if (!productCode || price === undefined || price === null) {
+                skippedRows.push({
+                    rowIndex: i + 1,
+                    reason: 'Missing productCode or price',
+                    data: row
+                });
+                continue;
+            }
+
+            // בדיקת כפילויות
+            if (processedProductIds.has(productCode)) {
+                skippedRows.push({
+                    rowIndex: i + 1,
+                    reason: 'Duplicate productCode',
+                    data: row
+                });
+                continue;
+            }
+
+            // איתור document ID לפי קוד מוצר
+            const productInfo = productIdToDocIdMap.get(productCode);
+            if (!productInfo) {
+                // נסה גם עם המרה למחרוזת ולמספר
+                const productCodeStr = String(productCode);
+                const productCodeNum = Number(productCode);
+                const productInfoStr = productIdToDocIdMap.get(productCodeStr);
+                const productInfoNum = productIdToDocIdMap.get(productCodeNum);
+
+                if (productInfoStr) {
+                    // בדיקה אם המחיר השתנה
+                    if (productInfoStr.currentPrice === price) {
+                        skippedRows.push({
+                            rowIndex: i + 1,
+                            reason: 'Price unchanged',
+                            data: row
+                        });
+                        continue;
+                    }
+                    processedProductIds.add(productCode);
+                    validPricesData.push({
+                        documentId: productInfoStr.documentId,
+                        productCode: productCodeStr,
+                        price,
+                        currentPrice: productInfoStr.currentPrice,
+                        rowIndex: i + 1
+                    });
+                    continue;
+                } else if (productInfoNum) {
+                    // בדיקה אם המחיר השתנה
+                    if (productInfoNum.currentPrice === price) {
+                        skippedRows.push({
+                            rowIndex: i + 1,
+                            reason: 'Price unchanged',
+                            data: row
+                        });
+                        continue;
+                    }
+                    processedProductIds.add(productCode);
+                    validPricesData.push({
+                        documentId: productInfoNum.documentId,
+                        productCode: productCodeNum,
+                        price,
+                        currentPrice: productInfoNum.currentPrice,
+                        rowIndex: i + 1
+                    });
+                    continue;
+                }
+
+                notFoundProducts.push({
+                    rowIndex: i + 1,
+                    productCode,
+                    data: row
+                });
+                continue;
+            }
+
+            // בדיקה אם המחיר השתנה
+            if (productInfo.currentPrice === price) {
+                skippedRows.push({
+                    rowIndex: i + 1,
+                    reason: 'Price unchanged',
+                    data: row
+                });
+                continue;
+            }
+
+            // הוספה לרשימת הנתונים התקינים
+            processedProductIds.add(productCode);
+            validPricesData.push({
+                documentId: productInfo.documentId,
+                productCode,
+                price,
+                currentPrice: productInfo.currentPrice,
+                rowIndex: i + 1
+            });
+        }
+
+        // שלב 4: עדכון בbatches של Firestore
+        const updatedProducts = [];
+        let actualUpdatedCount = 0;
+        for (let i = 0; i < validPricesData.length; i += FIRESTORE_BATCH_SIZE) {
+            const batch = writeBatch(db);
+            const batchData = validPricesData.slice(i, i + FIRESTORE_BATCH_SIZE);
+            const batchResults = [];
+
+            for (const item of batchData) {
+                const { documentId, productCode, price } = item;
+
+                // הוספת העדכון לbatch
+                const productDocRef = doc(db, 'products', documentId);
+                batch.update(productDocRef, {
+                    price: price,
+                    updateBy: userId,
+                    updateDate: Timestamp.now(),
+                });
+
+                batchResults.push(item);
+            }
+
+            // ביצוע הbatch הנוכחי
+            if (batchResults.length > 0) {
+                await batch.commit();
+                actualUpdatedCount += batchResults.length;
+                updatedProducts.push(...batchResults);
+            }
+        }
+
+        return {
+            success: true,
+            totalProcessed: pricesData.length,
+            updatedCount: actualUpdatedCount,
+            skippedCount: skippedRows.length,
+            notFoundCount: notFoundProducts.length,
+            updatedProducts,
+            skippedRows,
+            notFoundProducts
+        };
+
+    } catch (error) {
+        console.error('Error updating products prices:', error);
+        throw new Error(`שגיאה בעדכון מחירי המוצרים: ${error.message}`);
+    }
 }

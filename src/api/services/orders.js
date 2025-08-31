@@ -159,7 +159,8 @@ export const getSummaryByStatus = async () => {
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 3))), // mamtinLemishloach
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 4))), // mishloach
         getCountFromServer(query(ordersRef, where("orderStatus", "==", 5))), // end
-        getCountFromServer(query(ordersRef, where("orderStatus", "==", 6)))  // kvitzat likut
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 6))), // kvitzat likut
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 7)))  // kfuim-start
     ];
 
     try {
@@ -172,7 +173,8 @@ export const getSummaryByStatus = async () => {
             mamtinLemishloach: results[3].data().count,
             mishloach: results[4].data().count,
             end: results[5].data().count,
-            kvitzatLikut: results[6].data().count
+            kvitzatLikut: results[6].data().count,
+            kfuimStart: results[7].data().count
         };
 
         return summary;
