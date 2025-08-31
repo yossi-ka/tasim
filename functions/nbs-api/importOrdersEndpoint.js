@@ -55,12 +55,15 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             .where('nbsOrderId', '<=', maxOrderId)
             .get();
 
-        // יצירת Set של מספרי הזמנות קיימות לבדיקה מהירה
-        const existingOrderIds = new Set();
+        // יצירת Map של מספרי הזמנות קיימות לבדיקה מהירה
+        const existingOrderIds = new Map();
         existingOrdersSnapshot.docs.forEach(doc => {
             const data = doc.data();
             if (data.nbsOrderId) {
-                existingOrderIds.add(data.nbsOrderId);
+                existingOrderIds.set(data.nbsOrderId, {
+                    id: doc.id, // חשוב! שמירת ה-document ID
+                    ...data
+                });
             }
         });
 
@@ -82,6 +85,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
         let batch = db.batch();
         let totalNewOrders = 0;
         let totalProductsAdded = 0;
+        let totalOrdersUpdated = 0;
         let totalSkippedOrders = 0;
         let currentBatchIndex = 1;
 
@@ -90,10 +94,53 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
         for (let i = 0; i < ordersWithProducts.length; i++) {
             const order = ordersWithProducts[i];
 
-            // בדיקה אם ההזמנה כבר קיימת
+            // בדיקה אם ההזמנה כבר קיימת ללא שינויים ב-Map
             if (existingOrderIds.has(order.nbsOrderId)) {
-                totalSkippedOrders++;
-                continue;
+                if(order.nbsSaleName === 'כלל המוצרים') {
+                    totalSkippedOrders++;
+                    continue;
+                } else if (order.nbsSaleName === 'בשר עופות דגים') {
+                    if(order.nbsOrderStatus ==="מאושרת") {
+                        totalSkippedOrders++;
+                        continue;
+                    } else if (order.nbsOrderStatus ==="שולמה") {
+                        // בדיקת הסטטוס של ההזמנה הקיימת ב-Map
+                        const existingOrder = existingOrderIds.get(order.nbsOrderId);
+                        if (existingOrder && existingOrder.nbsOrderStatus === "שולמה") {
+                            totalSkippedOrders++;
+                            continue;
+                        } else if (existingOrder && existingOrder.nbsOrderStatus === "מאושרת") {
+                            // עדכון ההזמנה הקיימת עם נתונים חדשים
+                            const existingOrderRef = db.collection('orders').doc(existingOrder.id);
+                            const updateData = {
+                                nbsOrderStatus: order.nbsOrderStatus, // עדכון הסטטוס
+                                orderStatus: 3,
+                                totalPrice: order.totalPrice, // עדכון המחיר
+                                updateBy: userId,
+                                updateDate: Timestamp.now()
+                            };
+                            
+                            batch.update(existingOrderRef, updateData);
+
+                            // עדכון המוצרים של ההזמנה הקיימת
+                            const existingOrderProducts = await db.collection('orderProducts').where('orderId', '==', existingOrder.id).get();
+                            existingOrderProducts.forEach(doc => {
+                                const data = doc.data();
+                                const updatedProduct = order.products.find(p => p.nbsProductId === data.nbsProductId);
+                                const updatedQuantityOrWeight = updatedProduct?.quantityOrWeight || 0;
+                                batch.update(doc.ref, {
+                                    quantityOrWeight: updatedQuantityOrWeight,
+                                    price: updatedProduct?.price || 0,
+                                    status: updatedQuantityOrWeight === 0 ? 4 : 3
+                                });
+                            });
+
+                            currentBatchOperations++;
+                            totalOrdersUpdated++;
+                            continue;
+                        }     
+                    }
+                }
             }
 
             // סינון מוצרים קיימים במיפוי
@@ -232,7 +279,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
         }
 
         // עדכון רשומת הייבוא
-        const successMessage = `Import completed successfully. New orders: ${totalNewOrders}, Products added: ${totalProductsAdded}, Skipped orders: ${totalSkippedOrders}`;
+        const successMessage = `Import completed successfully. New orders: ${totalNewOrders}, Products added: ${totalProductsAdded}, Updated orders: ${totalOrdersUpdated}, Skipped orders: ${totalSkippedOrders}`;
 
         await importDoc.update({
             status: 'completed',
@@ -240,6 +287,7 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
             totalNewOrders: totalNewOrders,
             totalProductsAdded: totalProductsAdded,
             totalSkippedOrders: totalSkippedOrders,
+            totalOrdersUpdated: totalOrdersUpdated,
             complitedAt: Timestamp.now()
         });
 
@@ -272,9 +320,10 @@ const importOrdersFromJson = async (ordersWithProducts, userId = "system") => {
 const createOrderData = (order, userId, importId, mappedCustomer, deliveryIndex = 0) => {
     const { products, ...orderWithoutProducts } = order; // הסרת מערך המוצרים
     console.log('customer in order: ' + order.nbsOrderId, mappedCustomer);
+    const orderStatus = order.nbsSaleName !== "בשר עופות דגים"? 1 : order.nbsOrderStatus === "מאושרת" ? 7 : 4;
     return {
         ...orderWithoutProducts,
-        orderStatus: 1,
+        orderStatus: orderStatus,
         createdBy: userId,
         createdDate: Timestamp.now(),
         updateBy: userId,
@@ -299,7 +348,7 @@ const createOrderProductData = (orderId, nbsOrderId, product, mappedProduct, use
         productId: mappedProduct.id,
         productName: product.productName,
         quantityOrWeight: product.quantityOrWeight || 0,
-        weights: product.weights || null,
+        // weights: product.weights || null,
         price: product.price || 0,
         createdAt: Timestamp.now(),
         createdBy: userId,
