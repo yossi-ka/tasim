@@ -629,47 +629,47 @@ if (require.main === module) {
     });
 }
 
-// const getAmountDaysToImport = async () => {
-//   try {
-//     console.log("\n� Getting last import date from server...");
-//     const response = await axios.get(
-//       "https://us-central1-kanfei-nesharim-test.cloudfunctions.net/lastOrderImportDate",
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         timeout: 30000, // 30 seconds timeout
-//       }
-//     );
+const getAmountDaysToImport = async () => {
+  try {
+    console.log("\n� Getting last import date from server...");
+    const response = await axios.get(
+      `${process.env.FUNCTIONS_BASE_URL}/lastOrderImportDate`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 30000, // 30 seconds timeout
+      }
+    );
 
-//     if (response.status !== 200 || !response.data.lastImportDate) {
-//       console.log("⚠️ Could not get last import date, defaulting to 1 day");
-//       return 1;
-//     }
+    if (response.status !== 200 || !response.data.lastImportDate) {
+      console.log("⚠️ Could not get last import date, defaulting to 1 day");
+      return 1;
+    }
 
-//     // המרת התאריך שהתקבל לאובייקט Date
-//     const lastImportDate = new Date(response.data.lastImportDate);
-//     const currentDate = new Date();
+    // המרת התאריך שהתקבל לאובייקט Date
+    const lastImportDate = new Date(response.data.lastImportDate);
+    const currentDate = new Date();
 
-//     // חישוב ההפרש בימים
-//     const timeDifference = currentDate - lastImportDate;
-//     const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+    // חישוב ההפרש בימים
+    const timeDifference = currentDate - lastImportDate;
+    const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
 
-//     // עיגול כלפי מעלה
-//     const daysToImport = Math.ceil(daysDifference);
+    // עיגול כלפי מעלה
+    const daysToImport = Math.ceil(daysDifference);
 
-//     console.log(`📅 Last import: ${lastImportDate.toISOString()}`);
-//     console.log(`📅 Current date: ${currentDate.toISOString()}`);
-//     console.log(`📊 Days to import: ${daysToImport}`);
+    console.log(`📅 Last import: ${lastImportDate.toISOString()}`);
+    console.log(`📅 Current date: ${currentDate.toISOString()}`);
+    console.log(`📊 Days to import: ${daysToImport}`);
 
-//     // וידוא שהערך לא יהיה קטן מ-1
-//     return Math.max(daysToImport, 1);
-//   } catch (error) {
-//     console.error("❌ Error getting last import date:", error.message);
-//     console.log("⚠️ Defaulting to 1 day import");
-//     return 1;
-//   }
-// };
+    // וידוא שהערך לא יהיה קטן מ-1
+    return Math.max(daysToImport, 1);
+  } catch (error) {
+    console.error("❌ Error getting last import date:", error.message);
+    console.log("⚠️ Defaulting to 1 day import");
+    return 1;
+  }
+};
 
 // ייצוא הפונקציות לשימוש חיצוני
 module.exports = {
