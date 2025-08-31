@@ -63,10 +63,10 @@ const GenericTable = ({ columns, data, loading, height, tableHeight, customHeigh
                 let bVal = b[sortType.column];
 
                 if (column.type === "date") {
-                    if (aVal.toDate) aVal = aVal.toDate();
-                    if (bVal.toDate) bVal = bVal.toDate();
-                    aVal = new Date(aVal);
-                    bVal = new Date(bVal);
+                    if (aVal?.toDate) aVal = aVal.toDate();
+                    if (bVal?.toDate) bVal = bVal.toDate();
+                    aVal = new Date(aVal || null);
+                    bVal = new Date(bVal || null);
                 } else if (column.type === "lookup") {
                     aVal = getLookupName(column.lookup, aVal);
                     bVal = getLookupName(column.lookup, bVal);

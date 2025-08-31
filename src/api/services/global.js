@@ -10,6 +10,7 @@ export const getLookupData = async () => {
     const collectionsGroupLinesQ = query(collection(db, 'collectionsGroupLines'), orderBy("name"));
     const globalStatusCollectionGroupsQ = query(collection(db, 'GlobalStatusCollectionGroups'), orderBy("name"));
     const globalProductCategoriesQ = query(collection(db, 'globalProductCategories'), orderBy("name"));
+    const globalSuppliersQ = query(collection(db, 'suppliers'), orderBy("name"));
 
     const res = await Promise.all([
         getDocs(employeesQ).then((res) => res.docs.map(d => {
@@ -41,6 +42,7 @@ export const getLookupData = async () => {
             }
         })),
         getDocs(globalProductCategoriesQ).then((res) => convertFirebaseData(res, "name", "globalProductCategories", null)),
+        getDocs(globalSuppliersQ).then((res) => convertFirebaseData(res, "name", "globalSuppliers", null)),
     ])
 
     return res.reduce((acc, val) => acc.concat(val), []);

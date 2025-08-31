@@ -3,7 +3,6 @@ import React from 'react';
 import { Box, Button, Divider, Grid, Typography, Accordion, AccordionSummary, AccordionDetails, ButtonGroup, IconButton, Tooltip, Collapse, Stack } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import DialpadIcon from '@mui/icons-material/Dialpad';
 
 import { useTheme } from '@mui/material/styles';
 
@@ -20,7 +19,6 @@ import Context from '../../context';
 
 import { isPhone } from '../../utils/func';
 import GenericAutocomplete from './GenericAutocomplete';
-import GlobalInput from './GenericInput/GlobalInput';
 
 
 const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, border, allFieldsSetting, readonly, isForm, isEnterPress }) => {

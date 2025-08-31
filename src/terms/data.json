@@ -1,4 +1,174 @@
 {
+    "invoices": [
+        {
+            "name": "invoiceNumber",
+            "label": "מספר חשבונית",
+            "type": "text"
+        },
+        {
+            "name": "supplier",
+            "label": "שם ספק",
+            "type": "lookup",
+            "lookup": "globalSuppliers"
+        },
+        {
+            "name": "invoiceDate",
+            "label": "תאריך חשבונית",
+            "type": "date"
+        },
+        {
+            "name": "dueDate",
+            "label": "תאריך יעד לתשלום",
+            "type": "date"
+        },
+        {
+            "name": "totalAmount",
+            "label": "סכום כולל",
+            "type": "currency"
+        },
+        {
+            "name": "notes",
+            "label": "הערות",
+            "type": "textarea"
+        }
+    ],
+    "updateInvoice": [
+        {
+            "name": "invoiceNumber",
+            "label": "מספר חשבונית",
+            "type": "text"
+        },
+        {
+            "name": "supplier",
+            "label": "שם ספק",
+            "type": "lookup",
+            "lookup": "globalSuppliers"
+        },
+        {
+            "name": "invoiceDate",
+            "label": "תאריך חשבונית",
+            "type": "date"
+        },
+        {
+            "name": "dueDate",
+            "label": "תאריך יעד לתשלום",
+            "type": "date"
+        },
+        {
+            "name": "notes",
+            "label": "הערות",
+            "type": "textarea"
+        }
+    ],
+    "MiniProductsTable": [
+        {
+            "name": "nbsProductId",
+            "label": "קוד מוצר",
+            "type": "text"
+        },
+        {
+            "name": "name",
+            "label": "שם מוצר",
+            "type": "text"
+        },
+        {
+            "name": "productPlace",
+            "label": "מיקום מוצר",
+            "type": "text"
+        }
+    ],
+    "suppliers": [
+        {
+            "name": "supplierCode",
+            "label": "קוד ספק",
+            "type": "text"
+        },
+        {
+            "name": "name",
+            "label": "שם ספק",
+            "type": "text"
+        },
+        {
+            "name": "contactPerson",
+            "label": "איש קשר",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "email",
+            "label": "מייל",
+            "type": "email"
+        },
+        {
+            "name": "address",
+            "label": "כתובת",
+            "type": "text"
+        },
+        {
+            "name": "category",
+            "label": "קטגוריה",
+            "type": "text"
+        },
+        {
+            "name": "isActive",
+            "label": "פעיל",
+            "type": "boolean"
+        }
+    ],
+    "updateSupplier": [
+        {
+            "name": "supplierCode",
+            "label": "קוד ספק",
+            "type": "text"
+        },
+        {
+            "name": "name",
+            "label": "שם ספק",
+            "type": "text"
+        },
+        {
+            "name": "contactPerson",
+            "label": "איש קשר",
+            "type": "text"
+        },
+        {
+            "name": "phone",
+            "label": "טלפון",
+            "type": "text"
+        },
+        {
+            "name": "email",
+            "label": "מייל",
+            "type": "email"
+        },
+        {
+            "name": "address",
+            "label": "כתובת",
+            "type": "text"
+        },
+        {
+            "name": "category",
+            "label": "קטגוריה",
+            "type": "select",
+            "options": [
+                {"value": "food", "label": "מזון"},
+                {"value": "beverages", "label": "משקאות"},
+                {"value": "packaging", "label": "אריזות"},
+                {"value": "equipment", "label": "ציוד"},
+                {"value": "services", "label": "שירותים"},
+                {"value": "other", "label": "אחר"}
+            ]
+        },
+        {
+            "name": "notes",
+            "label": "הערות",
+            "type": "textarea"
+        }
+    ],
     "employeesTable": [
         {
             "name": "firstName",
@@ -404,6 +574,26 @@
             "type": "number"
         },
         {
+            "name": "lastBuyPrice",
+            "label": "מחיר רכישה אחרון",
+            "type": "number"
+        },
+        {
+            "name": "lastBuyAt",
+            "label": "תאריך רכישה אחרון",
+            "type": "date"
+        },
+        {
+            "name": "profit",
+            "label": "רווח",
+            "type": "currencyColor"
+        },
+        {
+            "name": "profitPercentage",
+            "label": "אחוז רווח",
+            "type": "percentColor"
+        },
+        {
             "name": "note",
             "label": "הערה",
             "type": "text"
@@ -597,6 +787,28 @@
             "name": "enddeliveryIndex",
             "label": "עד מספר במסלול",
             "type": "text"
+        }
+    ],
+    "invoiceRowsTable": [
+        {
+            "name": "productName",
+            "label": "שם מוצר",
+            "type": "text"
+        },
+        {
+            "name": "quantity",
+            "label": "כמות",
+            "type": "number"
+        },
+        {
+            "name": "unitPrice",
+            "label": "מחיר יחידה",
+            "type": "currency"
+        },
+        {
+            "name": "totalPrice",
+            "label": "מחיר כולל",
+            "type": "currency"
         }
     ]
 }
