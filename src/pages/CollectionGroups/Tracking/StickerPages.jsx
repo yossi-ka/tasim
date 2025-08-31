@@ -38,6 +38,8 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                     <Box key={idx} className="table-container" sx={{
                         width: "100%",
                         height: "100%",
+                        maxWidth: "105mm",
+                        maxHeight: "74.25mm",
                         position: "relative",
                         p: 0,
                         boxSizing: "border-box",
@@ -47,34 +49,35 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                         flexDirection: "column",
                         justifyContent: "center",
                         alignItems: "center",
-                        background: "#fff"
+                        background: "#fff",
+                        overflow: "hidden"
                     }}>
                         {/* מספר ההזמנה ומספר המשלוח - זה ליד זה עם קו מפריד ואייקונים */}
                         <Stack direction="row" spacing={0} sx={{ textAlign: "center", width: "100%", height: "120px", mb: 1 }}>
                             {/* חלק מספר ההזמנה עם אייקון קופסה */}
-                            <Box sx={{ 
-                                flex: 1, 
-                                display: "flex", 
+                            <Box sx={{
+                                flex: 1,
+                                display: "flex",
                                 flexDirection: "column",
-                                alignItems: "center", 
+                                alignItems: "center",
                                 justifyContent: "center",
                                 position: "relative",
                                 overflow: "hidden"
                             }}>
                                 {/* אייקון קופסה ברקע */}
-                                <Inventory2Icon sx={{ 
+                                <Inventory2Icon sx={{
                                     position: "absolute",
                                     fontSize: "80px",
                                     color: "#d0d0d0",
                                     zIndex: 0,
                                     opacity: 0.5
                                 }} />
-                                <Typography sx={{ 
-                                    fontWeight: 900, 
-                                    fontSize: "60px", 
-                                    color: "#000", 
-                                    textAlign: "center", 
-                                    letterSpacing: 2, 
+                                <Typography sx={{
+                                    fontWeight: 900,
+                                    fontSize: "60px",
+                                    color: "#000",
+                                    textAlign: "center",
+                                    letterSpacing: 2,
                                     lineHeight: 1,
                                     position: "relative",
                                     zIndex: 1
@@ -82,9 +85,9 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                                     {order.collectionGroupOrder}
                                 </Typography>
                                 {order.collectionGroupOrder && (
-                                    <Typography sx={{ 
-                                        fontSize: "14px", 
-                                        color: "#666", 
+                                    <Typography sx={{
+                                        fontSize: "14px",
+                                        color: "#666",
                                         textAlign: "center",
                                         fontWeight: 600,
                                         mt: 0.5,
@@ -95,39 +98,39 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                                     </Typography>
                                 )}
                             </Box>
-                            
+
                             {/* קו מפריד */}
-                            <Box sx={{ 
-                                width: "2px", 
-                                backgroundColor: "#ddd", 
+                            <Box sx={{
+                                width: "2px",
+                                backgroundColor: "#ddd",
                                 alignSelf: "stretch",
                                 mx: 1
                             }} />
-                            
+
                             {/* חלק מספר המשלוח עם אייקון בניין */}
-                            <Box sx={{ 
-                                flex: 1, 
-                                display: "flex", 
+                            <Box sx={{
+                                flex: 1,
+                                display: "flex",
                                 flexDirection: "column",
-                                alignItems: "center", 
+                                alignItems: "center",
                                 justifyContent: "center",
                                 position: "relative",
                                 overflow: "hidden"
                             }}>
                                 {/* אייקון בניין ברקע */}
-                                <BusinessIcon sx={{ 
+                                <BusinessIcon sx={{
                                     position: "absolute",
                                     fontSize: "80px",
                                     color: "#d0d0d0",
                                     zIndex: 0,
                                     opacity: 0.5
                                 }} />
-                                <Typography sx={{ 
-                                    fontWeight: 900, 
-                                    fontSize: "60px", 
-                                    color: "#000", 
-                                    textAlign: "center", 
-                                    letterSpacing: 2, 
+                                <Typography sx={{
+                                    fontWeight: 900,
+                                    fontSize: "60px",
+                                    color: "#000",
+                                    textAlign: "center",
+                                    letterSpacing: 2,
                                     lineHeight: 1,
                                     position: "relative",
                                     zIndex: 1
@@ -135,9 +138,9 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                                     {order.deliveryIndex}
                                 </Typography>
                                 {order.deliveryIndex && (
-                                    <Typography sx={{ 
-                                        fontSize: "14px", 
-                                        color: "#666", 
+                                    <Typography sx={{
+                                        fontSize: "14px",
+                                        color: "#666",
                                         textAlign: "center",
                                         fontWeight: 600,
                                         mt: 0.5,
@@ -151,14 +154,25 @@ const StickerPages = ({ orders, title, amountStickers = 8 }) => {
                         </Stack>
                         <Box sx={{ width: "60%", borderBottom: "2px solid #000", mb: 1 }} />
                         {/* שם הלקוח */}
-                        <Typography sx={{ fontWeight: 700, fontSize: "18px", color: "#888", textAlign: "center", mb: 0.5, letterSpacing: 0.5 }}>
+                        <Typography sx={{
+                            fontWeight: 700,
+                            fontSize: "20px",
+                            color: "#888",
+                            textAlign: "center",
+                            mb: 0.5,
+                            letterSpacing: 0.5,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            width: "100%"
+                        }}>
                             {`${order.firstName || ''} ${order.lastName || ''}`.trim()}
                         </Typography>
                         {/* כתובת */}
-                        <Typography sx={{ fontSize: "12px", color: "#000", textAlign: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: "20px", color: "#000", textAlign: "center", mb: 0.5 }}>
                             {order.street}
                         </Typography>
-                        <Typography sx={{ fontSize: "12px", color: "#000", textAlign: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontSize: "15px", color: "#000", textAlign: "center", mb: 0.5 }}>
                             {order.phones ? order.phones.join(" | ") : ""}
                         </Typography>
                         {/* מספר המדבקה בפינה */}
