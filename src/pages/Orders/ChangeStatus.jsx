@@ -84,11 +84,11 @@ const ChangeStatus = ({ rows, refetch, status }) => {
         <Stack direction="column" spacing={2} sx={{ pb: 5 }}>
             <Typography variant="h4" color="primary.main">{rows.length == 1 ? "הזמנת משפחת " + (rows[0].lastName || "") : rows.length + " הזמנות נבחרו"}</Typography>
 
-            {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
+            {(status == 1 || status == 7) && <Divider textAlign="left" sx={{ pt: 4 }}>
                 <Chip label="קבוצת ליקוט" size="small" />
             </Divider>}
 
-            {status == 1 && <GenericForm
+            {(status == 1 || status == 7) && <GenericForm
                 fields={[
                     {
                         cb: () => <Alert severity="info">
@@ -132,11 +132,11 @@ const ChangeStatus = ({ rows, refetch, status }) => {
                 setInitInput={setInitInputs}
             />}
 
-            {status == 1 && <Divider textAlign="left" sx={{ pt: 4 }}>
+            {(status == 1 || status == 7) && <Divider textAlign="left" sx={{ pt: 4 }}>
                 <Chip label="ליקוט פרטני" size="small" />
-            </Divider>} 
+            </Divider>}
 
-            { <>
+            {<>
                 <Alert severity="info">
                     <AlertTitle>שים לב להעביר לסטטוס הנכון!</AlertTitle>
                     <Typography variant="body2">בהעברה לסטטוס הסתיים לא נשלח צינתוק</Typography>

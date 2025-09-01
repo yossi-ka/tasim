@@ -24,16 +24,15 @@ const AddOrUpdate = ({ row, refetch }) => {
     });
 
     const fields = [
-        term.field("supplierCode", { variant: "outlined", size: 6, required: true }),
+        // term.field("supplierCode", { variant: "outlined", size: 6, required: true }),
         term.field("name", { variant: "outlined", size: 6, required: true }),
         term.field("contactPerson", { variant: "outlined", size: 6 }),
         term.field("phone", { variant: "outlined", size: 6 }),
         term.field("email", { variant: "outlined", size: 6 }),
         term.field("address", { variant: "outlined", size: 6 }),
         // term.field("paymentTerms", { variant: "outlined", size: 6 }),
-        term.field("category", { variant: "outlined", size: 6 }),
         term.field("notes", { variant: "outlined", size: 6 }),
-        { type: 'submit', label: row ? "עדכן ספק" : "הוסף ספק", variant: "contained", }
+        { type: 'submit', label: row ? "עדכן ספק" : "הוסף ספק", variant: "contained", disabled: update.isLoading }
     ]
 
     return (

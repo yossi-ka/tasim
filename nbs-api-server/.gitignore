@@ -1,5 +1,8 @@
 node_modules/
 dist/
 build/
-nbs-api-server.exe
+nbs-api-server*.exe
 .env
+config.json
+
+orders_with_products_backup.json

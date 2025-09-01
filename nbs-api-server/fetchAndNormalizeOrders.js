@@ -21,6 +21,9 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
+// Load configuration from JSON file (validation is done in index.js)
+const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+
 
 const BASE_NBS_URL = "https://sales-v2.nbs-app.net/api/crm/";
 
@@ -527,7 +530,7 @@ const fetchAndNormalizeOrders = async () => {
       console.log(`📦 Number of orders: ${ordersWithProducts.length}`);
 
       const response = await axios.post(
-        `${process.env.FUNCTIONS_BASE_URL}/test3`,
+        `${config.FUNCTIONS_BASE_URL}/test3`,
         ordersWithProducts,
         {
           headers: {
@@ -576,7 +579,7 @@ const fetchAndNormalizeOrders = async () => {
           await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
 
           const retryResponse = await axios.post(
-            `${process.env.FUNCTIONS_BASE_URL}/test3`,
+            `${config.FUNCTIONS_BASE_URL}/test3`,
             ordersWithProducts,
             {
               headers: {
@@ -633,7 +636,7 @@ const getAmountDaysToImport = async () => {
   try {
     console.log("\n� Getting last import date from server...");
     const response = await axios.get(
-      `${process.env.FUNCTIONS_BASE_URL}/lastOrderImportDate`,
+      `${config.FUNCTIONS_BASE_URL}/lastOrderImportDate`,
       {
         headers: {
           "Content-Type": "application/json",

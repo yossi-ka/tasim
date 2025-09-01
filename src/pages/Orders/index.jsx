@@ -52,7 +52,7 @@ const Orders = () => {
 
     const { data, status, refetch } = useQuery(
         ["ordersTable", getStatusId(statusOrders)],
-     () => getOrdersByStatus(getStatusId(statusOrders)), {
+        () => getOrdersByStatus(getStatusId(statusOrders)), {
         refetchOnWindowFocus: false
     })
 
@@ -75,7 +75,7 @@ const Orders = () => {
         return data.length
     }, [data, status]);
 
-    const isAllowChangeStatus = React.useMemo(() => [1, 2, 3, 4].includes(getStatusId(statusOrders)), [statusOrders]);
+    const isAllowChangeStatus = React.useMemo(() => [1, 2, 3, 4, 7].includes(getStatusId(statusOrders)), [statusOrders]);
 
     const columns = [
         isAllowChangeStatus && {

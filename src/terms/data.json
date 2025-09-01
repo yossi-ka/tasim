@@ -67,6 +67,11 @@
             "type": "text"
         },
         {
+            "name": "sku",
+            "label": "מק\"ט",
+            "type": "text"
+        },
+        {
             "name": "name",
             "label": "שם מוצר",
             "type": "text"
@@ -155,12 +160,30 @@
             "label": "קטגוריה",
             "type": "select",
             "options": [
-                {"value": "food", "label": "מזון"},
-                {"value": "beverages", "label": "משקאות"},
-                {"value": "packaging", "label": "אריזות"},
-                {"value": "equipment", "label": "ציוד"},
-                {"value": "services", "label": "שירותים"},
-                {"value": "other", "label": "אחר"}
+                {
+                    "value": "food",
+                    "label": "מזון"
+                },
+                {
+                    "value": "beverages",
+                    "label": "משקאות"
+                },
+                {
+                    "value": "packaging",
+                    "label": "אריזות"
+                },
+                {
+                    "value": "equipment",
+                    "label": "ציוד"
+                },
+                {
+                    "value": "services",
+                    "label": "שירותים"
+                },
+                {
+                    "value": "other",
+                    "label": "אחר"
+                }
             ]
         },
         {
@@ -806,8 +829,18 @@
             "type": "currency"
         },
         {
+            "name": "unitPriceWithVAT",
+            "label": "מחיר יחידה+מע\"מ",
+            "type": "currency"
+        },
+        {
             "name": "totalPrice",
             "label": "מחיר כולל",
+            "type": "currency"
+        },
+        {
+            "name": "totalPriceWithVAT",
+            "label": "מחיר כולל+מע\"מ",
             "type": "currency"
         }
     ]
