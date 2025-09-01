@@ -16,6 +16,7 @@ import CollectionGroupsHistory from "../pages/collectionGroupsHistory";
 import Suppliers from "../pages/Suppliers";
 import Invoices from "../pages/Invoices";
 import RouteOrders from "../pages/RouteOrders";
+import Report from "../pages/Reports";
 
 
 const ProjectRoutes = () => {
@@ -48,6 +49,7 @@ const ProjectRoutes = () => {
                 <Route path="test" element={<Test />} />
                 <Route path="suppliers" element={<Suppliers />} />
                 <Route path="invoices" element={<Invoices />} />
+                <Route path="reports" element={<Report />} />
             </Route>
         </Routes>
     )

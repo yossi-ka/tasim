@@ -843,5 +843,22 @@
             "label": "מחיר כולל+מע\"מ",
             "type": "currency"
         }
+    ],
+    "reportByProduct": [
+        {
+            "name": "name",
+            "label": "מוצר",
+            "type": "text"
+        },
+        {
+            "name": "phoneCode",
+            "label": "מק\"ט טלפוני",
+            "type": "number"
+        },
+        {
+            "name": "productPlace",
+            "label": "מיקום",
+            "type": "text"
+        }
     ]
 }

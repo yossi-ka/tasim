@@ -12,6 +12,7 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import RouteIcon from '@mui/icons-material/Route';
 import DescriptionIcon from '@mui/icons-material/Description';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
@@ -39,6 +40,7 @@ const DrawerContent = () => {
         { title: "עובדים", to: "employees", icon: <EngineeringIcon color='primary' /> },
         { title: "ספקים", to: "suppliers", icon: <LocalShippingIcon color='primary' /> },
         { title: "חשבוניות", to: "invoices", icon: <DescriptionIcon color='primary' /> },
+        { title: "דוחו\"ת", to: "reports", icon: <TrendingUpIcon color='primary' /> },
 
     ]
 
