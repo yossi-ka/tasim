@@ -213,6 +213,7 @@ export const checkProductPlace = async (productId, place) => {
 
 
 export const updateProductsPrices = async (pricesData, userId) => {
+
     const FIRESTORE_BATCH_SIZE = 500; // מגבלת Firestore לbatch writes
 
     try {
@@ -220,113 +221,70 @@ export const updateProductsPrices = async (pricesData, userId) => {
         const productsRef = collection(db, "products");
         const productsSnapshot = await getDocs(productsRef);
 
-        // שלב 2: יצירת מפה לפי nbsProductId עם מחיר נוכחי
-        const productIdToDocIdMap = new Map();
-        const productIds = [];
+        console.log("prices ", pricesData);
+        console.log('Products snapshot:', productsSnapshot.docs.map(doc => doc.data()));
+        // שלב 2: יצירת מפה לפי phoneCode (המק"ט של המוצר)
+        const productCodeToDataMap = new Map();
         productsSnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.nbsProductId) {
+            // שימוש ב- nbsProductId כמפתח
+            const productCode = data.nbsProductId;
+
+            if (productCode) {
                 const productInfo = {
-                    documentId: doc.id,
-                    currentPrice: data.price || 0
+                    id: doc.id,
+                    currentPrice: data.price,
+                    name: data.name
                 };
-                // שמירה גם כמחרוזת וגם כמספר לגמישות
-                productIdToDocIdMap.set(data.nbsProductId, productInfo);
-                productIdToDocIdMap.set(String(data.nbsProductId), productInfo);
-                productIdToDocIdMap.set(Number(data.nbsProductId), productInfo);
-                productIds.push(data.nbsProductId);
+
+                // שמירה גם כמחרוזת וגם כמספר כדי לטפל בסוגי נתונים שונים
+                productCodeToDataMap.set(productCode, productInfo); // הסוג המקורי
+                // productCodeToDataMap.set(String(productCode), productInfo); // כמחרוזת
+                // productCodeToDataMap.set(Number(productCode), productInfo); // כמספר
             }
         });
+        console.log('Map size:', productCodeToDataMap.size);
+
+        console.log(`Found ${productCodeToDataMap.size} products with phone codes`);
 
         // שלב 3: סינון הנתונים - רק שורות תקינות
         const validPricesData = [];
         const skippedRows = [];
         const notFoundProducts = [];
-        const processedProductIds = new Set(); // למניעת כפילויות
 
         for (let i = 0; i < pricesData.length; i++) {
+
             const row = pricesData[i];
-            const { productCode, price } = row;
+            const { phoneCode, price } = row;
 
             // דילוג על שורות עם עמודות ריקות
-            if (!productCode || price === undefined || price === null) {
+            if (!phoneCode || price === undefined || price === null || price === '') {
+                console.log(`Skipping row ${i + 1}: missing phoneCode (${phoneCode}) or price (${price})`);
                 skippedRows.push({
                     rowIndex: i + 1,
-                    reason: 'Missing productCode or price',
+                    reason: 'Missing phoneCode or price',
                     data: row
                 });
                 continue;
             }
 
-            // בדיקת כפילויות
-            if (processedProductIds.has(productCode)) {
-                skippedRows.push({
-                    rowIndex: i + 1,
-                    reason: 'Duplicate productCode',
-                    data: row
-                });
-                continue;
-            }
+            // איתור המוצר לפי מק"ט - המפה כבר מכילה את כל הסוגים
+            const productData = productCodeToDataMap.get(phoneCode);
 
-            // איתור document ID לפי קוד מוצר
-            const productInfo = productIdToDocIdMap.get(productCode);
-            if (!productInfo) {
-                // נסה גם עם המרה למחרוזת ולמספר
-                const productCodeStr = String(productCode);
-                const productCodeNum = Number(productCode);
-                const productInfoStr = productIdToDocIdMap.get(productCodeStr);
-                const productInfoNum = productIdToDocIdMap.get(productCodeNum);
-
-                if (productInfoStr) {
-                    // בדיקה אם המחיר השתנה
-                    if (productInfoStr.currentPrice === price) {
-                        skippedRows.push({
-                            rowIndex: i + 1,
-                            reason: 'Price unchanged',
-                            data: row
-                        });
-                        continue;
-                    }
-                    processedProductIds.add(productCode);
-                    validPricesData.push({
-                        documentId: productInfoStr.documentId,
-                        productCode: productCodeStr,
-                        price,
-                        currentPrice: productInfoStr.currentPrice,
-                        rowIndex: i + 1
-                    });
-                    continue;
-                } else if (productInfoNum) {
-                    // בדיקה אם המחיר השתנה
-                    if (productInfoNum.currentPrice === price) {
-                        skippedRows.push({
-                            rowIndex: i + 1,
-                            reason: 'Price unchanged',
-                            data: row
-                        });
-                        continue;
-                    }
-                    processedProductIds.add(productCode);
-                    validPricesData.push({
-                        documentId: productInfoNum.documentId,
-                        productCode: productCodeNum,
-                        price,
-                        currentPrice: productInfoNum.currentPrice,
-                        rowIndex: i + 1
-                    });
-                    continue;
-                }
-
+            if (!productData) {
                 notFoundProducts.push({
                     rowIndex: i + 1,
-                    productCode,
+                    phoneCode,
                     data: row
                 });
                 continue;
             }
 
             // בדיקה אם המחיר השתנה
-            if (productInfo.currentPrice === price) {
+            const newPrice = parseFloat(price);
+            const currentPrice = parseFloat(productData.currentPrice) || 0;
+
+            if (newPrice === currentPrice) {
                 skippedRows.push({
                     rowIndex: i + 1,
                     reason: 'Price unchanged',
@@ -336,19 +294,23 @@ export const updateProductsPrices = async (pricesData, userId) => {
             }
 
             // הוספה לרשימת הנתונים התקינים
-            processedProductIds.add(productCode);
             validPricesData.push({
-                documentId: productInfo.documentId,
-                productCode,
-                price,
-                currentPrice: productInfo.currentPrice,
+                documentId: productData.id,
+                phoneCode,
+                price: newPrice,
+                currentPrice,
+                productName: productData.name,
                 rowIndex: i + 1
             });
         }
 
+        console.log(`Processing ${validPricesData.length} valid updates, skipping ${skippedRows.length} rows, ${notFoundProducts.length} products not found`);
+
+
         // שלב 4: עדכון בbatches של Firestore
         const updatedProducts = [];
         let actualUpdatedCount = 0;
+
         for (let i = 0; i < validPricesData.length; i += FIRESTORE_BATCH_SIZE) {
             const batch = writeBatch(db);
             const batchData = validPricesData.slice(i, i + FIRESTORE_BATCH_SIZE);

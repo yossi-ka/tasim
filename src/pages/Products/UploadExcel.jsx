@@ -203,7 +203,7 @@ const UploadExcel = ({ refetch }) => {
                     console.log('Sample data row:', dataRows[0]);
     
                     // ולידציה של הכותרות - צריך להיות בדיוק 2 עמודות
-                    const expectedDeliveryHeaders = ["קוד", "מחיר"];
+                    const expectedDeliveryHeaders = ['קוד', "מחיר"];
                     const missingHeaders = expectedDeliveryHeaders.filter(header => !headers.includes(header));
                     if (missingHeaders.length > 0) {
                         throw new Error(`חסרות כותרות: ${missingHeaders.join(', ')}`);
@@ -211,7 +211,7 @@ const UploadExcel = ({ refetch }) => {
     
                     // מיפוי הכותרות
                     const deliveryHeaderMapping = {
-                        "קוד": "productCode",
+                        'קוד': "phoneCode",
                         "מחיר": "price"
                     };
     
@@ -231,9 +231,9 @@ const UploadExcel = ({ refetch }) => {
                             const fieldName = deliveryHeaderMapping[header];
                             if (fieldName && row[index] !== undefined && row[index] !== null && row[index] !== '') {
                                 let value = row[index];
-                                
-                            // המרה למספר עבור productCode ו-price
-                            if (fieldName === 'productCode') {
+
+                            // המרה למספר עבור phoneCode ו-price
+                            if (fieldName === 'phoneCode') {
                                 deliveryItem[fieldName] = parseInt(value) || value;
                             } else if (fieldName === 'price') {
                                 deliveryItem[fieldName] = parseFloat(value) || 0;
@@ -243,9 +243,9 @@ const UploadExcel = ({ refetch }) => {
                         }
                     });
 
-                    // ולידציה - חובה שיהיה גם productCode וגם price
-                    if (!deliveryItem.productCode || deliveryItem.price === undefined) {
-                        console.warn(`שורה ${i + 2}: חסר קוד מוצר או מחיר, מדלג על השורה`);
+                    // ולידציה - חובה שיהיה גם phoneCode וגם price
+                    if (!deliveryItem.phoneCode || deliveryItem.price === undefined) {
+                        console.warn(`שורה ${i + 2}: חסר מק"ט טלפוני או מחיר, מדלג על השורה`);
                         continue;
                     }
 
@@ -271,7 +271,7 @@ const UploadExcel = ({ refetch }) => {
     
             // הפעלת בחירת הקובץ
             input.click();
-        };
+    };
 
     const validateHeaders = (fileHeaders) => {
         if (fileHeaders.length !== expectedHeaders.length) {
@@ -378,7 +378,7 @@ const UploadExcel = ({ refetch }) => {
 
             <Divider sx={{ my: 3 }} />
 
-            {/* <Typography color="primary.main" variant="h4">עדכון מחירי מוצרים</Typography>
+             <Typography color="primary.main" variant="h4">עדכון מחירי מוצרים</Typography>
             <Typography color="primary.main" variant="h5">העלאת קובץ עם קוד מוצר ומחיר לעדכון מחירים</Typography>
 
             <Button
@@ -396,7 +396,7 @@ const UploadExcel = ({ refetch }) => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                 קוד | מחיר
-            </Typography> */}
+            </Typography> 
         </Stack>
             :
             <Alert severity={message.type === 'error' ? 'error' : message.type === 'warning' ? 'warning' : 'success'}>
