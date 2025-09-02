@@ -18,6 +18,9 @@ const ReportTable = ({ dateRange, setDateRange }) => {
   const [params, setParams] = React.useState({})
   const [filterdData, setFilterdData] = React.useState([])
   const [selected, setSelected] = React.useState([]);
+  const [viewColumn, setViewColumn] = React.useState(
+    terms.table().map(term => term.key) // כל העמודות מוצגות כברירת מחדל
+  );
 
   const { data, status, refetch } = useQuery("reportByProduct", () => getAllProductsForReport(dateRange), {
     refetchOnWindowFocus: false,
@@ -104,8 +107,8 @@ const ReportTable = ({ dateRange, setDateRange }) => {
         indeterminate={selected.length > 0 && selected.length < filterdDataLength}
       />,
     },
-    ...terms.table(),
-
+    // סינון העמודות לפי מה שנבחר ב-viewColumn
+    ...terms.table().filter(column => viewColumn.includes(column.key)),
   ]
 
   return (
@@ -120,6 +123,12 @@ const ReportTable = ({ dateRange, setDateRange }) => {
         params={params}
         setParams={setParams}
         refetch={refetchAll}
+        termForExcel={terms.terms}
+        dataForExcel={filterdData}
+        selected={selected}
+        viewColumn={viewColumn}
+        setViewColumn={setViewColumn}
+        allColumns={terms.table()} // העמודות עם key ו-label
       />}
       innerPagination
     />

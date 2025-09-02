@@ -902,8 +902,70 @@
         },
         {
             "name": "paidAmount",
-            "label": "סכום ששולם עבור המוצר",
+            "label": "הכנסה ברוטו עבור המוצר",
             "type": "currency"
+        }
+    ],
+    "reportProductSearch": [
+        {
+            "name": "startprofit",
+            "label": "מסך רווח",
+            "type": "currencyColor"
+        },
+        {
+            "name": "endprofit",
+            "label": "עד סך רווח",
+            "type": "currencyColor"
+        },
+        {
+            "name": "startprofitPercentage",
+            "label": "מסך רווח באחוזים",
+            "type": "percentColor"
+        },
+        {
+            "name": "endprofitPercentage",
+            "label": "עד סך רווח באחוזים",
+            "type": "percentColor"
+        },
+        {
+            "name": "startpaidAmount",
+            "label": "מסכום הכנסה ברוטו",
+            "type": "number"
+        },
+        {
+            "name": "endpaidAmount",
+            "label": "עד סכום הכנסה ברוטו",
+            "type": "number"
+        },
+        {
+            "name": "startorderCount",
+            "label": "מסך כמות הזמנות",
+            "type": "number"
+        },
+        {
+            "name": "endorderCount",
+            "label": "עד סך כמות הזמנות",
+            "type": "number"
+        },
+        {
+            "name": "startunitCount",
+            "label": "מסך כמות מוצרים שנשלחו",
+            "type": "number"
+        },
+        {
+            "name": "endunitCount",
+            "label": "עד סך כמות מוצרים שנשלחו",
+            "type": "number"
+        },
+        {
+            "name": "startmissUnitCount",
+            "label": "מסך כמות מוצרים שלא נשלחו",
+            "type": "number"
+        },
+        {
+            "name": "endmissUnitCount",
+            "label": "עד סך כמות מוצרים שלא נשלחו",
+            "type": "number"
         }
     ]
 }
