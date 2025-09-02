@@ -851,14 +851,59 @@
             "type": "text"
         },
         {
-            "name": "phoneCode",
-            "label": "מק\"ט טלפוני",
-            "type": "number"
-        },
-        {
             "name": "productPlace",
             "label": "מיקום",
             "type": "text"
+        },
+        {
+            "name": "sku",
+            "label": "מק\"ט",
+            "type": "number"
+        },
+        {
+            "name": "lastBuyAt",
+            "label": "תאריך רכישה אחרון",
+            "type": "date"
+        },
+        {
+            "name": "lastBuyPrice",
+            "label": "מחיר רכישה אחרון",
+            "type": "number"
+        },
+        {
+            "name": "price",
+            "label": "מחיר מכירה",
+            "type": "number"
+        },
+        {
+            "name": "profit",
+            "label": "רווח",
+            "type": "currencyColor"
+        },
+        {
+            "name": "profitPercentage",
+            "label": "אחוז רווח",
+            "type": "percentColor"
+        },
+        {
+            "name": "orderCount",
+            "label": "כמות הזמנות עם המוצר",
+            "type": "number"
+        },
+        {
+            "name": "unitCount",
+            "label": "כמות מוצרים שנשלחו",
+            "type": "number"
+        },
+        {
+            "name": "missUnitCount",
+            "label": "כמות מוצרים שלא נשלחו",
+            "type": "number"
+        },
+        {
+            "name": "paidAmount",
+            "label": "סכום ששולם עבור המוצר",
+            "type": "currency"
         }
     ]
 }

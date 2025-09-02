@@ -1,9 +1,6 @@
-import React from "react";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
-import GlobalSearch from "../../global/GlobalSearch";
-import Context from "../../context";
+import GlobalSearch from "../../../global/GlobalSearch";
 
 const Search = ({ refetch, params, setParams,setDateRange }) => {
     return <GlobalSearch

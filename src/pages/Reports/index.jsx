@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import SelectDateRange from './SelectDateRange';
-import ReportTable from './ReportTable';
+import ReportTable from './Products/ReportTable';
 
 function Index() {
   const [dateRange, setDateRange] = useState({
