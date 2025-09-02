@@ -416,3 +416,8 @@ export function isShaonKaitz() {
     return true;
 }
 
+//  פונקציה לחישוב אחוז רווח מתוך מחיר המכירה
+export function calculateProfitPercentage(costPrice, sellingPrice) {
+    if (sellingPrice === 0) return 0;
+    return ((sellingPrice - costPrice) / sellingPrice) * 100;
+}

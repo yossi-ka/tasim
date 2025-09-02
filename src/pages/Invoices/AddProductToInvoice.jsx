@@ -90,9 +90,9 @@ const AddProductToInvoice = ({
     { type: "empty" },
     term.field("quantity", { variant: "outlined", size: 8, required: true }),
     term.field("unitPrice", { variant: "outlined", size: 8, required: true }),
-    { type: "textTitle", label: "מחיר מוצר כולל מע\"מ", value: (formData.unitPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
+    { type: "textTitle", label: "מחיר יחידה כולל מע\"מ", value: (formData.unitPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
     term.field("totalPrice", { variant: "outlined", size: 8, readonly: true }),
-    { type: "textTitle", label: "מחיר חשבונית כולל מע\"מ", value: (formData.totalPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
+    { type: "textTitle", label: "סה\"כ כולל מע\"מ", value: (formData.totalPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
     {
       type: "submit",
       label: "הוסף מוצר",

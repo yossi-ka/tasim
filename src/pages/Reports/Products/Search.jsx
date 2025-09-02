@@ -1,6 +1,6 @@
 import React from 'react';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import EventRepeatIcon from '@mui/icons-material/EventRepeat';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import GlobalSearch from "../../../global/GlobalSearch";
@@ -83,7 +83,7 @@ const Search = ({ refetch, params, setParams, setDateRange, termForExcel, dataFo
             actions={[
                 {
                     title: "איפוס טווח תאריכים",
-                    icon: <EventRepeatIcon color='primary' />,
+                    icon: <EventBusyIcon color='primary' />,
                     onClick: () => setDateRange({ startDate: null, endDate: null })
                 },
                 {

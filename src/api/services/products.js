@@ -1,6 +1,7 @@
 import { db } from '../../firebase-config'
 
 import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, arrayUnion, arrayRemove } from "firebase/firestore";
+import { calculateProfitPercentage } from '../../utils/func';
 
 export const getAllProducts = async () => {
     console.log('Fetching all products');
@@ -11,7 +12,7 @@ export const getAllProducts = async () => {
         const data = doc.data();
         if (!isNaN(data.lastBuyPrice) && !isNaN(data.price)) {
             data.profit = data.price - data.lastBuyPrice;
-            data.profitPercentage = data.lastBuyPrice ? (data.profit / data.lastBuyPrice) * 100 : 0;
+            data.profitPercentage = calculateProfitPercentage(data.lastBuyPrice, data.price);
         }
         return { id: doc.id, ...data };
     });

@@ -7,6 +7,8 @@ import { search } from "../../utils/search";
 import GenericForm from "../../components/GenericForm";
 import { useQuery } from "react-query";
 import { getAllProducts } from "../../api/services/products";
+import { Tooltip, IconButton } from "@mui/material";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 
 const MiniProductTable = ({ onProductSelect }) => {
@@ -17,18 +19,18 @@ const MiniProductTable = ({ onProductSelect }) => {
   const [filterdData, setFilterdData] = React.useState([]);
   const [selectedProduct, setSelectedProduct] = React.useState(null); // state לשמירת המוצר הנבחר
 
-    const { data, status: productsLoadingStatus } = useQuery("products", getAllProducts, {
-        refetchOnWindowFocus: false,
-        staleTime: 5 * 60 * 1000, // 5 דקות - הנתונים נחשבים רלוונטיים למשך 5 דקות
-        cacheTime: 10 * 60 * 1000, // 10 דקות - הנתונים נשמרים בזיכרון למשך 10 דקות אחרי שאין קומפוננטות שמשתמשות בהם
-        // refetchInterval: 5 * 60 * 1000, // רענון אוטומטי כל 5 דקות
-        // refetchIntervalInBackground: true, // ממשיך לרענן גם כשהטאב לא פעיל
-    });
+  const { data, status: productsLoadingStatus, refetch } = useQuery("products", getAllProducts, {
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 דקות - הנתונים נחשבים רלוונטיים למשך 5 דקות
+    cacheTime: 10 * 60 * 1000, // 10 דקות - הנתונים נשמרים בזיכרון למשך 10 דקות אחרי שאין קומפוננטות שמשתמשות בהם
+    // refetchInterval: 5 * 60 * 1000, // רענון אוטומטי כל 5 דקות
+    // refetchIntervalInBackground: true, // ממשיך לרענן גם כשהטאב לא פעיל
+  });
 
   // פונקציה לטיפול בלחיצה על שורה
   const handleRowClick = (product) => {
     setSelectedProduct(product);
-    
+
     // העברת הנתונים לקומפוננט האב אם הפונקציה קיימת
     if (onProductSelect && typeof onProductSelect === 'function') {
       onProductSelect(product);
@@ -36,7 +38,7 @@ const MiniProductTable = ({ onProductSelect }) => {
   };
 
   React.useEffect(() => {
-    if (!data) return; 
+    if (!data) return;
     if (Object.keys(params).length === 0) return setFilterdData(data);
     search({
       params,
@@ -51,21 +53,34 @@ const MiniProductTable = ({ onProductSelect }) => {
     ...terms.table(),
   ];
 
+  const fields = [
+    { name: 'globalSearch', label: 'חיפוש כללי', size: 10, variant: "outlined" },
+    { type: "empty", size: 1.5 },
+    {
+      cb: () => <Tooltip title={"רענן מוצרים"}>
+        <IconButton onClick={() => { refetch() }} >
+          <RefreshIcon color='primary' />
+        </IconButton>
+      </Tooltip>, size: 0.5
+    }
+  ];
+
   return (
     <GenericTable
-      customHeight={{ 
-            container: 400,
-            tableContent: 1,
-            header: 0,
-            footer: 0, }}
+      customHeight={{
+        container: 400,
+        tableContent: 1,
+        header: 0,
+        footer: 0,
+      }}
       data={filterdData || []}
       columns={columns}
       header={
-         <GenericForm
-         fields={[{ name: 'globalSearch', label: 'חיפוש כללי', size: 12, variant: "outlined" }]}
-            initInputs={params}
-            setInitInput={setParams}
-         />
+        <GenericForm
+          fields={fields}
+          initInputs={params}
+          setInitInput={setParams}
+        />
       }
       innerPagination
       rowsPerPage={10}
