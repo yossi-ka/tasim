@@ -592,8 +592,13 @@
             "type": "boolean"
         },
         {
+            "name": "priceWithoutVat",
+            "label": "מחיר ללא מע\"מ",
+            "type": "number"
+        },
+        {
             "name": "price",
-            "label": "מחיר",
+            "label": "מחיר כולל מע\"מ",
             "type": "number"
         },
         {

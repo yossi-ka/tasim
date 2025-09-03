@@ -421,3 +421,12 @@ export function calculateProfitPercentage(costPrice, sellingPrice) {
     if (sellingPrice === 0) return 0;
     return ((sellingPrice - costPrice) / sellingPrice) * 100;
 }
+
+export function vatCalculation(isVatExempt, price) {
+    return price * (isVatExempt ? 1 : (process.env.REACT_APP_VAT_RATE || 1)) || 0;
+};
+
+export function removeVat(isVatExempt, price) {
+    const result = price / (isVatExempt ? 1 : (process.env.REACT_APP_VAT_RATE || 1)) || 0;
+    return Math.round(result * 100) / 100; // עיגול ל-2 ספרות אחרי הנקודה
+}

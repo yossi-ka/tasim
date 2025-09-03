@@ -1,7 +1,7 @@
 import { db } from '../../firebase-config'
 
 import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, arrayUnion, arrayRemove, limit } from "firebase/firestore";
-import { formatDate, calculateProfitPercentage } from '../../utils/func';
+import { formatDate, calculateProfitPercentage, removeVat } from '../../utils/func';
 
 export const getAllProductsForReport = async (dateRange) => {
     const { startDate, endDate } = dateRange;
@@ -16,8 +16,8 @@ export const getAllProductsForReport = async (dateRange) => {
     const productData = querySnapshot.docs.map(doc => {
         const data = doc.data();
         if (!isNaN(data.lastBuyPrice) && !isNaN(data.price)) {
-            data.profit = data.price - data.lastBuyPrice;
-            data.profitPercentage = calculateProfitPercentage(data.lastBuyPrice, data.price);
+            data.profit = removeVat(data.isVatExempt, data.price) - data.lastBuyPrice;
+            data.profitPercentage = calculateProfitPercentage(data.lastBuyPrice, removeVat(data.isVatExempt, data.price));
         }
         return { id: doc.id, ...data };
     });

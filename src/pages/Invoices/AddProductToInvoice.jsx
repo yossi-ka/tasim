@@ -8,6 +8,7 @@ import Context from "../../context";
 import MiniProductTable from "./MiniProductTable";
 import useTerms from '../../terms';
 import GenericForm from "../../components/GenericForm";
+import { vatCalculation } from "../../utils/func";
 
 
 const AddProductToInvoice = ({
@@ -18,6 +19,8 @@ const AddProductToInvoice = ({
 
   const term = useTerms("invoiceRowsTable");
   const { closeSmallPopup } = React.useContext(Context);
+
+
 
   // רכיב הטופס המאוחד
   const [formData, setFormData] = React.useState({});
@@ -90,9 +93,11 @@ const AddProductToInvoice = ({
     { type: "empty" },
     term.field("quantity", { variant: "outlined", size: 8, required: true }),
     term.field("unitPrice", { variant: "outlined", size: 8, required: true }),
-    { type: "textTitle", label: "מחיר יחידה כולל מע\"מ", value: (formData.unitPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
+    {
+      type: "textTitle", label: "מחיר יחידה כולל מע\"מ", value: (vatCalculation(formData.selectedProduct?.isVatExempt, formData.unitPrice) || 0).toFixed(2), size: 4
+    },
     term.field("totalPrice", { variant: "outlined", size: 8, readonly: true }),
-    { type: "textTitle", label: "סה\"כ כולל מע\"מ", value: (formData.totalPrice * (process.env.REACT_APP_VAT_RATE || 1) || 0).toFixed(2), size: 4 },
+    { type: "textTitle", label: "סה\"כ כולל מע\"מ", value: (vatCalculation(formData.selectedProduct?.isVatExempt, formData.totalPrice) || 0).toFixed(2), size: 4 },
     {
       type: "submit",
       label: "הוסף מוצר",

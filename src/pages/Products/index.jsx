@@ -9,6 +9,7 @@ import Search from "./Search";
 import GenericTable from "../../components/GenericTable";
 import { search } from "../../utils/search";
 import { getAllProducts } from "../../api/services/products";
+import { removeVat } from "../../utils/func";
 import ManageCategories from "./ManageCategories";
 import AddOrEdit from "./AddOrEdit";
 
@@ -25,12 +26,22 @@ const Products = () => {
     refetchOnWindowFocus: false,
   })
 
+  // חישוב מחיר ללא מע"מ לכל מוצר
+  const dataWithVatCalculation = React.useMemo(() => {
+    if (!data) return [];
+
+    return data.map(product => ({
+      ...product,
+      priceWithoutVat: removeVat(product.isVatExempt, product.price)
+    }));
+  }, [data]);
+
   React.useEffect(() => {
-    if (Object.keys(params).length === 0) return setFilterdData(data)
+    if (Object.keys(params).length === 0) return setFilterdData(dataWithVatCalculation)
     search({
-      params, data, setData: setFilterdData, getLookupName, terms: [...terms.terms,]
+      params, data: dataWithVatCalculation, setData: setFilterdData, getLookupName, terms: [...terms.terms,]
     })
-  }, [params, data]);
+  }, [params, dataWithVatCalculation]);
 
   const refetchAll = () => {
     refetch();
@@ -39,8 +50,8 @@ const Products = () => {
 
   const filterdDataLength = React.useMemo(() => {
     if (status == "loading") return 0
-    return data.length
-  }, [data, status]);
+    return dataWithVatCalculation.length
+  }, [dataWithVatCalculation, status]);
 
   const columns = [
     {
