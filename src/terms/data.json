@@ -972,5 +972,37 @@
             "label": "עד סך כמות מוצרים שלא נשלחו",
             "type": "number"
         }
+    ],
+    "reportByDay": [
+        {
+            "name": "date",
+            "label": "תאריך",
+            "type": "date"
+        },
+        {
+            "name": "orderCount",
+            "label": "כמות הזמנות",
+            "type": "number"
+        },
+        {
+            "name": "productsStatusNot4",
+            "label": "מוצרים שנשלחו",
+            "type": "number"
+        },
+        {
+            "name": "productsStatus4",
+            "label": "מוצרים שלא נשלחו",
+            "type": "number"
+        },
+        {
+            "name": "salesStatusNot4",
+            "label": "סכום המכירות שנשלחו",
+            "type": "currency"
+        },
+        {
+            "name": "salesStatus4",
+            "label": "סכום המכירות שלא נשלחו",
+            "type": "currency"
+        }
     ]
 }

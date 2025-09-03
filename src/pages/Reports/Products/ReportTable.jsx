@@ -6,11 +6,10 @@ import useTerms from "../../../terms";
 import Search from "./Search";
 import GenericTable from "../../../components/GenericTable";
 import { search } from "../../../utils/search";
-import { getAllProductsForReport } from "../../../api/services/reports";
 import { formatDate } from "../../../utils/func";
 
 
-const ReportTable = ({ dateRange, setDateRange }) => {
+const ReportTable = ({data, status, refetch, dateRange, setDateRange }) => {
 
   const { getLookupName } = React.useContext(Context)
 
@@ -22,9 +21,6 @@ const ReportTable = ({ dateRange, setDateRange }) => {
     terms.table().map(term => term.key) // כל העמודות מוצגות כברירת מחדל
   );
 
-  const { data, status, refetch } = useQuery("reportByProduct", () => getAllProductsForReport(dateRange), {
-    refetchOnWindowFocus: false,
-  })
 
   const normalizeProductData = React.useMemo(() => {
     if (!data) return []
