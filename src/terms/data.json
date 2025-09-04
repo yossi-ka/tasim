@@ -114,11 +114,6 @@
             "type": "text"
         },
         {
-            "name": "category",
-            "label": "קטגוריה",
-            "type": "text"
-        },
-        {
             "name": "isActive",
             "label": "פעיל",
             "type": "boolean"

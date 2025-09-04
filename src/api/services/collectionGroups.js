@@ -980,12 +980,12 @@ export const sendTzintukForMissingOrders = async (collectionGroupId, userId) => 
     });
 
     //update collectionGroup
-    const collectionGroupRef = doc(db, 'collectionGroups', collectionGroupId);
-    batch.update(collectionGroupRef, {
-        isMissingSendTzintuk: true,
-        updatedAt: Timestamp.now(),
-        updatedBy: userId,
-    });
+    const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
+        batch.update(collectionGroupRef, {
+            isMissingSendTzintuk: true,
+            updatedAt: Timestamp.now(),
+            updatedBy: userId,
+        });
 
     await batch.commit();
 }
