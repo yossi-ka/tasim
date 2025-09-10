@@ -218,9 +218,13 @@ app.get('/employeesToOrders', checkUserFunc, async (req, res) => {
 app.post('/approveEmployeesToOrders', checkUserFunc, async (req, res) => {
     try {
         const { ordersArr } = req.body;
+        console.log("***!!!ordersArr", ordersArr);
+        
 
         if (Array.isArray(ordersArr) && ordersArr.length > 0) {
-            const approve = await approveEmployeesToOrders(ordersArr, req.userId)
+            const approve = await approveEmployeesToOrders(ordersArr, req.userId);
+            console.log("***approve result:", approve);
+            
             if (!approve) return res.json({
                 status: "error",
                 massege: "שגיאה"

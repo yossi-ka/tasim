@@ -692,13 +692,24 @@ const getEmployeesToOrders = async (userId, filterParams) => {
 }
 
 const approveEmployeesToOrders = async (ordersArr, userId) => {
+    console.log("***ordersArr", ordersArr);
+
+    // בדיקת תקינות הפרמטרים
+    // if (!ordersArr || !Array.isArray(ordersArr) || !userId) {
+    //     console.error("Invalid parameters:", { ordersArr, userId });
+    //     return false;
+    // }
 
     const batch = db.batch();
+    const processedOrders = [];
 
-    ordersArr.forEach(async order => {
-        const orderId = order.orderId;
-        const employeeId = userId;
-        const isActive = true;
+    // עיבוד המערך של orderIds
+    for (const orderId of ordersArr) {
+        // בדיקה שזה מחרוזת תקינה
+        // if (typeof orderId !== 'string' || !orderId.trim()) {
+        //     console.error("Invalid orderId format:", orderId);
+        //     return false;
+        // }
 
         //  בדיקה אם הORDERID כבר קיים בקולקשן employeestoorders ואם הISACTIVE שלו = true, אם כן return false, ולא להוסיף שום הזמנה שהעובד בחר, גם לא כאלה שכן תקינים
         const existingSnap = await db.collection('employeesToOrders')
@@ -706,21 +717,33 @@ const approveEmployeesToOrders = async (ordersArr, userId) => {
             .where('isActive', '==', true).get();
 
         if (!existingSnap.empty) {
+            console.log(`Order ${orderId} already exists with active status`);
             return false;
         }
+
+        processedOrders.push(orderId);
+    }
+
+    // אם כל הבדיקות עברו, הוספת ההזמנות ל-batch
+    for (const orderId of processedOrders) {
 
         const empToOrdRef = db.collection('employeesToOrders').doc();
         batch.set(empToOrdRef, {
             orderId,
-            employeeId,
-            isActive,
+            employeeId: userId,
+            isActive: true,
             associationDate: Timestamp.now()
         });
-    });
+    }
 
-    await batch.commit();
-
-    return true;
+    try {
+        await batch.commit();
+        console.log(`Successfully approved ${processedOrders.length} orders for employee ${userId}`);
+        return true;
+    } catch (error) {
+        console.error("Error committing batch:", error);
+        return false;
+    }
 }
 
 const sendMessage = async (orderId, message, user) => {
