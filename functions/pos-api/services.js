@@ -606,11 +606,11 @@ const getEmployeesToOrders = async (userId, filterParams) => {
     // שלב 11: בניית התוצאה עם כל הנתונים הנדרשים
     const result = [];
 
-    // עבור כל הזמנה, ניצור רשומה אחת עם כל העובדים שלה
-    Object.keys(empToOrdByOrderId).forEach(orderId => {
+    // עבור כל הזמנה (כולל אלה שלא משוייכות לעובדים), ניצור רשומה
+    orderIds.forEach(orderId => {
         const order = ordersMap[orderId];
         const orderProducts = orderProductsMap[orderId] || [];
-        const empToOrdRecords = empToOrdByOrderId[orderId];
+        const empToOrdRecords = empToOrdByOrderId[orderId] || []; // יכול להיות מערך ריק אם אין עובדים משוייכים
 
         // חישוב קטגוריות ופריטים
         const uniqueCategories = new Set();
@@ -647,6 +647,7 @@ const getEmployeesToOrders = async (userId, filterParams) => {
         });
 
         // יצירת מערך עובדים כאובייקטים (מכל השורות של אותה הזמנה)
+        // אם אין עובדים משוייכים, המערך יהיה ריק
         const employeeObjects = empToOrdRecords.map(empToOrd => ({
             empToOrderId: empToOrd.id, // מזהה הרשומה בטבלת הקשר
             employeeId: empToOrd.employeeId,
@@ -657,7 +658,8 @@ const getEmployeesToOrders = async (userId, filterParams) => {
 
         result.push({
             orderId: orderId,
-            employeeObjects, // מערך של אובייקטים {empToOrderId, employeeName, employeeId, associationDate, isActive}
+            employeeObjects, // מערך של אובייקטים {empToOrderId, employeeName, employeeId, associationDate, isActive} - יכול להיות ריק
+            hasAssignedEmployees: employeeObjects.length > 0, // האם יש עובדים משוייכים
 
             // סטטיסטיקות פריטים
             totalItems,
@@ -685,8 +687,8 @@ const getEmployeesToOrders = async (userId, filterParams) => {
 
             // שדה חיפוש מרוכב
             fullSearch: order ?
-                `${order.nbsOrderId || ""} ${(order.lastName || "") + "-" + (order.firstName || "")} ${order.street || ""} ${order.phones ? order.phones.join(",") : ""} ${employeeObjects.map(emp => emp.employeeName).join(" ")}`.toLowerCase() :
-                `${employeeObjects.map(emp => emp.employeeName).join(" ")}`.toLowerCase()
+                `${order.nbsOrderId || ""} ${(order.lastName || "") + "-" + (order.firstName || "")} ${order.street || ""} ${order.phones ? order.phones.join(",") : ""} ${employeeObjects.map(emp => emp.employeeName).join(" ")} ${employeeObjects.length === 0 ? "ללא עובדים" : ""}`.toLowerCase() :
+                `${employeeObjects.map(emp => emp.employeeName).join(" ")} ${employeeObjects.length === 0 ? "ללא עובדים" : ""}`.toLowerCase()
         });
     }); return result;
 }
