@@ -12,7 +12,7 @@ const { login,
     getOrderProducts,
     approveOrderProducts,
     getProductsShipping,
-    approveProductsShipping
+    getEmployeesToOrders
 } = require('./services')
 
 const app = express();
@@ -32,6 +32,8 @@ const checkUserFunc = (req, res, next) => {
                 status: "error",
                 massege: "פרטי זיהוי שגויים"
             })
+            console.log('***User id: ', res.userId);
+
             req.userId = res.userId;
             req.userType = res.userType;
             next()
@@ -43,8 +45,6 @@ const checkUserFunc = (req, res, next) => {
         })
     }
 }
-
-
 
 app.post('/login', async (req, res) => {
 
@@ -63,7 +63,6 @@ app.post('/login', async (req, res) => {
         ...userData
     })
 })
-
 
 app.get('/products', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
@@ -152,6 +151,7 @@ app.post('/approveProducts', checkUserFunc, async (req, res) => {
         })
     }
 })
+
 app.get('/orderProducts', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
 
@@ -191,7 +191,6 @@ app.post('/approveOrderProducts', checkUserFunc, async (req, res) => {
     }
 })
 
-
 app.get('/orders', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
 
@@ -203,6 +202,17 @@ app.get('/orders', checkUserFunc, async (req, res) => {
     })
 })
 
+app.get('/employeesToOrders', checkUserFunc, async (req, res) => {
+    // const { isAll, areaId } = req.query;
+    console.log('***filterParams: ', req.headers.filterparams);
+
+    const data = await getEmployeesToOrders(req.userId, req.headers.filterparams)
+
+    return res.json({
+        status: 'ok',
+        data,
+    })
+})
 
 app.post('/approveOrders', checkUserFunc, async (req, res) => {
     try {
@@ -231,7 +241,6 @@ app.post('/approveOrders', checkUserFunc, async (req, res) => {
     }
 })
 
-
 app.get('/productsShipping', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
 
@@ -242,7 +251,6 @@ app.get('/productsShipping', checkUserFunc, async (req, res) => {
         data,
     })
 })
-
 
 app.post('/message', checkUserFunc, async (req, res) => {
     try {
@@ -273,6 +281,7 @@ app.post('/message', checkUserFunc, async (req, res) => {
         })
     }
 })
+
 
 exports.app = onRequest(app)
 

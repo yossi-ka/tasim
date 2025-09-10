@@ -61,7 +61,6 @@ const checkUser = async (token) => {
     }
 }
 
-
 const getProducts = async (userId) => {
     const collectionGroupProductsSnap = await db
         .collection('collectionGroupProducts')
@@ -280,7 +279,6 @@ const approveOrderProducts = async (products, userId) => {
     return true;
 };
 
-
 const getOrders = async (userId) => {
     const orders = await db.collection('orders')
         .where("employeeId", "==", userId)
@@ -496,7 +494,202 @@ const getProductsShipping = async (userId) => {
     return result;
 }
 
+const getEmployeesToOrders = async (userId, filterParams) => {
+    // שלב 1: שליפת הזמנות עם orderStatus = 2
+    const ordersSnap = await db.collection('orders')
+        .where("orderStatus", "==", 2)
+        .get();
 
+    if (ordersSnap.empty) {
+        return [];
+    }
+
+    // יצירת מערך של כל ה-IDs של ההזמנות
+    const orderIds = ordersSnap.docs.map(doc => doc.id);
+    const ordersMap = {};
+    ordersSnap.docs.forEach(doc => {
+        ordersMap[doc.id] = { id: doc.id, ...doc.data() };
+    });
+
+    // שלב 2: שליפת השורות מטבלת הקשר employeesToOrders עם סינון רק ההזמנות במערך
+    let empToOrdList = [];
+    for (let i = 0; i < orderIds.length; i += 30) {
+        const batch = orderIds.slice(i, i + 30);
+        const empToOrdSnap = await db.collection('employeesToOrders')
+            .where("orderId", "in", batch)
+            .get();
+        empToOrdList.push(...empToOrdSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    if (empToOrdList.length === 0) {
+        return [];
+    }
+
+    // שלב 3: שליפת כל orderProducts לפי orderIds במנות של 30
+    let allOrderProducts = [];
+    for (let i = 0; i < orderIds.length; i += 30) {
+        const batch = orderIds.slice(i, i + 30);
+        const snap = await db
+            .collection('orderProducts')
+            .where("orderId", "in", batch)
+            .get();
+        allOrderProducts.push(...snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    // שלב 4: שליפת כל הקטגוריות (טבלה קטנה)
+    const categoriesSnap = await db.collection('globalProductCategories').get();
+    const categoriesMap = {};
+    categoriesSnap.docs.forEach(doc => {
+        categoriesMap[doc.id] = doc.data().name;
+    });
+
+    // שלב 5: איסוף כל productIds ייחודיים מכל ההזמנות
+    const uniqueProductIds = [...new Set(allOrderProducts.map(op => op.productId).filter(Boolean))];
+
+    // שלב 6: שליפת כל המוצרים הרלוונטיים במנות של 30
+    let productsMap = {};
+    if (uniqueProductIds.length > 0) {
+        for (let i = 0; i < uniqueProductIds.length; i += 30) {
+            const batch = uniqueProductIds.slice(i, i + 30);
+            const snap = await db
+                .collection('products')
+                .where("__name__", "in", batch)
+                .get();
+            snap.docs.forEach(doc => {
+                productsMap[doc.id] = doc.data();
+            });
+        }
+    }
+
+    // שלב 7: איסוף כל מזהי העובדים מהמסמכים (כל employeeId הוא string בודד)
+    const employeeIds = [...new Set(
+        empToOrdList
+            .map(emp => emp.employeeId)
+            .filter(Boolean) // כל employeeId הוא string בודד, לא מערך
+    )];
+
+    // שלב 8: שליפת כל העובדים במנות של 30
+    let employeesMap = {};
+    if (employeeIds.length > 0) {
+        for (let i = 0; i < employeeIds.length; i += 30) {
+            const batch = employeeIds.slice(i, i + 30);
+            const empSnap = await db
+                .collection('employees')
+                .where("__name__", "in", batch)
+                .get();
+            empSnap.docs.forEach(doc => {
+                const empData = doc.data();
+                const fullName = (empData.firstName || "") + " " + (empData.lastName || "");
+                employeesMap[doc.id] = fullName;
+            });
+        }
+    }
+
+    // שלב 9: קיבוץ orderProducts לפי orderId
+    const orderProductsMap = {};
+    allOrderProducts.forEach(op => {
+        if (!orderProductsMap[op.orderId]) {
+            orderProductsMap[op.orderId] = [];
+        }
+        orderProductsMap[op.orderId].push(op);
+    });
+
+    // שלב 10: קיבוץ empToOrdList לפי orderId (כי יכולות להיות מספר שורות לאותה הזמנה)
+    const empToOrdByOrderId = {};
+    empToOrdList.forEach(empToOrd => {
+        if (!empToOrdByOrderId[empToOrd.orderId]) {
+            empToOrdByOrderId[empToOrd.orderId] = [];
+        }
+        empToOrdByOrderId[empToOrd.orderId].push(empToOrd);
+    });
+
+    // שלב 11: בניית התוצאה עם כל הנתונים הנדרשים
+    const result = [];
+
+    // עבור כל הזמנה, ניצור רשומה אחת עם כל העובדים שלה
+    Object.keys(empToOrdByOrderId).forEach(orderId => {
+        const order = ordersMap[orderId];
+        const orderProducts = orderProductsMap[orderId] || [];
+        const empToOrdRecords = empToOrdByOrderId[orderId];
+
+        // חישוב קטגוריות ופריטים
+        const uniqueCategories = new Set();
+        let totalItems = 0;
+        let totalUnits = 0;
+        let completedItems = 0; // status = 3 או 4
+        let completedUnits = 0;
+
+        orderProducts.forEach(op => {
+            const product = productsMap[op.productId];
+            const quantity = op.quantityOrWeight || 1;
+
+            // ספירת כלל הפריטים והיחידות
+            totalItems++;
+            totalUnits += quantity;
+
+            // ספירת פריטים שהושלמו (status = 3 או 4)
+            if (op.status === 3 || op.status === 4) {
+                completedItems++;
+                completedUnits += quantity;
+            }
+
+            // איסוף קטגוריות
+            if (product && product.isQuantityForShipping && op.status === 3) {
+                const text = op.quantityOrWeight ? `${op.quantityOrWeight} - ${product.name || ""}` : "";
+                uniqueCategories.add(text);
+            } else if (product && product.categories && Array.isArray(product.categories)) {
+                product.categories.forEach(categoryId => {
+                    if (categoriesMap[categoryId]) {
+                        uniqueCategories.add(categoriesMap[categoryId]);
+                    }
+                });
+            }
+        });
+
+        // יצירת מערך עובדים כאובייקטים (מכל השורות של אותה הזמנה)
+        const employeeObjects = empToOrdRecords.map(empToOrd => ({
+            empToOrderId: empToOrd.id, // מזהה הרשומה בטבלת הקשר
+            employeeId: empToOrd.employeeId,
+            employeeName: employeesMap[empToOrd.employeeId] || "לא נמצא",
+            associationDate: empToOrd.associationDate || null,
+            isActive: empToOrd.isActive || false
+        }));
+
+        result.push({
+            orderId: orderId,
+            employeeObjects, // מערך של אובייקטים {empToOrderId, employeeName, employeeId, associationDate, isActive}
+
+            // סטטיסטיקות פריטים
+            totalItems,
+            totalUnits,
+            completedItems,
+            completedUnits,
+
+            // קטגוריות
+            notes: Array.from(uniqueCategories),
+
+            // נתוני ההזמנה
+            order: order ? {
+                nbsOrderId: order.nbsOrderId,
+                fullName: (order.lastName || "") + "-" + (order.firstName || ""),
+                street: order.street || "",
+                houseNumber: order.houseNumber || "",
+                entrance: order.entrance || "",
+                floor: order.floor || "",
+                apartment: order.apartment || "",
+                phone: order.phones ? order.phones.join(",") : "",
+                orderStatus: order.orderStatus,
+                collectionGroupOrder: order.collectionGroupOrder || "",
+                deliveryIndex: order.deliveryIndex || null,
+            } : null,
+
+            // שדה חיפוש מרוכב
+            fullSearch: order ?
+                `${order.nbsOrderId || ""} ${(order.lastName || "") + "-" + (order.firstName || "")} ${order.street || ""} ${order.phones ? order.phones.join(",") : ""} ${employeeObjects.map(emp => emp.employeeName).join(" ")}`.toLowerCase() :
+                `${employeeObjects.map(emp => emp.employeeName).join(" ")}`.toLowerCase()
+        });
+    }); return result;
+}
 
 const sendMessage = async (orderId, message, user) => {
     if (orderId) {
@@ -514,7 +707,6 @@ const sendMessage = async (orderId, message, user) => {
     })
     return true;
 }
-
 
 const extractNumber = (val) => {
     if (!val) return Infinity;
@@ -534,6 +726,6 @@ module.exports = {
     sendMessage,
     getOrderProducts,
     approveOrderProducts,
-    getProductsShipping
-
+    getProductsShipping,
+    getEmployeesToOrders
 }
