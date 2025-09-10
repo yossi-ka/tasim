@@ -12,7 +12,8 @@ const { login,
     getOrderProducts,
     approveOrderProducts,
     getProductsShipping,
-    getEmployeesToOrders
+    getEmployeesToOrders,
+    approveEmployeesToOrders
 } = require('./services')
 
 const app = express();
@@ -212,6 +213,34 @@ app.get('/employeesToOrders', checkUserFunc, async (req, res) => {
         status: 'ok',
         data,
     })
+})
+
+app.post('/approveEmployeesToOrders', checkUserFunc, async (req, res) => {
+    try {
+        const { ordersArr } = req.body;
+
+        if (Array.isArray(ordersArr) && ordersArr.length > 0) {
+            const approve = await approveEmployeesToOrders(ordersArr, req.userId)
+            if (!approve) return res.json({
+                status: "error",
+                massege: "שגיאה"
+            })
+            return res.json({
+                status: 'ok',
+                massege: 'העדכון התקבל בהצלחה'
+            })
+        }
+        return res.json({
+            status: "error",
+            massege: "חסר מזהה עובד"
+        })
+    }
+    catch (e) {
+        return res.json({
+            status: "error",
+            massege: e.massege || "שגיאה בעדכון העובדים"
+        })
+    }
 })
 
 app.post('/approveOrders', checkUserFunc, async (req, res) => {

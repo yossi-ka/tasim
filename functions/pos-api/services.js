@@ -517,6 +517,7 @@ const getEmployeesToOrders = async (userId, filterParams) => {
         const batch = orderIds.slice(i, i + 30);
         const empToOrdSnap = await db.collection('employeesToOrders')
             .where("orderId", "in", batch)
+            .where("isActive", "==", true)
             .get();
         empToOrdList.push(...empToOrdSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }
@@ -634,10 +635,7 @@ const getEmployeesToOrders = async (userId, filterParams) => {
             }
 
             // איסוף קטגוריות
-            if (product && product.isQuantityForShipping && op.status === 3) {
-                const text = op.quantityOrWeight ? `${op.quantityOrWeight} - ${product.name || ""}` : "";
-                uniqueCategories.add(text);
-            } else if (product && product.categories && Array.isArray(product.categories)) {
+            if (product && product.categories && Array.isArray(product.categories)) {
                 product.categories.forEach(categoryId => {
                     if (categoriesMap[categoryId]) {
                         uniqueCategories.add(categoriesMap[categoryId]);
@@ -693,6 +691,38 @@ const getEmployeesToOrders = async (userId, filterParams) => {
     }); return result;
 }
 
+const approveEmployeesToOrders = async (ordersArr, userId) => {
+
+    const batch = db.batch();
+
+    ordersArr.forEach(async order => {
+        const orderId = order.orderId;
+        const employeeId = userId;
+        const isActive = true;
+
+        //  בדיקה אם הORDERID כבר קיים בקולקשן employeestoorders ואם הISACTIVE שלו = true, אם כן return false, ולא להוסיף שום הזמנה שהעובד בחר, גם לא כאלה שכן תקינים
+        const existingSnap = await db.collection('employeesToOrders')
+            .where('orderId', '==', orderId)
+            .where('isActive', '==', true).get();
+
+        if (!existingSnap.empty) {
+            return false;
+        }
+
+        const empToOrdRef = db.collection('employeesToOrders').doc();
+        batch.set(empToOrdRef, {
+            orderId,
+            employeeId,
+            isActive,
+            associationDate: Timestamp.now()
+        });
+    });
+
+    await batch.commit();
+
+    return true;
+}
+
 const sendMessage = async (orderId, message, user) => {
     if (orderId) {
         const build = await db.doc('orders/' + orderId).get()
@@ -729,5 +759,6 @@ module.exports = {
     getOrderProducts,
     approveOrderProducts,
     getProductsShipping,
-    getEmployeesToOrders
+    getEmployeesToOrders,
+    approveEmployeesToOrders
 }
