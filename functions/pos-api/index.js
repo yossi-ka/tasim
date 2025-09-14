@@ -14,7 +14,8 @@ const { login,
     getProductsShipping,
     getEmployeesToOrders,
     approveEmployeesToOrders,
-    getOrderProductsV2
+    getOrderProductsV2,
+    removeEmployeeToOrder
 } = require('./services')
 
 const app = express();
@@ -245,6 +246,41 @@ app.post('/approveEmployeesToOrders', checkUserFunc, async (req, res) => {
             status: "error",
             massege: e.massege || "שגיאה בעדכון העובדים"
         })
+    }
+})
+
+app.post('/removeEmployeeToOrder', checkUserFunc, async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        console.log("***removeEmployeeToOrder", { orderId, userId: req.userId });
+
+        if (!orderId) {
+            return res.json({
+                status: "error",
+                massege: "חסר מזהה הזמנה"
+            });
+        }
+
+        const result = await removeEmployeeToOrder(orderId, req.userId);
+
+        if (!result) {
+            return res.json({
+                status: "error",
+                massege: "לא נמצאה הזמנה פעילה למחיקה"
+            });
+        }
+
+        return res.json({
+            status: 'ok',
+            massege: 'ההזמנה שוחררה בהצלחה'
+        });
+
+    } catch (e) {
+        console.error("Error in removeEmployeeToOrder endpoint:", e);
+        return res.json({
+            status: "error",
+            massege: e.message || "שגיאה בשחרור ההזמנה"
+        });
     }
 })
 

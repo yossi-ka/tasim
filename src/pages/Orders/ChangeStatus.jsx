@@ -71,7 +71,7 @@ const ChangeStatus = ({ rows, refetch, status }) => {
 
     const options = React.useMemo(() => {
         return [
-            // { value: 1, label: "ראשוני" },
+            { value: 2, label: "בליקוט" },
             { value: 3, label: "ממתין למשלוח" },
             { value: 4, label: "משלוח" },
             { value: 5, label: "הסתיים" }

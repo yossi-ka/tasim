@@ -584,7 +584,7 @@ const getProductsShipping = async (userId) => {
     return result;
 }
 
-const getEmployeesToOrders = async (userId, filterParams) => {
+const getEmployeesToOrders = async (userId, filterParams = 'all') => {
     // שלב 1: שליפת הזמנות עם orderStatus = 2
     const ordersSnap = await db.collection('orders')
         .where("orderStatus", "==", 2)
@@ -862,6 +862,50 @@ const approveEmployeesToOrders = async (ordersArr, userId) => {
     }
 }
 
+
+
+const removeEmployeeToOrder = async (orderId, userId) => {
+    console.log("***removeEmployeeToOrder", { orderId, userId });
+
+    // בדיקת תקינות הפרמטרים
+    if (!orderId || !userId) {
+        console.error("Invalid parameters:", { orderId, userId });
+        return false;
+    }
+
+    try {
+        // מציאת הרשומה בטבלת הקשר
+        const empToOrdSnap = await db.collection('employeesToOrders')
+            .where('orderId', '==', orderId)
+            .where('employeeId', '==', userId)
+            .where('isActive', '==', true)
+            .get();
+
+        if (empToOrdSnap.empty) {
+            console.log(`No active assignment found for order ${orderId} and employee ${userId}`);
+            return false;
+        }
+
+        // עדכון isActive ל-false במקום מחיקה
+        const batch = db.batch();
+        empToOrdSnap.docs.forEach(doc => {
+            const docRef = db.collection('employeesToOrders').doc(doc.id);
+            batch.update(docRef, {
+                isActive: false,
+                updateDate: Timestamp.now()
+            });
+        });
+
+        await batch.commit();
+        console.log(`Successfully removed order ${orderId} from employee ${userId}`);
+        return true;
+
+    } catch (error) {
+        console.error("Error removing employee to order:", error);
+        return false;
+    }
+}
+
 const sendMessage = async (orderId, message, user) => {
     if (orderId) {
         const build = await db.doc('orders/' + orderId).get()
@@ -900,5 +944,6 @@ module.exports = {
     approveOrderProducts,
     getProductsShipping,
     getEmployeesToOrders,
-    approveEmployeesToOrders
+    approveEmployeesToOrders,
+    removeEmployeeToOrder
 }

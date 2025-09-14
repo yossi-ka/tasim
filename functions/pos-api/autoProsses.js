@@ -280,6 +280,9 @@ const onOrderStatusChangeTo5 = onDocumentUpdated("orders/{orderId}", async (even
     if (!before || !after) return;
 
     const phones = Array.isArray(after.phones) ? after.phones : [];
+
+/* בדיקה אם השתנה מ1 ל2,  */
+
     // נבדוק אם הסטטוס השתנה ל-5
     if (before.orderStatus !== 5 && after.orderStatus === 5 && after.isSentTzintuk != false) {
         if (phones.length > 0) {
