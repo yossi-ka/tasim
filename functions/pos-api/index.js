@@ -13,7 +13,8 @@ const { login,
     approveOrderProducts,
     getProductsShipping,
     getEmployeesToOrders,
-    approveEmployeesToOrders
+    approveEmployeesToOrders,
+    getOrderProductsV2
 } = require('./services')
 
 const app = express();
@@ -156,7 +157,7 @@ app.post('/approveProducts', checkUserFunc, async (req, res) => {
 app.get('/orderProducts', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
 
-    const data = await getOrderProducts(req.userId, req.query.viewMode)
+    const data = await getOrderProductsV2(req.userId, req.query.viewMode)
 
     return res.json({
         status: 'ok',
@@ -219,15 +220,15 @@ app.post('/approveEmployeesToOrders', checkUserFunc, async (req, res) => {
     try {
         const { ordersArr } = req.body;
         console.log("***!!!ordersArr", ordersArr);
-        
+
 
         if (Array.isArray(ordersArr) && ordersArr.length > 0) {
             const approve = await approveEmployeesToOrders(ordersArr, req.userId);
             console.log("***approve result:", approve);
-            
+
             if (!approve) return res.json({
                 status: "error",
-                massege: "שגיאה"
+                massege: "ההזמנה כבר בליקוט"
             })
             return res.json({
                 status: 'ok',

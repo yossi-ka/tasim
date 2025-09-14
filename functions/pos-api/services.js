@@ -263,6 +263,96 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     return result;
 };
 
+const getOrderProductsV2 = async (userId, viewMode = "order") => {
+    // שלב 1: שליפת employeesToOrders עבור העובד הנוכחי עם isActive=true
+    const empToOrdSnap = await db.collection('employeesToOrders')
+        .where("employeeId", "==", userId)
+        .where("isActive", "==", true)
+        .get();
+
+    if (empToOrdSnap.empty) {
+        return [];
+    }
+
+    // שלב 2: יצירת מערך של orderIds מה-employeesToOrders
+    const assignedOrderIds = empToOrdSnap.docs.map(doc => doc.data().orderId);
+
+    // שלב 3: שליפת ההזמנות במנות של 30 עם orderStatus = 2
+    let validOrders = [];
+    for (let i = 0; i < assignedOrderIds.length; i += 30) {
+        const batch = assignedOrderIds.slice(i, i + 30);
+        const ordersSnap = await db.collection('orders')
+            .where("__name__", "in", batch)
+            .where("orderStatus", "==", 2)
+            .get();
+        validOrders.push(...ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    if (validOrders.length === 0) {
+        return [];
+    }
+
+    // שלב 4: יצירת מערך סופי של orderIds התקינים
+    const finalOrderIds = validOrders.map(order => order.id);
+    const ordersMap = {};
+    validOrders.forEach(order => {
+        ordersMap[order.id] = order;
+    });
+
+    // שלב 5: שליפת כל orderProducts לפי orderIds במנות של 30
+    let orderProducts = [];
+    for (let i = 0; i < finalOrderIds.length; i += 30) {
+        const batch = finalOrderIds.slice(i, i + 30);
+        const snap = await db
+            .collection('orderProducts')
+            .where("orderId", "in", batch)
+            .get();
+        orderProducts.push(...snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }
+
+    if (orderProducts.length === 0) {
+        return [];
+    }
+
+    // שלב 6: בניית מערך התוצאה עם כל המידע הנדרש
+    const result = orderProducts.map(op => {
+        const order = ordersMap[op.orderId] || {};
+
+        return {
+            id: op.id,
+            productName: op.productName,
+            collectionGroupOrder: order.collectionGroupOrder,
+            quantityOrWeight: op.quantityOrWeight || 0,
+            orderId: order.id,
+            firstName: order.firstName,
+            lastName: order.lastName,
+            productPlace: op.productPlace || '', // מהorderProduct עצמו
+            orderProductId: op.id,
+            cartIndex: 0, // ברירת מחדל כי אין collectionGroupProducts כאן
+        };
+    });
+
+    // שלב 7: מיון לפי viewMode כמו בפונקציה המקורית
+    result.sort((a, b) => {
+        if (viewMode === "order") {
+            const orderA = a.collectionGroupOrder || 0;
+            const orderB = b.collectionGroupOrder || 0;
+            if (orderA !== orderB) return orderA - orderB;
+        }
+        // אם אותו collectionGroupOrder, מיין לפי productPlace
+        const aNum = extractNumber(a.productPlace);
+        const bNum = extractNumber(b.productPlace);
+        if (aNum !== bNum) {
+            return aNum - bNum;
+        }
+        const orderA = a.collectionGroupOrder || 0;
+        const orderB = b.collectionGroupOrder || 0;
+        return orderA - orderB;
+    });
+
+    return result;
+}
+
 const approveOrderProducts = async (products, userId) => {
     const batch = db.batch();
     for (const product of products) {
@@ -694,38 +784,63 @@ const getEmployeesToOrders = async (userId, filterParams) => {
 const approveEmployeesToOrders = async (ordersArr, userId) => {
     console.log("***ordersArr", ordersArr);
 
-    // בדיקת תקינות הפרמטרים
-    // if (!ordersArr || !Array.isArray(ordersArr) || !userId) {
-    //     console.error("Invalid parameters:", { ordersArr, userId });
-    //     return false;
-    // }
-
     const batch = db.batch();
     const processedOrders = [];
 
-    // עיבוד המערך של orderIds
-    for (const orderId of ordersArr) {
-        // בדיקה שזה מחרוזת תקינה
-        // if (typeof orderId !== 'string' || !orderId.trim()) {
-        //     console.error("Invalid orderId format:", orderId);
-        //     return false;
-        // }
+    // בדיקה במנות של 30 אם יש הזמנות כבר קיימות
+    for (let i = 0; i < ordersArr.length; i += 30) {
+        const batchOrderIds = ordersArr.slice(i, i + 30);
 
-        //  בדיקה אם הORDERID כבר קיים בקולקשן employeestoorders ואם הISACTIVE שלו = true, אם כן return false, ולא להוסיף שום הזמנה שהעובד בחר, גם לא כאלה שכן תקינים
         const existingSnap = await db.collection('employeesToOrders')
-            .where('orderId', '==', orderId)
+            .where('orderId', 'in', batchOrderIds)
             .where('isActive', '==', true).get();
 
         if (!existingSnap.empty) {
-            console.log(`Order ${orderId} already exists with active status`);
+            console.log(`Found existing active orders in batch ${i / 30 + 1}`);
             return false;
         }
 
-        processedOrders.push(orderId);
+        processedOrders.push(...batchOrderIds);
+    }
+    /*    לשנות את isActive =true , אם העובד התחרט */
+    // שלב נוסף: בדיקה אם יש שורות קיימות עם isActive=false שניתן לעדכן
+    const ordersToUpdate = [];
+    const ordersToCreate = [];
+
+    for (let i = 0; i < processedOrders.length; i += 30) {
+        const batchOrderIds = processedOrders.slice(i, i + 30);
+
+        const inactiveSnap = await db.collection('employeesToOrders')
+            .where('orderId', 'in', batchOrderIds)
+            .where('employeeId', '==', userId)
+            .where('isActive', '==', false).get();
+
+        const foundOrderIds = inactiveSnap.docs.map(doc => doc.data().orderId);
+
+        // הוספת המסמכים לעדכון
+        inactiveSnap.docs.forEach(doc => {
+            ordersToUpdate.push(doc.id);
+        });
+
+        // הוספת ההזמנות שלא נמצאו ליצירה חדשה
+        batchOrderIds.forEach(orderId => {
+            if (!foundOrderIds.includes(orderId)) {
+                ordersToCreate.push(orderId);
+            }
+        });
     }
 
-    // אם כל הבדיקות עברו, הוספת ההזמנות ל-batch
-    for (const orderId of processedOrders) {
+    // עדכון השורות הקיימות ל-isActive=true
+    for (const docId of ordersToUpdate) {
+        const docRef = db.collection('employeesToOrders').doc(docId);
+        batch.update(docRef, {
+            isActive: true,
+            associationDate: Timestamp.now()
+        });
+    }
+
+    // יצירת שורות חדשות להזמנות שלא נמצאו
+    for (const orderId of ordersToCreate) {
 
         const empToOrdRef = db.collection('employeesToOrders').doc();
         batch.set(empToOrdRef, {
@@ -734,6 +849,7 @@ const approveEmployeesToOrders = async (ordersArr, userId) => {
             isActive: true,
             associationDate: Timestamp.now()
         });
+
     }
 
     try {
@@ -780,6 +896,7 @@ module.exports = {
     approveOrders,
     sendMessage,
     getOrderProducts,
+    getOrderProductsV2,
     approveOrderProducts,
     getProductsShipping,
     getEmployeesToOrders,
