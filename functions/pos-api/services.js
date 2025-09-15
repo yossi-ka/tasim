@@ -328,7 +328,7 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
             lastName: order.lastName,
             productPlace: op.productPlace || '', // מהorderProduct עצמו
             orderProductId: op.id,
-            cartIndex: 0, // ברירת מחדל כי אין collectionGroupProducts כאן
+            cartIndex: order.weeklyId, // ברירת מחדל כי אין collectionGroupProducts כאן
         };
     });
 
@@ -767,6 +767,7 @@ const getEmployeesToOrders = async (userId, filterParams = 'all') => {
                 orderStatus: order.orderStatus,
                 collectionGroupOrder: order.collectionGroupOrder || "",
                 deliveryIndex: order.deliveryIndex || null,
+                weeklyId: order.weeklyId || null,
             } : null,
 
             // שדה חיפוש מרוכב
