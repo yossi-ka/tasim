@@ -335,18 +335,20 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
     // שלב 7: מיון לפי viewMode כמו בפונקציה המקורית
     result.sort((a, b) => {
         if (viewMode === "order") {
-            const orderA = a.collectionGroupOrder || 0;
-            const orderB = b.collectionGroupOrder || 0;
+            console.log('*** Order: ', a, b);
+
+            const orderA = a.cartIndex || 0;
+            const orderB = b.cartIndex || 0;
             if (orderA !== orderB) return orderA - orderB;
         }
-        // אם אותו collectionGroupOrder, מיין לפי productPlace
+        // אם אותו cartIndex, מיין לפי productPlace
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
         if (aNum !== bNum) {
             return aNum - bNum;
         }
-        const orderA = a.collectionGroupOrder || 0;
-        const orderB = b.collectionGroupOrder || 0;
+        const orderA = a.cartIndex || 0;
+        const orderB = b.cartIndex || 0;
         return orderA - orderB;
     });
 
@@ -1001,22 +1003,22 @@ const getCompletedSingleOrder = async (weeklyId) => {
     return completedOrders.sort((a, b) => b.updateStatus - a.updateStatus)[0];
 };
 
-    module.exports = {
-        login,
-        checkUser,
-        getProducts,
-        approveProducts,
-        getOrders,
-        approveOrders,
-        sendMessage,
-        getOrderProducts,
-        getOrderProductsV2,
-        approveOrderProducts,
-        getProductsShipping,
-        getEmployeesToOrders,
-        approveEmployeesToOrders,
-        removeEmployeeToOrder,
-        approvePrintQueue,
-        getCompletedOrders,
-        getCompletedSingleOrder
-    }
+module.exports = {
+    login,
+    checkUser,
+    getProducts,
+    approveProducts,
+    getOrders,
+    approveOrders,
+    sendMessage,
+    getOrderProducts,
+    getOrderProductsV2,
+    approveOrderProducts,
+    getProductsShipping,
+    getEmployeesToOrders,
+    approveEmployeesToOrders,
+    removeEmployeeToOrder,
+    approvePrintQueue,
+    getCompletedOrders,
+    getCompletedSingleOrder
+}
