@@ -17,7 +17,8 @@ const { login,
     getOrderProductsV2,
     removeEmployeeToOrder,
     approvePrintQueue,
-    getCompletedOrders
+    getCompletedOrders,
+    getCompletedSingleOrder
 } = require('./services')
 
 const app = express();
@@ -385,6 +386,23 @@ app.get('/completedOrders', checkUserFunc, async (req, res) => {
         return res.json({
             status: 'error',
             massege: e.message || 'שגיאה בשליפת ההזמנות המושלמות'
+        });
+    }
+});
+
+app.get('/completedSingleOrder', checkUserFunc, async (req, res) => {
+    try {
+        const { weeklyId } = req.query;
+        const completedOrder = await getCompletedSingleOrder(weeklyId);
+        return res.json({
+            status: 'ok',
+            data: completedOrder
+        });
+    } catch (e) {
+        console.error('*** Error in completedSingleOrder endpoint:', e);
+        return res.json({
+            status: 'error',
+            massege: e.message || 'שגיאה בשליפת ההזמנה'
         });
     }
 });

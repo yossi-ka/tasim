@@ -191,40 +191,88 @@ export const changeOrdersStatus = async (ids, data, userId) => {
 
     const FIRESTORE_BATCH_SIZE = 500;
     const updatedOrders = [];
+    // קבלת weeklyId הגבוה ביותר של השבוע הנוכחי
+    // נחפש את כל המסמכים שיש להם weeklyId ונוצרו/עודכנו השבוע (updateStatus בשבוע הנוכחי)
+    // ואז נמצא את הערך המקסימלי כדי שנוכל להקצות max+1
+    let weeklyIdCounterStart = 0;
+    try {
+        // חשב התחלת השבוע (יום ראשון 00:00) לפי זמן מקומי/UTC כפי שמתועד ב-Timestamp
+        const now = new Date();
+        const day = now.getDay(); // 0 = Sunday
+        // חישוב תאריך יום ראשון של השבוע הנוכחי
+        const diffToSunday = day; // days since Sunday
+        const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToSunday);
+        sunday.setHours(0, 0, 0, 0);
+
+        // שאילתה: כל ההזמנות שיש להן weeklyId וש- updateStatus >= תחילת השבוע
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef,
+            where('weeklyId', '!=', null),
+            where('updateStatus', '>=', Timestamp.fromDate(sunday)));
+        const snapshot = await getDocs(q);
+        let maxWeekly = 0;
+        snapshot.forEach(d => {
+            const w = d.data().weeklyId;
+            const n = typeof w === 'number' ? w : parseInt(w, 10);
+            if (!Number.isNaN(n) && n > maxWeekly) maxWeekly = n;
+        });
+        weeklyIdCounterStart = maxWeekly;
+    } catch (err) {
+        console.error('Error computing weeklyId max:', err);
+        // לא נזרוק שגיאה כי נשמור על עבודה רגילה בלי weeklyId
+        weeklyIdCounterStart = 0;
+    }
+
+    // נשתמש במונה מקומי כדי להקצות weeklyId ייחודי לכל מסמך שצריך
+    let weeklyCounter = weeklyIdCounterStart;
 
     for (let i = 0; i < ids.length; i += FIRESTORE_BATCH_SIZE) {
         const batch = writeBatch(db);
         const batchIds = ids.slice(i, i + FIRESTORE_BATCH_SIZE);
+        let batchHasOps = false;
 
         for (const id of batchIds) {
             const docRef = doc(db, 'orders', id);
             const orderDoc = await getDoc(docRef);
             if (!orderDoc.exists()) {
-                // אפשר לדלג או לזרוק שגיאה, כאן נדלג
                 console.warn(`Order ${id} not found, skipping`);
                 continue;
             }
 
-            batch.update(docRef, {
+            const orderData = orderDoc.data();
+
+            const objToUpdate = {
                 ...data,
                 updateBy: userId,
+                // הערכים של תאריכים
                 updateDate: Timestamp.now(),
                 updateStatus: Timestamp.now(),
-            });
+            };
 
-            // const orderStatusesRef = collection(db, 'orderStatuses');
-            // const newStatusDoc = doc(orderStatusesRef);
-            // batch.set(newStatusDoc, {
-            //     ...data,
-            //     orderId: id,
-            //     updateBy: userId,
-            //     updateDate: Timestamp.now(),
-            // });
+            // תנאים להוספת weeklyId:
+            // - סטטוס קודם היה 1
+            // - סטטוס חדש (data.orderStatus) הוא 2
+            // - במסמך עדיין אין weeklyId
+            try {
+                const prevStatus = orderData.orderStatus;
+                const newStatus = data.orderStatus;
+                const hasWeekly = orderData.weeklyId !== undefined && orderData.weeklyId !== null;
 
+                if (prevStatus === 1 && newStatus === 2 && !hasWeekly) {
+                    weeklyCounter += 1;
+                    objToUpdate.weeklyId = weeklyCounter;
+                }
+            } catch (e) {
+                // במקרה של בעיה בקריאת נתוני המסמך, רק נמשיך בלי weekly
+                console.warn('Error checking weeklyId conditions for order', id, e);
+            }
+
+            batch.update(docRef, objToUpdate);
+            batchHasOps = true;
             updatedOrders.push(id);
         }
 
-        if (updatedOrders.length > 0) {
+        if (batchHasOps) {
             await batch.commit();
         }
     }
@@ -261,13 +309,13 @@ export const getLatestImportStatus = async () => {
 export const syncOrderNumbers = async (userId) => {
     try {
         console.log('🚀 Starting order numbers sync...');
-        
+
         // 1. שליפת הזמנות בסטטוס 1
         console.log('🔍 Fetching orders with status 1...');
         const ordersRef = collection(db, "orders");
         const ordersQuery = query(ordersRef, where("orderStatus", "==", 1));
         const ordersSnapshot = await getDocs(ordersQuery);
-        
+
         if (ordersSnapshot.empty) {
             return {
                 success: true,
@@ -275,14 +323,14 @@ export const syncOrderNumbers = async (userId) => {
                 updatedCount: 0
             };
         }
-        
+
         console.log(`📋 Found ${ordersSnapshot.size} orders with status 1`);
-        
+
         // 2. טעינת מיפוי לקוחות (לפי nbsCustomerId)
         console.log('🔄 Loading customer mapping...');
         const customersRef = collection(db, "customers");
         const customersSnapshot = await getDocs(customersRef);
-        
+
         const customerMapping = new Map();
         customersSnapshot.forEach(doc => {
             const data = doc.data();
@@ -296,13 +344,13 @@ export const syncOrderNumbers = async (userId) => {
             }
         });
         console.log(`📋 Loaded ${customerMapping.size} customers for mapping`);
-        
+
         // 3. טעינת מיפוי מסלולים (רשימה עם סדר כתובות)
         console.log('🔄 Loading route orders mapping...');
         const routeOrdersRef = collection(db, "routeOrders");
         const routeOrdersQuery = query(routeOrdersRef, where("isActive", "==", true));
         const routeOrdersSnapshot = await getDocs(routeOrdersQuery);
-        
+
         const routeMapping = new Map();
         routeOrdersSnapshot.forEach(doc => {
             const data = doc.data();
@@ -316,26 +364,26 @@ export const syncOrderNumbers = async (userId) => {
             }
         });
         console.log(`📋 Loaded ${routeMapping.size} route orders for mapping`);
-        
+
         // 4. עדכון deliveryIndex להזמנות
         const BATCH_SIZE = 500;
         let currentBatch = writeBatch(db);
         let batchOperations = 0;
         let totalUpdated = 0;
         let totalSkipped = 0;
-        
+
         console.log('🔄 Processing orders for delivery index update...');
-        
+
         for (const orderDoc of ordersSnapshot.docs) {
             const orderData = orderDoc.data();
             const nbsCustomerId = orderData.nbsCustomerId;
-            
+
             if (!nbsCustomerId) {
                 console.log(`⚠️ Order ${orderData.nbsOrderId} has no nbsCustomerId, skipping`);
                 totalSkipped++;
                 continue;
             }
-            
+
             // מציאת הלקוח לפי nbsCustomerId
             const mappedCustomer = customerMapping.get(nbsCustomerId);
             if (!mappedCustomer) {
@@ -343,7 +391,7 @@ export const syncOrderNumbers = async (userId) => {
                 totalSkipped++;
                 continue;
             }
-            
+
             // חישוב deliveryIndex מטבלת המסלולים
             let newDeliveryIndex = 0;
             if (mappedCustomer.street && mappedCustomer.houseNumber) {
@@ -353,15 +401,15 @@ export const syncOrderNumbers = async (userId) => {
                     newDeliveryIndex = routeOrder.orderNumber;
                 }
             }
-            
+
             // בדיקה אם יש צורך בעדכון
             const currentDeliveryIndex = orderData.deliveryIndex || 0;
             if (currentDeliveryIndex === newDeliveryIndex) {
                 continue; // אין צורך בעדכון
             }
-            
+
             console.log(`📦 Updating order ${orderData.nbsOrderId}: deliveryIndex ${currentDeliveryIndex} -> ${newDeliveryIndex}`);
-            
+
             // הוספה לbatch
             const orderRef = doc(db, 'orders', orderDoc.id);
             currentBatch.update(orderRef, {
@@ -369,10 +417,10 @@ export const syncOrderNumbers = async (userId) => {
                 updateBy: userId,
                 updateDate: Timestamp.now()
             });
-            
+
             batchOperations++;
             totalUpdated++;
-            
+
             // שליחת batch כשמגיעים לגבול
             if (batchOperations >= BATCH_SIZE) {
                 await currentBatch.commit();
@@ -381,23 +429,23 @@ export const syncOrderNumbers = async (userId) => {
                 batchOperations = 0;
             }
         }
-        
+
         // שליחת batch אחרון אם יש פעולות
         if (batchOperations > 0) {
             await currentBatch.commit();
             console.log(`✅ Final batch committed with ${batchOperations} operations`);
         }
-        
+
         const message = `סנכרון מספרים הושלם בהצלחה. עודכנו: ${totalUpdated} הזמנות, דולגו: ${totalSkipped} הזמנות`;
         console.log(`✅ ${message}`);
-        
+
         return {
             success: true,
             message,
             updatedCount: totalUpdated,
             skippedCount: totalSkipped
         };
-        
+
     } catch (error) {
         console.error('💥 Error syncing order numbers:', error);
         throw new Error(`שגיאה בסנכרון מספרים: ${error.message}`);

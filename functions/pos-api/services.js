@@ -976,21 +976,46 @@ const getCompletedOrders = async (userId) => {
     return completedOrders;
 };
 
-module.exports = {
-    login,
-    checkUser,
-    getProducts,
-    approveProducts,
-    getOrders,
-    approveOrders,
-    sendMessage,
-    getOrderProducts,
-    getOrderProductsV2,
-    approveOrderProducts,
-    getProductsShipping,
-    getEmployeesToOrders,
-    approveEmployeesToOrders,
-    removeEmployeeToOrder,
-    approvePrintQueue,
-    getCompletedOrders
-}
+const getCompletedSingleOrder = async (weeklyId) => {
+    if (!weeklyId) {
+        console.log(`Invalid weeklyId provided`);
+        return null;
+    }
+    const orderDoc = await db.collection('orders')
+        .where("weeklyId", "==", Number(weeklyId))
+        .where("orderStatus", "==", 3)  //  סיים טיפול וליקוט
+        .get();
+
+    if (orderDoc.empty) {
+        console.log(`No completed order found for weeklyId ${weeklyId}`);
+        return null;
+    }
+
+    const completedOrders = orderDoc.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    //  החזרת ההזמנה המאוחרת ביותר
+    return completedOrders.sort((a, b) => b.updateStatus - a.updateStatus)[0];
+};
+
+    module.exports = {
+        login,
+        checkUser,
+        getProducts,
+        approveProducts,
+        getOrders,
+        approveOrders,
+        sendMessage,
+        getOrderProducts,
+        getOrderProductsV2,
+        approveOrderProducts,
+        getProductsShipping,
+        getEmployeesToOrders,
+        approveEmployeesToOrders,
+        removeEmployeeToOrder,
+        approvePrintQueue,
+        getCompletedOrders,
+        getCompletedSingleOrder
+    }
