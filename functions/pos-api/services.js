@@ -612,10 +612,6 @@ const getEmployeesToOrders = async (userId, filterParams = 'all') => {
         empToOrdList.push(...empToOrdSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }
 
-    if (empToOrdList.length === 0) {
-        return [];
-    }
-
     // שלב 3: שליפת כל orderProducts לפי orderIds במנות של 30
     let allOrderProducts = [];
     for (let i = 0; i < orderIds.length; i += 30) {
@@ -862,8 +858,6 @@ const approveEmployeesToOrders = async (ordersArr, userId) => {
     }
 }
 
-
-
 const removeEmployeeToOrder = async (orderId, userId) => {
     console.log("***removeEmployeeToOrder", { orderId, userId });
 
@@ -929,7 +923,58 @@ const extractNumber = (val) => {
     return match ? parseInt(match[0], 10) : Infinity;
 };
 
+const approvePrintQueue = async (type, docId, userId) => {
+    try {
+        const batch = db.batch();
+        const printQueueRef = db.collection('printQueue').doc();
+        batch.set(printQueueRef, {
+            createdBy: userId,
+            type,
+            docId,
+            status: 'pending',
+            createdAt: Timestamp.now()
+        });
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error("Error in approvePrintQueue:", error);
+        return false;
+    }
+};
 
+const getCompletedOrders = async (userId) => {
+    //  סינוןן לפי עובד-מלקט
+    const empToOrdSnap = await db.collection('employeesToOrders')
+        .where("employeeId", "==", userId)
+        .where("isActive", "==", true)
+        .get();
+    if (empToOrdSnap.empty) {
+        console.log(`No active employee-to-order assignments found for user ${userId}`);
+        return [];
+    }
+    const orderIds = empToOrdSnap.docs.map(doc => doc.data().orderId);
+    if (orderIds.length === 0) {
+        console.log(`No orders assigned to user ${userId}`);
+        return [];
+    }
+    //  סינון לפי סטטוס הזמנה 3 - סיים טיפול וליקוט
+    const ordersSnap = await db.collection('orders')
+        .where("__name__", "in", orderIds)
+        .where("orderStatus", "==", 3)  //  סיים טיפול וליקוט
+        .get();
+
+    if (ordersSnap.empty) {
+        console.log(`No completed orders found for user ${userId}`);
+        return [];
+    }
+
+    const completedOrders = ordersSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    return completedOrders;
+};
 
 module.exports = {
     login,
@@ -945,5 +990,7 @@ module.exports = {
     getProductsShipping,
     getEmployeesToOrders,
     approveEmployeesToOrders,
-    removeEmployeeToOrder
+    removeEmployeeToOrder,
+    approvePrintQueue,
+    getCompletedOrders
 }

@@ -15,7 +15,9 @@ const { login,
     getEmployeesToOrders,
     approveEmployeesToOrders,
     getOrderProductsV2,
-    removeEmployeeToOrder
+    removeEmployeeToOrder,
+    approvePrintQueue,
+    getCompletedOrders
 } = require('./services')
 
 const app = express();
@@ -352,8 +354,42 @@ app.post('/message', checkUserFunc, async (req, res) => {
     }
 })
 
+app.post('/approvePrintQueue', checkUserFunc, async (req, res) => {
+    try {
+        const { type, docId } = req.body;
+        const userId = req.userId;
+        if (!type || !docId) {
+            return res.json({ status: 'error', massege: 'חסרים פרמטרים' });
+        }
+        const result = await approvePrintQueue(type, docId, userId);
+        if (!result) {
+            return res.json({ status: 'error', massege: 'שגיאה באישור ההדפסה' });
+        }
+        return res.json({ status: 'ok', massege: 'ההדפסה אושרה בהצלחה' });
+    } catch (e) {
+        console.error('Error in approvePrintQueue endpoint:', e);
+        return res.json({ status: 'error', massege: e.message || 'שגיאה באישור ההדפסה' });
+    }
+})
 
-exports.app = onRequest(app)
+app.get('/completedOrders', checkUserFunc, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const completedOrders = await getCompletedOrders(userId);
+        return res.json({
+            status: 'ok',
+            data: completedOrders
+        });
+    } catch (e) {
+        console.error('Error in completedOrders endpoint:', e);
+        return res.json({
+            status: 'error',
+            massege: e.message || 'שגיאה בשליפת ההזמנות המושלמות'
+        });
+    }
+});
+
+exports.app = onRequest(app);
 
 
 
