@@ -363,11 +363,11 @@ app.post('/approvePrintQueue', checkUserFunc, async (req, res) => {
         if (!type || !docId) {
             return res.json({ status: 'error', massege: 'חסרים פרמטרים' });
         }
-        const result = await approvePrintQueue(type, docId, userId);
-        if (!result) {
-            return res.json({ status: 'error', massege: 'שגיאה באישור ההדפסה' });
+        const { success, msg } = await approvePrintQueue(type, docId, userId);
+        if (!success) {
+            return res.json({ status: 'error', massege: msg || 'שגיאה באישור ההדפסה' });
         }
-        return res.json({ status: 'ok', massege: 'ההדפסה אושרה בהצלחה' });
+        return res.json({ status: 'ok', massege: msg || 'ההדפסה אושרה בהצלחה' });
     } catch (e) {
         console.error('Error in approvePrintQueue endpoint:', e);
         return res.json({ status: 'error', massege: e.message || 'שגיאה באישור ההדפסה' });
@@ -417,18 +417,20 @@ app.post('/closeOrder', checkUserFunc, async (req, res) => {
         });
     }
     const result = await closeOrder(orderId);
-    
-    if (!result) {
+
+    if (!result.success) {
+
         return res.json({
             status: "error",
-            massege: "שגיאה בסגירת ההזמנה"
+            massege: result.msg || "שגיאה בסגירת ההזמנה"
         });
     }
     return res.json({
         status: 'ok',
-        massege: 'ההזמנה נסגרה בהצלחה'
+        massege: result.msg || 'ההזמנה נסגרה בהצלחה'
     });
 });
+
 
 exports.app = onRequest(app);
 

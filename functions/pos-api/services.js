@@ -339,7 +339,6 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
     // שלב 7: מיון לפי viewMode כמו בפונקציה המקורית
     result.sort((a, b) => {
         if (viewMode === "order") {
-            console.log('*** Order: ', a, b);
 
             const orderA = a.collectionIndex || 0;
             const orderB = b.collectionIndex || 0;
@@ -789,7 +788,6 @@ const getEmployeesToOrders = async (userId, filterParams = 'all') => {
 }
 
 const approveEmployeesToOrders = async (ordersArr, userId) => {
-    console.log("***ordersArr", ordersArr);
 
     const batch = db.batch();
     const processedOrders = [];
@@ -870,7 +868,6 @@ const approveEmployeesToOrders = async (ordersArr, userId) => {
 }
 
 const removeEmployeeToOrder = async (orderId, userId) => {
-    console.log("***removeEmployeeToOrder", { orderId, userId });
 
     // בדיקת תקינות הפרמטרים
     if (!orderId || !userId) {
@@ -935,6 +932,13 @@ const extractNumber = (val) => {
 };
 
 const approvePrintQueue = async (type, docId, userId) => {
+    if(type === "order") {
+        const {success, msg} = await checkCompletedOrder(docId);
+        if (!success) {
+            return {success, msg};
+        }
+    }
+
     try {
         const batch = db.batch();
         const printQueueRef = db.collection('printQueue').doc();
@@ -946,10 +950,10 @@ const approvePrintQueue = async (type, docId, userId) => {
             createdAt: Timestamp.now()
         });
         await batch.commit();
-        return true;
+        return { success: true, msg: "המסמך נוסף לתור ההדפסה" };
     } catch (error) {
         console.error("Error in approvePrintQueue:", error);
-        return false;
+        return { success: false, msg: "שגיאה בהוספת המסמך לתור ההדפסה" };
     }
 };
 
@@ -1012,17 +1016,34 @@ const getCompletedSingleOrder = async (collectionIndex) => {
 };
 
 const closeOrder = async (orderId) => {
-    //  שליפת כל המוצרים של ההזמנה ובדיקה אם טופלו במלואן (qtyCollected + qtyMissing === quantityOrWeight)
+
     if (!orderId) {
         console.log(`Invalid orderId provided`);
         return false;
     }
+
+    const { success, msg } = await checkCompletedOrder(orderId);
+    if (!success) {
+        return { success, msg };
+    }
+
+    try {
+        const orderRef = db.collection('orders').doc(orderId);
+        await orderRef.update({ orderStatus: 3 }); // 3 - Closed
+        return { success: true, msg: "ההזמנה נסגרה בהצלחה" };
+    } catch (error) {
+        console.error("Error closing order:", error);
+        return { success: false, msg: "שגיאה בסגירת ההזמנה" };
+    }
+};
+
+const checkCompletedOrder = async (orderId) => {
     const orderProductsSnap = await db.collection('orderProducts')
         .where("orderId", "==", orderId)
         .get();
     if (orderProductsSnap.empty) {
         console.log(`No products found for order ${orderId}`);
-        return false;
+        return { success: false, msg: "לא נמצאו מוצרים להזמנה" };
     }
 
     const allProductsHandled = orderProductsSnap.docs.every(doc => {
@@ -1033,22 +1054,11 @@ const closeOrder = async (orderId) => {
         return quantityMatches;
     });
 
-console.log('*** allProductsHandled: ', allProductsHandled);
-
-
     if (!allProductsHandled) {
         console.log(`Not all products have been fully handled for order ${orderId}`);
-        return false;
+        return { success: false, msg: "לא כל המוצרים טופלו" };
     }
-    try {
-        const orderRef = db.collection('orders').doc(orderId);
-        await orderRef.update({ orderStatus: 3 }); // 3 - Closed
-        return true;
-    } catch (error) {
-        console.error("Error closing order:", error);
-        return false;
-    }
-};
+}
 
 module.exports = {
     login,
