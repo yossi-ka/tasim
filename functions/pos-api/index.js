@@ -18,7 +18,8 @@ const { login,
     removeEmployeeToOrder,
     approvePrintQueue,
     getCompletedOrders,
-    getCompletedSingleOrder
+    getCompletedSingleOrder,
+    closeOrder
 } = require('./services')
 
 const app = express();
@@ -405,6 +406,28 @@ app.get('/completedSingleOrder', checkUserFunc, async (req, res) => {
             massege: e.message || 'שגיאה בשליפת ההזמנה'
         });
     }
+});
+
+app.post('/closeOrder', checkUserFunc, async (req, res) => {
+    const { orderId } = req.body;
+    if (!orderId) {
+        return res.json({
+            status: "error",
+            massege: "חסר מזהה הזמנה"
+        });
+    }
+    const result = await closeOrder(orderId);
+    
+    if (!result) {
+        return res.json({
+            status: "error",
+            massege: "שגיאה בסגירת ההזמנה"
+        });
+    }
+    return res.json({
+        status: 'ok',
+        massege: 'ההזמנה נסגרה בהצלחה'
+    });
 });
 
 exports.app = onRequest(app);

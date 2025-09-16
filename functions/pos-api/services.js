@@ -33,7 +33,7 @@ const login = async (userName, password, cardNumber) => {
 
     const userData = user.docs[0].data();
     const userFullName = (userData.firstName || "") + " " + (userData.lastName || "");
-    const role = userData.role || 1;
+    const role = userData.role || 2;
     return {
         token,
         userName: userFullName,
@@ -331,7 +331,8 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
             productPlace: op.productPlace || '', // מהorderProduct עצמו
             orderProductId: op.id,
             cartIndex: 0,
-            collectionInfo: op.collectionInfo || {}
+            qtyCollected: op.qtyCollected || 0,
+            qtyMissing: op.qtyMissing || 0,
         };
     });
 
@@ -369,7 +370,9 @@ const approveOrderProducts = async (productsArr, userId) => {
             updateDate: Timestamp.now(),
             updateStatus: Timestamp.now(),
             collectBy: userId,
-            collectionInfo: product || {}
+            qtyCollected: product.qtyCollected || 0,
+            qtyMissing: product.qtyMissing || 0
+
         });
     }
     await batch.commit();
@@ -1008,6 +1011,45 @@ const getCompletedSingleOrder = async (collectionIndex) => {
     return completedOrders.sort((a, b) => b.updateStatus - a.updateStatus)[0];
 };
 
+const closeOrder = async (orderId) => {
+    //  שליפת כל המוצרים של ההזמנה ובדיקה אם טופלו במלואן (qtyCollected + qtyMissing === quantityOrWeight)
+    if (!orderId) {
+        console.log(`Invalid orderId provided`);
+        return false;
+    }
+    const orderProductsSnap = await db.collection('orderProducts')
+        .where("orderId", "==", orderId)
+        .get();
+    if (orderProductsSnap.empty) {
+        console.log(`No products found for order ${orderId}`);
+        return false;
+    }
+
+    const allProductsHandled = orderProductsSnap.docs.every(doc => {
+        const data = doc.data();
+        const totalHandled = (Number(data.qtyCollected) + Number(data.qtyMissing));
+        const quantityMatches = totalHandled >= (Number(data.quantityOrWeight || 0));
+
+        return quantityMatches;
+    });
+
+console.log('*** allProductsHandled: ', allProductsHandled);
+
+
+    if (!allProductsHandled) {
+        console.log(`Not all products have been fully handled for order ${orderId}`);
+        return false;
+    }
+    try {
+        const orderRef = db.collection('orders').doc(orderId);
+        await orderRef.update({ orderStatus: 3 }); // 3 - Closed
+        return true;
+    } catch (error) {
+        console.error("Error closing order:", error);
+        return false;
+    }
+};
+
 module.exports = {
     login,
     checkUser,
@@ -1025,5 +1067,6 @@ module.exports = {
     removeEmployeeToOrder,
     approvePrintQueue,
     getCompletedOrders,
-    getCompletedSingleOrder
+    getCompletedSingleOrder,
+    closeOrder
 }
