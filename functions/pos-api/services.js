@@ -1018,8 +1018,7 @@ const getCompletedSingleOrder = async (collectionIndex) => {
 const closeOrder = async (orderId) => {
 
     if (!orderId) {
-        console.log(`Invalid orderId provided`);
-        return false;
+        return { success: false, msg: "מזהה הזמנה לא תקין" };
     }
 
     const { success, msg } = await checkCompletedOrder(orderId);
@@ -1058,6 +1057,8 @@ const checkCompletedOrder = async (orderId) => {
         console.log(`Not all products have been fully handled for order ${orderId}`);
         return { success: false, msg: "לא כל המוצרים טופלו" };
     }
+
+    return { success: true, msg: "ההזמנה מוכנה לסגירה" };
 }
 
 module.exports = {

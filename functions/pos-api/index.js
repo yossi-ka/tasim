@@ -363,7 +363,9 @@ app.post('/approvePrintQueue', checkUserFunc, async (req, res) => {
         if (!type || !docId) {
             return res.json({ status: 'error', massege: 'חסרים פרמטרים' });
         }
+        
         const { success, msg } = await approvePrintQueue(type, docId, userId);
+        
         if (!success) {
             return res.json({ status: 'error', massege: msg || 'שגיאה באישור ההדפסה' });
         }
