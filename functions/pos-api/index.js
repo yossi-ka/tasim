@@ -392,8 +392,8 @@ app.get('/completedOrders', checkUserFunc, async (req, res) => {
 
 app.get('/completedSingleOrder', checkUserFunc, async (req, res) => {
     try {
-        const { weeklyId } = req.query;
-        const completedOrder = await getCompletedSingleOrder(weeklyId);
+        const { collectionIndex } = req.query;
+        const completedOrder = await getCompletedSingleOrder(collectionIndex);
         return res.json({
             status: 'ok',
             data: completedOrder

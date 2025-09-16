@@ -33,9 +33,11 @@ const login = async (userName, password, cardNumber) => {
 
     const userData = user.docs[0].data();
     const userFullName = (userData.firstName || "") + " " + (userData.lastName || "");
+    const role = userData.role || 1;
     return {
         token,
         userName: userFullName,
+        role
     };
 
 }
@@ -321,14 +323,15 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
         return {
             id: op.id,
             productName: op.productName,
-            collectionGroupOrder: order.collectionGroupOrder,
+            collectionGroupOrder: order.collectionIndex || 0,
             quantityOrWeight: op.quantityOrWeight || 0,
             orderId: order.id,
             firstName: order.firstName,
             lastName: order.lastName,
             productPlace: op.productPlace || '', // מהorderProduct עצמו
             orderProductId: op.id,
-            cartIndex: order.weeklyId, // ברירת מחדל כי אין collectionGroupProducts כאן
+            cartIndex: 0,
+            collectionInfo: op.collectionInfo || {}
         };
     });
 
@@ -337,34 +340,36 @@ const getOrderProductsV2 = async (userId, viewMode = "order") => {
         if (viewMode === "order") {
             console.log('*** Order: ', a, b);
 
-            const orderA = a.cartIndex || 0;
-            const orderB = b.cartIndex || 0;
+            const orderA = a.collectionIndex || 0;
+            const orderB = b.collectionIndex || 0;
             if (orderA !== orderB) return orderA - orderB;
         }
-        // אם אותו cartIndex, מיין לפי productPlace
+        // אם אותו collectionIndex, מיין לפי productPlace
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
         if (aNum !== bNum) {
             return aNum - bNum;
         }
-        const orderA = a.cartIndex || 0;
-        const orderB = b.cartIndex || 0;
+        const orderA = a.collectionIndex || 0;
+        const orderB = b.collectionIndex || 0;
         return orderA - orderB;
     });
 
     return result;
 }
 
-const approveOrderProducts = async (products, userId) => {
+const approveOrderProducts = async (productsArr, userId) => {
     const batch = db.batch();
-    for (const product of products) {
-        const docRef = db.doc('orderProducts/' + product);
+    for (const product of productsArr) {
+        const docRef = db.doc('orderProducts/' + product.orderProductId);
+        delete product.orderProductId;  //  אין צורך לשמור מכיון שזהו ה-ID של המסמך
         batch.update(docRef, {
             status: 3,
             updateBy: "pos",
             updateDate: Timestamp.now(),
             updateStatus: Timestamp.now(),
             collectBy: userId,
+            collectionInfo: product || {}
         });
     }
     await batch.commit();
@@ -769,7 +774,7 @@ const getEmployeesToOrders = async (userId, filterParams = 'all') => {
                 orderStatus: order.orderStatus,
                 collectionGroupOrder: order.collectionGroupOrder || "",
                 deliveryIndex: order.deliveryIndex || null,
-                weeklyId: order.weeklyId || null,
+                collectionIndex: order.collectionIndex || null,
             } : null,
 
             // שדה חיפוש מרוכב
@@ -979,18 +984,18 @@ const getCompletedOrders = async (userId) => {
     return completedOrders;
 };
 
-const getCompletedSingleOrder = async (weeklyId) => {
-    if (!weeklyId) {
-        console.log(`Invalid weeklyId provided`);
+const getCompletedSingleOrder = async (collectionIndex) => {
+    if (!collectionIndex) {
+        console.log(`Invalid collectionIndex provided`);
         return null;
     }
     const orderDoc = await db.collection('orders')
-        .where("weeklyId", "==", Number(weeklyId))
+        .where("collectionIndex", "==", Number(collectionIndex))
         .where("orderStatus", "==", 3)  //  סיים טיפול וליקוט
         .get();
 
     if (orderDoc.empty) {
-        console.log(`No completed order found for weeklyId ${weeklyId}`);
+        console.log(`No completed order found for collectionIndex ${collectionIndex}`);
         return null;
     }
 

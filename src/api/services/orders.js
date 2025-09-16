@@ -191,10 +191,10 @@ export const changeOrdersStatus = async (ids, data, userId) => {
 
     const FIRESTORE_BATCH_SIZE = 500;
     const updatedOrders = [];
-    // קבלת weeklyId הגבוה ביותר של השבוע הנוכחי
-    // נחפש את כל המסמכים שיש להם weeklyId ונוצרו/עודכנו השבוע (updateStatus בשבוע הנוכחי)
+    // קבלת collectionIndex הגבוה ביותר של השבוע הנוכחי
+    // נחפש את כל המסמכים שיש להם collectionIndex ונוצרו/עודכנו השבוע (updateStatus בשבוע הנוכחי)
     // ואז נמצא את הערך המקסימלי כדי שנוכל להקצות max+1
-    let weeklyIdCounterStart = 0;
+    let collectionIndexCounterStart = 0;
     try {
         // חשב התחלת השבוע (יום ראשון 00:00) לפי זמן מקומי/UTC כפי שמתועד ב-Timestamp
         const now = new Date();
@@ -204,27 +204,23 @@ export const changeOrdersStatus = async (ids, data, userId) => {
         const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToSunday);
         sunday.setHours(0, 0, 0, 0);
 
-        // שאילתה: כל ההזמנות שיש להן weeklyId וש- updateStatus >= תחילת השבוע
+        // שאילתה: כל ההזמנות שיש להן collectionIndex וש- updateStatus >= תחילת השבוע
         const ordersRef = collection(db, 'orders');
         const q = query(ordersRef,
-            where('weeklyId', '!=', null),
-            where('updateStatus', '>=', Timestamp.fromDate(sunday)));
+            where('updateStatus', '>=', Timestamp.fromDate(sunday)),
+            orderBy('collectionIndex', 'desc'),
+            limit(1)
+        );
         const snapshot = await getDocs(q);
-        let maxWeekly = 0;
-        snapshot.forEach(d => {
-            const w = d.data().weeklyId;
-            const n = typeof w === 'number' ? w : parseInt(w, 10);
-            if (!Number.isNaN(n) && n > maxWeekly) maxWeekly = n;
-        });
-        weeklyIdCounterStart = maxWeekly;
+        collectionIndexCounterStart = snapshot.empty ? 0 : snapshot.docs[0].data().collectionIndex || 0;
     } catch (err) {
-        console.error('Error computing weeklyId max:', err);
-        // לא נזרוק שגיאה כי נשמור על עבודה רגילה בלי weeklyId
-        weeklyIdCounterStart = 0;
+        console.error('Error computing collectionIndex max:', err);
+        // לא נזרוק שגיאה כי נשמור על עבודה רגילה בלי collectionIndex
+        collectionIndexCounterStart = 0;
     }
 
-    // נשתמש במונה מקומי כדי להקצות weeklyId ייחודי לכל מסמך שצריך
-    let weeklyCounter = weeklyIdCounterStart;
+    // נשתמש במונה מקומי כדי להקצות collectionIndex ייחודי לכל מסמך שצריך
+    let collectionIndexCounter = collectionIndexCounterStart;
 
     for (let i = 0; i < ids.length; i += FIRESTORE_BATCH_SIZE) {
         const batch = writeBatch(db);
@@ -249,22 +245,22 @@ export const changeOrdersStatus = async (ids, data, userId) => {
                 updateStatus: Timestamp.now(),
             };
 
-            // תנאים להוספת weeklyId:
+            // תנאים להוספת collectionIndex:
             // - סטטוס קודם היה 1
             // - סטטוס חדש (data.orderStatus) הוא 2
-            // - במסמך עדיין אין weeklyId
+            // - במסמך עדיין אין collectionIndex
             try {
                 const prevStatus = orderData.orderStatus;
                 const newStatus = data.orderStatus;
-                const hasWeekly = orderData.weeklyId !== undefined && orderData.weeklyId !== null;
+                const hasCollectionIndex = orderData.collectionIndex !== undefined && orderData.collectionIndex !== null;
 
-                if (prevStatus === 1 && newStatus === 2 && !hasWeekly) {
-                    weeklyCounter += 1;
-                    objToUpdate.weeklyId = weeklyCounter;
+                if (prevStatus === 1 && newStatus === 2 && !hasCollectionIndex) {
+                    collectionIndexCounter += 1;
+                    objToUpdate.collectionIndex = collectionIndexCounter;
                 }
             } catch (e) {
-                // במקרה של בעיה בקריאת נתוני המסמך, רק נמשיך בלי weekly
-                console.warn('Error checking weeklyId conditions for order', id, e);
+                // במקרה של בעיה בקריאת נתוני המסמך, רק נמשיך בלי collectionIndex
+                console.warn('Error checking collectionIndex conditions for order', id, e);
             }
 
             batch.update(docRef, objToUpdate);
