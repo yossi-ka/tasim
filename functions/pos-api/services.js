@@ -265,14 +265,24 @@ const getOrderProducts = async (userId, viewMode = "order") => {
     return result;
 };
 
-const getOrderProductsV2 = async (userId, viewMode = "order") => {
+const getOrderProductsV2 = async (userId, viewMode = "order", orderId = "None") => {
     // שלב 1: שליפת employeesToOrders עבור העובד הנוכחי עם isActive=true
-    const empToOrdSnap = await db.collection('employeesToOrders')
-        .where("employeeId", "==", userId)
-        .where("isActive", "==", true)
-        .get();
+    let empToOrdSnap;
+    console.log('*** Order ID: ', orderId);
 
+    if (orderId === "None") {
+        empToOrdSnap = await db.collection('employeesToOrders')
+            .where("employeeId", "==", userId)
+            .where("isActive", "==", true)
+            .get();
+    } else {
+        empToOrdSnap = await db.collection('employeesToOrders')
+            .where("isActive", "==", true)
+            .where("orderId", "==", orderId)
+            .get();
+    }
     if (empToOrdSnap.empty) {
+
         return [];
     }
 

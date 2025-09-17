@@ -162,7 +162,7 @@ app.post('/approveProducts', checkUserFunc, async (req, res) => {
 app.get('/orderProducts', checkUserFunc, async (req, res) => {
     // const { isAll, areaId } = req.query;
 
-    const data = await getOrderProductsV2(req.userId, req.query.viewMode)
+    const data = await getOrderProductsV2(req.userId, req.query.viewMode, req.query.orderId)
 
     return res.json({
         status: 'ok',
