@@ -593,7 +593,12 @@ const getProductsShipping = async (userId) => {
     return result;
 }
 
-const getEmployeesToOrders = async (userId, filterParams = 'all') => {
+const getEmployeesToOrders = async (userId, filterParams = 'mine') => {
+    // פרמטרים זמינים: 'mine', 'new', 'all'
+    // mine - הזמנות המשוייכות לעובד הנוכחי
+    // new - הזמנות ללא עובדים משוייכים
+    // all - כל ההזמנות
+
     // שלב 1: שליפת הזמנות עם orderStatus = 2
     const ordersSnap = await db.collection('orders')
         .where("orderStatus", "==", 2)
@@ -784,7 +789,27 @@ const getEmployeesToOrders = async (userId, filterParams = 'all') => {
                 `${order.nbsOrderId || ""} ${(order.lastName || "") + "-" + (order.firstName || "")} ${order.street || ""} ${order.phones ? order.phones.join(",") : ""} ${employeeObjects.map(emp => emp.employeeName).join(" ")} ${employeeObjects.length === 0 ? "ללא עובדים" : ""}`.toLowerCase() :
                 `${employeeObjects.map(emp => emp.employeeName).join(" ")} ${employeeObjects.length === 0 ? "ללא עובדים" : ""}`.toLowerCase()
         });
-    }); return result;
+    });
+
+    // סינון לפי פרמטר filterParams
+    let filteredResult = result;
+
+    if (filterParams === 'mine') {
+        // הצג רק הזמנות שמשוייכות לעובד הנוכחי
+        filteredResult = result.filter(item =>
+            item.employeeObjects.some(emp => emp.employeeId === userId)
+        );
+    } else if (filterParams === 'new') {
+        // הצג רק הזמנות שאין להן עובדים משוייכים
+        filteredResult = result.filter(item =>
+            !item.hasAssignedEmployees
+        );
+    } else if (filterParams === 'all') {
+        // הצג את כל ההזמנות (ללא סינון)
+        filteredResult = result;
+    }
+
+    return filteredResult;
 }
 
 const approveEmployeesToOrders = async (ordersArr, userId) => {
@@ -932,10 +957,10 @@ const extractNumber = (val) => {
 };
 
 const approvePrintQueue = async (type, docId, userId) => {
-    if(type === "order") {
-        const {success, msg} = await checkCompletedOrder(docId);
+    if (type === "order") {
+        const { success, msg } = await checkCompletedOrder(docId);
         if (!success) {
-            return {success, msg};
+            return { success, msg };
         }
     }
 
