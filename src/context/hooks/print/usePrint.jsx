@@ -31,7 +31,7 @@ const usePrint = () => {
     const getPageStyle = () => {
         const { pageStyle, pageSize, isLandscape } = printOptions;
         if (pageStyle) return pageStyle;
-        
+
         const orientation = isLandscape ? 'landscape' : 'portrait';
         return `@page { size: ${pageSize} ${orientation}; margin: 0; }`;
     };
@@ -39,7 +39,7 @@ const usePrint = () => {
     // יצירת עיצוב עמוד דינמי עבור התוכן
     const getContentStyle = () => {
         const { isLandscape, pageSize } = printOptions;
-        
+
         if (isLandscape) {
             // אם זה גודל מותאם אישית, נשתמש בו
             if (pageSize && pageSize.includes('cm')) {
@@ -61,7 +61,7 @@ const usePrint = () => {
                 height: '21cm',
             };
         }
-        
+
         // Portrait mode
         if (pageSize && pageSize.includes('cm')) {
             const dimensions = pageSize.split(' ');
@@ -72,7 +72,7 @@ const usePrint = () => {
                 minHeight: height,
             };
         }
-        
+
         // A4 Portrait (ברירת מחדל)
         return {
             width: '21cm',
@@ -84,11 +84,11 @@ const usePrint = () => {
     const getCurrentPageStyle = () => {
         const { pageStyle, pageSize, isLandscape } = printOptions;
         if (pageStyle) return pageStyle;
-        
+
         if (Object.keys(printOptions).length === 0) {
             return '@page { size: A4 portrait; margin: 0; }';
         }
-        
+
         const orientation = isLandscape ? 'landscape' : 'portrait';
         return `@page { size: ${pageSize} ${orientation}; margin: 0; }`;
     };
@@ -105,7 +105,7 @@ const usePrint = () => {
                 pageBreakAfter: 'always'
             };
         }
-        
+
         return {
             ...getContentStyle(),
             display: 'flex',

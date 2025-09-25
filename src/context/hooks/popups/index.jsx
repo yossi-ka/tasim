@@ -17,7 +17,7 @@ export const usePopups = () => {
     const closePopupCallback = React.useRef(null);
     const popup = ({ title, content, props, onClose, size }, isPrevious = false) => {
 
-        if(!isPrevious) setPopupHistory([...popupHistory, { title, content, props, onClose, size }]);
+        if (!isPrevious) setPopupHistory([...popupHistory, { title, content, props, onClose, size }]);
 
         let propsObj = props ? props : {};
         if (size) propsObj.maxWidth = size;
@@ -45,7 +45,7 @@ export const usePopups = () => {
         setOpenPopup(false);
     };
     React.useEffect(() => {
-        if (!openPopup && popupHistory.length == 0) {
+        if (!openPopup && popupHistory.length === 0) {
             setPropsPopup({});
             setTitlePopup('פופאפ');
             setChildrenPopup(null);
@@ -78,7 +78,7 @@ export const usePopups = () => {
         }
     }, [openSmallPopup]);
 
-   
+
     return {
         openConfirm, setOpenConfirm, objConfirm, setObjConfirm, confirm,
         popup, closePopup, openPopup, setOpenPopup, titlePopup, setTitlePopup, childrenPopup, setChildrenPopup, propsPopup, setPropsPopup, previousPopup, popupHistory,

@@ -14,7 +14,7 @@ const LineChart = ({ title, size, arrX, arrY, data, maxValue, minValue }) => {
 
     const titleBottomBox = React.useMemo(() => (width - 25) / arrX.length, [width]);
     const titleRightBox = React.useMemo(() => (height - 25) / arrY.length, [height]);
-    const numberToPoint = (height - 25) / (maxValue - minValue ) 
+    const numberToPoint = (height - 25) / (maxValue - minValue)
     return (
         <Box>
             {title && <Typography variant="h5" align='left'>
@@ -67,12 +67,12 @@ const LineChart = ({ title, size, arrX, arrY, data, maxValue, minValue }) => {
                             d={item.data.map((item2, i) => {
                                 // let indexY = arrY.indexOf(item2);
                                 const sideX = (width - 30) - (titleBottomBox * i);
-                                const sideY = (size - 25) - (item2 *numberToPoint) //(titleRightBox * indexY);
+                                const sideY = (size - 25) - (item2 * numberToPoint) //(titleRightBox * indexY);
                                 const pieceSideX = titleBottomBox / 5;
                                 // const firstY = (size - 25) - (titleRightBox * (arrY.indexOf(item.data[i - 1])));
                                 if (i === 0) return `M ${width - 30} ${sideY}`
 
-                                const firstY = (size - 25) - (item.data[i-1] *numberToPoint)
+                                const firstY = (size - 25) - (item.data[i - 1] * numberToPoint)
                                 // const previousY = (size - 25) - (titleRightBox * (arrY.indexOf(data[i-1])));
                                 return `C ${sideX + (pieceSideX * 3)} ${firstY}
                                 ${sideX + (pieceSideX * 2)} ${sideY}
@@ -96,11 +96,11 @@ const LineChart = ({ title, size, arrX, arrY, data, maxValue, minValue }) => {
                         C125,100 150,50 150,50" stroke="black" fill="none" stroke-width="2" /> */}
                 </svg>
             </Stack>
-            <Divider sx={{ mt: 1 }}/>
+            <Divider sx={{ mt: 1 }} />
             <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mt: 2 }}>
                 {data.map((item, index) => <Stack key={index} direction="row" justifyContent="center" alignItems="center" spacing={0} sx={{ mx: 2 }}>
                     {/* <IconButton size='small' onClick={() => setClicked(clicked === index ? null : index)}> */}
-                        <FiberManualRecordIcon sx={{ color: theme.palette[item.color][400] }} />
+                    <FiberManualRecordIcon sx={{ color: theme.palette[item.color][400] }} />
                     {/* </IconButton> */}
                     <Typography variant='body2'>
                         {item.label}

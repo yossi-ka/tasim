@@ -1,4 +1,4 @@
-// ==============================|| OVERRIDES - CHECKBOX ||============================== //
+// ==================================|| OVERRIDES - CHECKBOX ||================================== //
 
 export default function Checkbox(theme) {
     return {

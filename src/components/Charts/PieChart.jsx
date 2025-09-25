@@ -71,13 +71,13 @@ const PieChart = ({ title, size, spread, data }) => {
     }, [sumValues]);
 
 
-    React.useEffect(() => { 
+    React.useEffect(() => {
         curSpread = 1;
         const interval = setInterval(() => {
             if (curSpread < spread) {
                 setSpreadState(curSpread);
                 curSpread++;
-            }else{
+            } else {
                 clearInterval(interval);
             }
         }, 40);
@@ -126,7 +126,7 @@ const PieChart = ({ title, size, spread, data }) => {
                 <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fill={theme.palette.secondary.dark} style={{ fontSize: 30 }} onClick={() => setClicked(null)}>
                     {formatNumber(clicked !== null ? dataState[clicked].value : sumValues)}
                 </text>
-            </svg>
+            </svg >
             <Divider />
             <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mt: 1 }}>
                 {dataState.map((item, index) => <Stack key={index} direction="row" justifyContent="center" alignItems="center" spacing={0}>
@@ -137,8 +137,8 @@ const PieChart = ({ title, size, spread, data }) => {
                         {item.label}
                     </Typography>
                 </Stack>)}
-            </Stack>
-        </Box>
+            </Stack >
+        </Box >
     )
 }
 
@@ -148,11 +148,11 @@ PieChart.defaultProps = {
     size: 350,
     spread: 20,
     data: [
-        { value:25, color: 'red', label: 'label 1' },
-        { value:25, color: 'blue', label: 'label 2' },
-        { value:25, color: 'orange', label: 'label 3' },
-        { value:25, color: 'yellow', label: 'label 4' },
-        { value:25, color: 'pink', label: 'label 5' },
+        { value: 25, color: 'red', label: 'label 1' },
+        { value: 25, color: 'blue', label: 'label 2' },
+        { value: 25, color: 'orange', label: 'label 3' },
+        { value: 25, color: 'yellow', label: 'label 4' },
+        { value: 25, color: 'pink', label: 'label 5' },
     ]
 };
 

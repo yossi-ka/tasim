@@ -73,9 +73,9 @@ const GenericTable = ({ columns, data, loading, height, tableHeight, customHeigh
                 }
 
                 if (sortType.type === "asc") {
-                    return aVal != null || aVal > bVal ? 1 : -1;
+                    return aVal !== null || aVal > bVal ? 1 : -1;
                 } else {
-                    return aVal == null || aVal < bVal ? 1 : -1;
+                    return aVal === null || aVal < bVal ? 1 : -1;
                 }
             });
             setSortedData(newSortedData);
@@ -103,14 +103,14 @@ const GenericTable = ({ columns, data, loading, height, tableHeight, customHeigh
             }
             setHeights({ ...defaultHeight, ...newHeights });
         } else if (height) {
-            if (height == "main")
+            if (height === "main")
                 setHeights({
                     container: window.innerHeight * 0.88,
                     tableContent: 0.94,
                     header: null,
                     footer: null //0.05,
                 })
-            else if (height == "tabs")
+            else if (height === "tabs")
                 setHeights({
                     container: window.innerHeight * 0.83,
                     header: null,
@@ -211,10 +211,10 @@ const GenericTable = ({ columns, data, loading, height, tableHeight, customHeigh
                                                     }
                                                 }}>
                                                 {isFunction(column.label) ? column.label(setDataToShow) : column.label}
-                                                {sortType.column == column.key && sortType.type == "asc" && <ArrowDropUpIcon
+                                                {sortType.column === column.key && sortType.type === "asc" && <ArrowDropUpIcon
                                                     onClick={() => setSortType({ column: column.key, type: "asc" })}
                                                 />}
-                                                {sortType.column == column.key && sortType.type == "desc" && <ArrowDropDownIcon
+                                                {sortType.column === column.key && sortType.type === "desc" && <ArrowDropDownIcon
                                                     onClick={() => setSortType({ column: column.key, type: "desc" })}
                                                 />}
                                             </Stack>
@@ -257,7 +257,7 @@ const GenericTable = ({ columns, data, loading, height, tableHeight, customHeigh
                     />
                 </Box>}
             </Stack>
-        </Card>
+        </Card >
     )
 }
 

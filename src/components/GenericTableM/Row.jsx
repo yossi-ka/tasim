@@ -32,7 +32,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, selected, setSelected }
     // const [copyed, setCopyed] = useState(false);
     const isCollapsed = columns.some(column => column.collapse);
     const collapseContent = isCollapsed ? columns.find(column => column.collapse).collapse : null;
-    const isFiilRow = useMemo(() => fillRow == index ? true : false, [fillRow, index]);
+    const isFiilRow = useMemo(() => fillRow === index ? true : false, [fillRow, index]);
 
     return (
         <>

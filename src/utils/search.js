@@ -12,7 +12,7 @@ export const search = ({ params, data, setData, getLookupName, terms }) => {
             if (terms && terms.find((term) => term.name === key)?.cbSearch) {
                 const res = terms.find((term) => term.name === key).cbSearch(item, searchParams[key])
                 if (!res) return false;
-            } else if (key == "globalSearch") {
+            } else if (key === "globalSearch") {
                 const fullRow = getFullRow(item, terms, getLookupName)
                 const searchArr = params[key].split(" ")
                 let isMatch = true;
@@ -43,8 +43,8 @@ export const search = ({ params, data, setData, getLookupName, terms }) => {
                 const keyName = key.replace("contains", "")
                 let isMatch = false;
                 for (let i = 0; i < params[key].length; i++) {
-                    if (params[key][i] == 0) {
-                        if (isEmpty(item[keyName]) || (isArray(item[keyName]) && item[keyName].length == 0)) {
+                    if (params[key][i] === 0) {
+                        if (isEmpty(item[keyName]) || (isArray(item[keyName]) && item[keyName].length === 0)) {
                             isMatch = true;
                             break;
                         }
@@ -57,10 +57,10 @@ export const search = ({ params, data, setData, getLookupName, terms }) => {
                 }
                 if (!isMatch) return false;
             } else if (isArray(params[key])) {
-                //params == [1,2,3] item == 1
+                //params === [1,2,3] item === 1
                 let isMatch = false;
                 for (let i = 0; i < params[key].length; i++) {
-                    if (item[key] == params[key][i]) {
+                    if (item[key] === params[key][i]) {
                         isMatch = true;
                         break;
                     }

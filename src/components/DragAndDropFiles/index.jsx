@@ -121,7 +121,7 @@ const DragAndDropFiles = ({ height, uploadButton, multiple, doAction, statusUplo
                 onDragOver={e => handleDragOver(e)}
                 onDragEnter={e => handleDragEnter(e)}
                 onDragLeave={e => handleDragLeave(e)}
-                onClick={() => data.fileList.length == 0 && inputRef.current.click()}
+                onClick={() => data.fileList.length === 0 && inputRef.current.click()}
                 sx={{
                     width: 1,
                     height: height,

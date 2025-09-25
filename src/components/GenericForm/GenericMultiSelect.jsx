@@ -42,7 +42,7 @@ const GenericMultiSelect = ({
 
     React.useEffect(() => {
         setErrorS(error);
-        if (error == true) addError(name);
+        if (error === true) addError(name);
         else removeError(name);
     }, [error, name, setErrorS]);
 
@@ -86,13 +86,13 @@ const GenericMultiSelect = ({
             >
                 {options.map((value) => (
                     <MenuItem key={value.value} value={value.value}>
-                        <Checkbox size='small' checked={valuesChoose.indexOf(value.value) > -1} sx={{ '& .MuiSvgIcon-root': { fontSize: 16 } }}/>
+                        <Checkbox size='small' checked={valuesChoose.indexOf(value.value) > -1} sx={{ '& .MuiSvgIcon-root': { fontSize: 16 } }} />
                         <ListItemText primary={value.label} />
                     </MenuItem>
                 ))}
             </Select>
             {errorS && <FormHelperText>{helperText}</FormHelperText>}
-        </FormControl>
+        </FormControl >
 
     return (
 

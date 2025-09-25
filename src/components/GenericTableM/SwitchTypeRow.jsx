@@ -68,7 +68,7 @@ const SwitchTypeRow = ({ col, row, setOpenCollapse, openCollapse, index, objColl
             return checkd;
         }
         else {
-            var indexInSelectedRow = selected.find(x => x[idKey] == row[idKey]);
+            var indexInSelectedRow = selected.find(x => x[idKey] === row[idKey]);
             return indexInSelectedRow ? true : false;
         }
     }
@@ -106,8 +106,8 @@ const SwitchTypeRow = ({ col, row, setOpenCollapse, openCollapse, index, objColl
                 case "percent":
                     return formatPercent(value);
                 case "lookup":
-                    if (value == null || value == undefined || value == "") return "-";
-                    const v = getLookup(col.lookup).find(item => item.value == value)
+                    if (value === null || value === undefined || value === "") return "-";
+                    const v = getLookup(col.lookup).find(item => item.value === value)
                     return v ? v.label : '-';
                 // return value;
                 case "boolean":
@@ -119,7 +119,7 @@ const SwitchTypeRow = ({ col, row, setOpenCollapse, openCollapse, index, objColl
                         <Typography variant="body2">{formatReadMore(value, 50, true)}</Typography>
                     </Tooltip>;
                 case "readmore-copy":
-                    if (value == null || value == undefined || value == "") return "-";
+                    if (value === null || value === undefined || value === "") return "-";
                     return <CopyColView isReadMore={true} value={value} />
                 case "copy":
                     return <CopyColView isReadMore={false} value={value} />
@@ -170,7 +170,7 @@ const SwitchTypeRow = ({ col, row, setOpenCollapse, openCollapse, index, objColl
                                     setSelected(newList);
                                 }
                                 else {
-                                    var newList = selected.filter(s => s[col.first.checkbox.idKey] != row[col.first.checkbox.idKey])
+                                    var newList = selected.filter(s => s[col.first.checkbox.idKey] !== row[col.first.checkbox.idKey])
                                     setSelected(newList)
                                 }
                             }

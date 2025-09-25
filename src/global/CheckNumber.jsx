@@ -10,7 +10,7 @@ const CheckNumber = ({ closePopover, handleChange, name }) => {
     const getData = () => {
         const q = query(collection(db, "tmichot"), orderBy("shekNomber", "desc"), limit(1));
         getDocs(q).then((docs) => {
-            const num = docs.docs.length == 0 ? 1 : docs.docs[0].data().shekNomber;
+            const num = docs.docs.length === 0 ? 1 : docs.docs[0].data().shekNomber;
             setNumber(num);
         });
     };

@@ -30,7 +30,7 @@ const StatusFilter = ({ statuses, statusBarHandleChange, title, isData, count, a
       justifyContent="space-between"
       sx={{ width: 1, bgcolor: theme.palette.grey[100] }}
     >
-      {title && typeof title == "string" ? <Typography variant='h4' sx={{ px: 3, py: 1, fontWeight: 600 }}>
+      {title && typeof title === "string" ? <Typography variant='h4' sx={{ px: 3, py: 1, fontWeight: 600 }}>
         {title}
         {count > 0 && <span style={{ fontSize: '14px' }}> ({count})</span>}
       </Typography> : title}

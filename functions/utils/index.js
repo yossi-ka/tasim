@@ -139,7 +139,7 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
         console.log('📋 Excel workbook parsed, processing sheet...');//לוג שני21:06 
 
         // Convert to JSON with headers - optimize for large datasets
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
             header: 1,
             defval: '', // Default value for empty cells
             raw: false // Parse values instead of keeping them raw
@@ -157,7 +157,7 @@ const parseExcelToJson = (excelResponse, headerMapping, rowProcessor = null) => 
         // Convert data rows to structured objects with progress tracking
         console.log(`🔄 Processing ${jsonData.length - 1} data rows...`);
         const structuredData = [];
-        
+
         for (let i = 1; i < jsonData.length; i++) {
             const row = jsonData[i];
             const rowData = {};

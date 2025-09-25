@@ -44,7 +44,7 @@ export default class Terms {
     return columns;
   }
 
-  table(names = null, replace = null){
+  table(names = null, replace = null) {
     const columns = [];
     const _terms = names ? this.getTermsByName(names) : this.terms;
     _terms.forEach(term => {
@@ -65,7 +65,7 @@ export default class Terms {
     return columns;
   }
 
-  excel(names = null, replace = null){
+  excel(names = null, replace = null) {
     const columns = [];
     const _terms = names ? this.getTermsByName(names) : this.terms;
     _terms.forEach(term => {
@@ -85,10 +85,10 @@ export default class Terms {
     return columns;
   }
 
-  field(name, obj = {}){
+  field(name, obj = {}) {
     const _term = this.getTermByName(name);
-    if(!_term) return obj;
-    return {..._term, ...obj};
+    if (!_term) return obj;
+    return { ..._term, ...obj };
   }
 
   getFakeDataForTable = (names = null, arraySize = 50) => {

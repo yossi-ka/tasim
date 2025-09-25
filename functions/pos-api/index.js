@@ -19,7 +19,7 @@ const checkUserFunc = (req, res, next) => {
         const token = req?.headers?.authorization?.split(' ')[1];
         checkUser(token).then(res => {
 
-            if (res.userId == null) return res.json({
+            if (res.userId === null) return res.json({
                 status: "error",
                 massege: "פרטי זיהוי שגויים"
             })
@@ -42,7 +42,7 @@ app.post('/login', async (req, res) => {
     const { userName, password, cardNumber } = req.body;
 
     const userData = await login(userName, password, cardNumber)
-    if (userData == null) {
+    if (userData === null) {
         return res.json({
             status: "error",
             massege: "פרטי זיהוי שגויים"
@@ -55,7 +55,7 @@ app.post('/login', async (req, res) => {
     })
 })
 
-app.get('/test',  async (req, res) => {
+app.get('/test', async (req, res) => {
     // const { isAll, areaId } = req.query;
 
     const data = "Hello from test..."; // await getProducts(req.userId)

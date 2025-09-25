@@ -49,7 +49,7 @@ const Header = ({ title, actions, count, countForPagination, rowsPerPage, page, 
                     {(actions) && <ButtonGroup size='small'>
                         {actions.map((action, index) => {
 
-                            const btn = action.icon && action.label == undefined
+                            const btn = action.icon && action.label === undefined
                                 ? <IconButton
                                     key={index}
                                     color="primary"
@@ -82,7 +82,7 @@ const Header = ({ title, actions, count, countForPagination, rowsPerPage, page, 
                     {(selectedActions && selected.length > 0) && <ButtonGroup size='small'>
                         {selectedActions.map((action, index) => {
 
-                            const btn = action.icon && action.label == undefined
+                            const btn = action.icon && action.label === undefined
                                 ? <IconButton
                                     key={index}
                                     color="primary"

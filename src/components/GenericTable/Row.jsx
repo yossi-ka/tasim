@@ -58,7 +58,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
     const isCollapsed = columns.some(column => column.collapse);
     const collapseContent = isCollapsed ? columns.find(column => column.collapse).collapse : null;
 
-    const isFiilRow = React.useMemo(() => fillRow == index ? true : false, [fillRow, index]);
+    const isFiilRow = React.useMemo(() => fillRow === index ? true : false, [fillRow, index]);
 
     const actionDisabled = (action) => {
         if (action.disabled) {
@@ -88,7 +88,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
         if (col.key) {
             switch (col.type) {
                 case "numberText":
-                    if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "" || row[col.key] == 0) return "-";
+                    if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "" || row[col.key] === 0) return "-";
                     return row[col.key];
                 case "date":
                     if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "") return "-";
@@ -109,7 +109,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                     </Stack>
                 case "timeSpan":
                     if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "") return "-";
-                    let time = row[col.key].length == 5 ? "0" + row[col.key] : row[col.key];
+                    let time = row[col.key].length === 5 ? "0" + row[col.key] : row[col.key];
                     let hours = time.substring(0, 2);
                     let minutes = time.substring(2, 4);
                     let seconds = time.substring(4, 6);
@@ -143,12 +143,12 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                     if (row[col.key] < 0) return <Typography variant="body2" color="error.main">{formatPercent(row[col.key])}</Typography>;
                     else return <Typography variant="body2" color="secondary.main">{formatPercent(row[col.key])}</Typography>;
                 case "lookup":
-                    if (row[col.key] == null || row[col.key] == undefined || row[col.key] == "" || row[col.key] == 0) return "-";
+                    if (row[col.key] === null || row[col.key] === undefined || row[col.key] === "" || row[col.key] === 0) return "-";
                     let l = getLookup(col.lookup).find(item => item.value === row[col.key]);
                     return l ? l.label : "-";
                 case "boolean":
-                    if (row[col.key] == null) return <Typography variant="body2" color="error">✗</Typography>;
-                    if ((row[col.key] == undefined || row[col.key] == "") && row[col.key] != 0) return "-";
+                    if (row[col.key] === null) return <Typography variant="body2" color="error">✗</Typography>;
+                    if ((row[col.key] === undefined || row[col.key] === "") && row[col.key] !== 0) return "-";
                     const v = <Typography variant="body2" color="success.main">✓</Typography>;
                     const x = <Typography variant="body2" color="error">✗</Typography>;
                     switch (row[col.key]) {
@@ -231,8 +231,8 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                         </Button>
                     </Tooltip>;
                 case "lookup-array":
-                    if (!row[col.key] || !isArray(row[col.key]) || row[col.key].length == 0) return "";
-                    // else if (row[col.key].length == 1) return getLookup(col.lookup).find(item => item.value === row[col.key][0])?.label;
+                    if (!row[col.key] || !isArray(row[col.key]) || row[col.key].length === 0) return "";
+                    // else if (row[col.key].length === 1) return getLookup(col.lookup).find(item => item.value === row[col.key][0])?.label;
                     else return row[col.key].map((item, index) => {
                         return <Chip key={index} size='small' label={getLookup(col.lookup).find(l => l.value === item)?.label} sx={{ m: 0.1, p: 0 }} />
                     });
@@ -316,7 +316,7 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                 {columns.map((col, index) => (
                     <TableCell key={index}
                         onClick={() => {
-                            if (onRowClick && (col.type && col.type != 'copy')) onRowClick(row);
+                            if (onRowClick && (col.type && col.type !== 'copy')) onRowClick(row);
                         }}
                         sx={{
                             borderBottom: isCollapsed ? 'unset' : '',
@@ -324,19 +324,20 @@ const Row = ({ row, index, columns, fillRow, setFillRow, isDense, statuses, onRo
                             color: col.color ? col.color : null,
                             py: (isCollapsed && openCollapse) ? 1 : isDense ? 0.5 : null,
                             width: (col.actionBtn || col.checkbox) ? 75 : null,
-                            cursor: onRowClick && (!col.type || col.type != 'copy') ? 'pointer' : null
+                            cursor: onRowClick && (!col.type || col.type !== 'copy') ? 'pointer' : null
                         }}>
                         {switchRow(col)}
                     </TableCell>
                 ))}
-            </TableRow>
+            </TableRow >
             {(isCollapsed && openCollapse) && <TableRow>
                 <TableCell colSpan={26} sx={{ fontSize: "100%", bgcolor: openCollapse ? theme.palette.warning.lighter : null }}>
                     <Collapse in={openCollapse} timeout={250} sx={{ textAlign: "left", my: openCollapse ? 2 : 0, mx: 2 }}>
                         {collapseContent(row, setOpenCollapse, openCollapse, index, objCollapse, setObjCollapse)}
                     </Collapse>
                 </TableCell>
-            </TableRow>}
+            </TableRow>
+            }
         </>
     )
 }

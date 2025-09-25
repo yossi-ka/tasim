@@ -11,7 +11,7 @@ import { useTheme } from '@mui/material/styles';
 import { isFunction } from '../../utils/func';
 
 const ActionBtn = ({ isDense, actionsArr, row, setOpenCollapse, openCollapse }) => {
-    
+
     const actions = React.useMemo(() => actionsArr.filter(action => action), [actionsArr]);
     const theme = useTheme();
 
@@ -45,7 +45,7 @@ const ActionBtn = ({ isDense, actionsArr, row, setOpenCollapse, openCollapse }) 
                     aria-haspopup="true"
                     aria-expanded={open ? 'true' : undefined}
                 >
-                    {openCollapse ? <CloseIcon color='error' /> : (actions.length > 1 || (actions.length == 1 && !actions[0].icon))
+                    {openCollapse ? <CloseIcon color='error' /> : (actions.length > 1 || (actions.length === 1 && !actions[0].icon))
                         ? <MoreVertIcon fontSize={isDense ? "small" : "medium"} />
                         : actions[0].icon}
                 </IconButton>

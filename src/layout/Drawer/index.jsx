@@ -10,7 +10,7 @@ import DrawerContent from './DrawerContent';
 import MiniDrawerStyled from './MiniDrawerStyled';
 import { drawerWidth } from '../../config';
 
-// ==============================|| MAIN LAYOUT - DRAWER ||============================== //
+// ==================================|| MAIN LAYOUT - DRAWER ||================================== //
 
 const MainDrawer = ({ open, handleDrawerToggle, window }) => {
     const theme = useTheme();

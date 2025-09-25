@@ -1,19 +1,19 @@
-// ==============================|| PRESET THEME - THEME SELECTOR ||============================== //
+// ==================================|| PRESET THEME - THEME SELECTOR ||================================== //
 
 const Theme = (colors) => {
     const { blue, red, gold, cyan, green, grey, orange } = colors;
 
-    const ktzdaka = {
-        0: '#f2e0d4',
-        1: '#e6c6b7',
-        2: '#dbaca1',
-        3: '#cf938a',
-        4: '#c47a74',
-        5: '#b8615e',
-        6: '#ac4849',
-        7: '#a02f33',
-        8: '#94161e',
-        9: '#890d08',
+    const blueTheme = {
+        0: '#e3f2fd',  // כחול בהיר מאוד
+        1: '#bbdefb',  // כחול בהיר 
+        2: '#90caf9',  // כחול בינוני בהיר
+        3: '#64b5f6',  // כחול בינוני
+        4: '#42a5f5',  // כחול
+        5: '#2196f3',  // כחול עיקרי (מטריאל דיזיין)
+        6: '#1e88e5',  // כחול כהה
+        7: '#1976d2',  // כחול כהה יותר
+        8: '#1565c0',  // כחול כהה מאוד
+        9: '#0d47a1',  // כחול עמוק
     }
 
     const greyColors = {
@@ -39,29 +39,29 @@ const Theme = (colors) => {
 
     return {
         primary: {
-            lighter: ktzdaka[0],
-            100: ktzdaka[1],
-            200: ktzdaka[2],
-            light: ktzdaka[3],
-            400: ktzdaka[4],
-            main: ktzdaka[5],
-            dark: ktzdaka[6],
-            700: ktzdaka[7],
-            darker: ktzdaka[8],
-            900: ktzdaka[9],
+            lighter: blueTheme[0],
+            100: blueTheme[1],
+            200: blueTheme[2],
+            light: blueTheme[3],
+            400: blueTheme[4],
+            main: blueTheme[5],
+            dark: blueTheme[6],
+            700: blueTheme[7],
+            darker: blueTheme[8],
+            900: blueTheme[9],
             contrastText
         },
         secondary: {
-            lighter: greyColors[50],
-            100: greyColors[100],
-            200: greyColors[200],
-            light: greyColors[300],
-            400: greyColors[400],
-            main: greyColors[500],
-            600: greyColors[600],
-            dark: greyColors[700],
-            800: greyColors[800],
-            darker: greyColors[900],
+            lighter: '#f8faff',  // אפור-כחול בהיר מאוד
+            100: '#ecf2ff',      // אפור-כחול בהיר
+            200: '#d1dcf0',      // אפור-כחול
+            light: '#b0bec5',    // אפור-כחול בינוני
+            400: '#90a4ae',      // אפור-כחול
+            main: '#78909c',     // אפור-כחול עיקרי
+            600: '#546e7a',      // אפור-כחול כהה
+            dark: '#37474f',     // אפור-כחול כהה יותר
+            800: '#263238',      // אפור-כחול כהה מאוד
+            darker: '#1c1f21',   // אפור כהה
             A100: greyColors[0],
             A200: greyColors.A400,
             A300: greyColors.A700,
@@ -94,29 +94,29 @@ const Theme = (colors) => {
             contrastText: greyColors[100]
         },
         info: {
-            lighter: cyan[0],
-            100: cyan[1],
-            200: cyan[2],
-            light: cyan[3],
-            400: cyan[4],
-            main: cyan[5],
-            dark: cyan[6],
-            700: cyan[7],
-            darker: cyan[8],
-            900: cyan[9],
+            lighter: '#e1f5fe',  // תכלת בהיר מאוד
+            100: '#b3e5fc',      // תכלת בהיר
+            200: '#81d4fa',      // תכלת בהיר בינוני
+            light: '#4fc3f7',    // תכלת בינוני
+            400: '#29b6f6',      // תכלת
+            main: '#03a9f4',     // תכלת עיקרי
+            dark: '#0288d1',     // תכלת כהה
+            700: '#0277bd',      // תכלת כהה יותר
+            darker: '#01579b',   // תכלת כהה מאוד
+            900: '#004d7a',      // תכלת עמוק
             contrastText
         },
         success: {
-            lighter: green[0],
-            100: green[1],
-            200: green[2],
-            light: green[3],
-            400: green[4],
-            main: green[5],
-            dark: green[6],
-            700: green[7],
-            darker: green[8],
-            900: green[9],
+            lighter: '#e8f5e8',  // ירוק-כחול בהיר מאוד
+            100: '#c8e6c9',      // ירוק-כחול בהיר
+            200: '#a5d6a7',      // ירוק-כחול בהיר בינוני
+            light: '#81c784',    // ירוק-כחול בינוני
+            400: '#66bb6a',      // ירוק-כחול
+            main: '#4caf50',     // ירוק עיקרי
+            dark: '#388e3c',     // ירוק כהה
+            700: '#2e7d32',      // ירוק כהה יותר
+            darker: '#1b5e20',   // ירוק כהה מאוד
+            900: '#0d4f0d',      // ירוק עמוק
             contrastText
         },
         grey: greyColors

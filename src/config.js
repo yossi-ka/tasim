@@ -1,5 +1,5 @@
 export const drawerWidth = 190;
 
-export const twitterColor = '#1DA1F2';
-export const facebookColor = '#3b5998';
-export const linkedInColor = '#0e76a8';
+export const twitterColor = '#2196f3';
+export const facebookColor = '#1976d2';
+export const linkedInColor = '#1565c0';

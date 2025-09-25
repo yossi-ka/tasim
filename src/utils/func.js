@@ -93,13 +93,13 @@ export function checkDate(date) {
     //is dd/mm/yyyy
     else {
         parseDate = new Date(`${dateArr[1]}/${dateArr[0]}/${dateArr[2]}`);
-        return parseDate != 'Invalid Date' ? parseDate : null;
+        return parseDate !== 'Invalid Date' ? parseDate : null;
     }
     if (dateArr.length !== 3) return null;
     //is yyyy-mm-dd
     parseDate = new Date(`${dateArr[1]}/${dateArr[2]}/${dateArr[0]}`);
 
-    return parseDate != 'Invalid Date' ? parseDate : null;
+    return parseDate !== 'Invalid Date' ? parseDate : null;
 }
 
 //format a date
@@ -108,9 +108,9 @@ export function formatDate(_date = null) {
     const date = _date ? new Date(_date) : new Date();
 
     // if invalid date
-    if (date == 'Invalid Date') return;
+    if (date === 'Invalid Date') return;
 
-    if (date.getTime() == -62135605254000) {
+    if (date.getTime() === -62135605254000) {
         return;
     }
 
@@ -341,8 +341,8 @@ export function checkPhone(phone) {
     phone = phone.replaceAll(' ', '');
     if (!(/^\d+$/.test(phone))) return false
     if (phone.length < 7 || phone.length > 10) return false;
-    if (phone.length == 7 && phone[0] != 0) phone = '02' + phone;
-    if (phone.length == 9 && phone[0] != 0) phone = '0' + phone
+    if (phone.length === 7 && phone[0] !== 0) phone = '02' + phone;
+    if (phone.length === 9 && phone[0] !== 0) phone = '0' + phone
     const res = /^0?(([23489]{1}\d{7})|[57]{1}\d{8})$/.test(phone);
     return res;
 }
@@ -354,8 +354,8 @@ export function fixPhone(phone) {
     phone = phone.toString();
     phone = phone.replaceAll('-', '');
     phone = phone.replaceAll(' ', '');
-    if (phone.length == 7 && phone[0] != 0) phone = '02' + phone;
-    if ((phone.length == 8 || phone.length == 9) && phone[0] != 0) phone = phone = '0' + phone
+    if (phone.length === 7 && phone[0] !== 0) phone = '02' + phone;
+    if ((phone.length === 8 || phone.length === 9) && phone[0] !== 0) phone = phone = '0' + phone
     return phone;
 }
 //check if the value is a valid email

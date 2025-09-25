@@ -8,7 +8,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 
 import Context from '../../../context';
 
-// ==============================|| DRAWER HEADER ||============================== //
+// ==================================|| DRAWER HEADER ||================================== //
 
 const DrawerHeader = ({ open }) => {
 

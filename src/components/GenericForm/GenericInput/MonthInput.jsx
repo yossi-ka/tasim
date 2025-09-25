@@ -42,7 +42,7 @@ const MonthInput = ({
 
     React.useEffect(() => {
         var inputSelect = inputs[name];
-        if (inputSelect && inputSelect != 0) {
+        if (inputSelect && inputSelect !== 0) {
             // setValueState(convertDateJsToMonthIL(inputSelect));
         }
     }, [inputs]);
@@ -76,15 +76,15 @@ const MonthInput = ({
                 // console.log(v);
                 if (!isDateNumber(v)) return;
 
-                if (v.charAt(v.length - 1) == "/" && v.charAt(v.length - 2) == "/") return;
+                if (v.charAt(v.length - 1) === "/" && v.charAt(v.length - 2) === "/") return;
 
                 if (v.length < valueState.length) {
-                    if (valueState.charAt(valueState.length - 1) == "/") v = v.slice(0, v.length - 1)
+                    if (valueState.charAt(valueState.length - 1) === "/") v = v.slice(0, v.length - 1)
                     setValueState(v)
                     return
                 };
 
-                if (v.charAt(v.length - 1) == "/") {
+                if (v.charAt(v.length - 1) === "/") {
                     let arr = v.split("/");
                     let last = arr[0];
                     arr[0] = last.padStart(2, 0);
@@ -92,18 +92,18 @@ const MonthInput = ({
                     return;
                 };
 
-                if (v.length == 2) v = `${v}/`;
+                if (v.length === 2) v = `${v}/`;
 
                 let arr = v.split("/");
                 let len = arr.length;
 
-                if (len == 2 && !isBetween(arr[0], 1, 12)) arr[0] = "12";
-                if (len == 2 && arr[1].length > 4) return;
+                if (len === 2 && !isBetween(arr[0], 1, 12)) arr[0] = "12";
+                if (len === 2 && arr[1].length > 4) return;
 
 
                 setValueState(arr.join("/"));
 
-                if (len != 2 || arr[1].length < 4) return;
+                if (len !== 2 || arr[1].length < 4) return;
 
                 const arrFormatDate = `${arr[0]}/01/${arr[1]}`;
                 let date = new Date(arrFormatDate);
@@ -145,7 +145,7 @@ const MonthInput = ({
                 }
 
 
-                if (date != 'Invalid Date') {
+                if (date !== 'Invalid Date') {
                     setErrorS(false);
                     if (removeError) { removeError(name); }
                     setHelperTextS("");

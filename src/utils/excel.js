@@ -59,10 +59,10 @@ export function exportExcel(
 }
 
 function getTypeCell(type) {
-    if (type == 'number' || type == 'currency' || type == 'currencyIL' || type == 'percent') {
+    if (type === 'number' || type === 'currency' || type === 'currencyIL' || type === 'percent') {
         return 'n';
     }
-    // if (type == 'date') {
+    // if (type === 'date') {
     //     return 'd';
     // }
     return 's';

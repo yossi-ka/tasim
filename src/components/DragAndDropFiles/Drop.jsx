@@ -44,9 +44,9 @@ const Drop = ({ data, dispatch, title }) => {
             style={{
                 padding: "2rem",
                 textAlign: "center",
-                background: "#07F",
+                background: "#2196f3",
                 borderRadius: "0.5rem",
-                boxShadow: "5px 5px 10px #C0C0C0",
+                boxShadow: "5px 5px 10px #90caf9",
             }}
             onDrop={e => handleDrop(e)}
             onDragOver={e => handleDragOver(e)}

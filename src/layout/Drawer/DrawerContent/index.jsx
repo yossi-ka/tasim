@@ -87,16 +87,19 @@ const DrawerContent = () => {
                     </ListItemText>
 
                 </MenuItem>
-                <Collapse in={index === selectedIndex} timeout="auto" unmountOnExit sx={{ bgcolor: "primary.lighter" }} >
-                    {menuItem.items.map((subItem, subIndex) => {
-                        return (
-                            <MenuList component="div" disablePadding key={subIndex}>
-                                <SubItemMenu title={subItem.title} path={subItem.to} active={active} setActive={setActive} isSubItem disabled={subItem.disabled} />
-                            </MenuList>
-                        )
-                    })}
-                </Collapse>
-            </Box>
+                <Collapse in={index === selectedIndex} timeout="auto" unmountOnExit sx={{ bgcolor: "primary.lighter" }
+                } >
+                    {
+                        menuItem.items.map((subItem, subIndex) => {
+                            return (
+                                <MenuList component="div" disablePadding key={subIndex}>
+                                    <SubItemMenu title={subItem.title} path={subItem.to} active={active} setActive={setActive} isSubItem disabled={subItem.disabled} />
+                                </MenuList>
+                            )
+                        })
+                    }
+                </Collapse >
+            </Box >
         }
         else {
             return <SubItemMenu key={"f" + index} title={menuItem.title}

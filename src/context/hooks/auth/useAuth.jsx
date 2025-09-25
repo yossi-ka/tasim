@@ -10,7 +10,7 @@ const useAuth = () => {
     const [user, setUser] = useState('loading');
 
     const restartUser = (user) => {
-        console.log(user,"restartUser")
+        console.log(user, "restartUser")
         if (user) return setUser(user)
         setUser('loading')
     }

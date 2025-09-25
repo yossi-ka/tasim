@@ -134,8 +134,8 @@ const DatePicker = ({ startDay, endDay, defaultDate, onChange, closePopover }) =
                         <IconButton
                             onClick={() => {
                                 let newDate = new Date(date.year, (Number(date.month) - 1), date.day);
-                                if (newDate.getMonth() != new Date(date.year, (Number(date.month) - 1)).getMonth()) {
-                                    // console.log(newDate.getMonth != new Date(date.year, (Number(date.month) - 1)).getMonth())
+                                if (newDate.getMonth() !== new Date(date.year, (Number(date.month) - 1)).getMonth()) {
+                                    // console.log(newDate.getMonth !== new Date(date.year, (Number(date.month) - 1)).getMonth())
                                     // console.log("n", newDate.getMonth(), "o", new Date(date.year, (Number(date.month) - 1)).getMonth())
                                     newDate = new Date(date.year, date.month, 0);
                                 }
@@ -165,7 +165,7 @@ const DatePicker = ({ startDay, endDay, defaultDate, onChange, closePopover }) =
                         <IconButton
                             onClick={() => {
                                 let newDate = new Date(date.year, (Number(date.month) + 1), date.day);
-                                if (newDate.getMonth() != new Date(date.year, (Number(date.month) + 1)).getMonth()) {
+                                if (newDate.getMonth() !== new Date(date.year, (Number(date.month) + 1)).getMonth()) {
                                     newDate = new Date(date.year, (Number(date.month) + 1), 1);
                                 }
                                 if (newDate > new Date(endDay)) return setDate({
@@ -182,73 +182,81 @@ const DatePicker = ({ startDay, endDay, defaultDate, onChange, closePopover }) =
                             }}
                         ><ArrowBackIosIcon /></IconButton>
                     </Stack>
-                </Grid>
-                {daysOfWeek.map(d => <Grid item xs={1.7} key={d.value}>
-                    <Typography fontSize={10} key={d.value} variant="subtitle2" align='center' >{d.labelHe}</Typography>
-                </Grid>)}
+                </Grid >
+                {
+                    daysOfWeek.map(d => <Grid item xs={1.7} key={d.value}>
+                        <Typography fontSize={10} key={d.value} variant="subtitle2" align='center' >{d.labelHe}</Typography>
+                    </Grid>)
+                }
 
-                {[...Array(new Date(date.year, date.month).getDay()).keys()].map(day => <Grid key={day} item xs={1.7}>
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                        <IconButton
-                            disabled={checkDisabled(date.year, ("" + new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getMonth()).padStart(2, "0"), new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate(), true)}
-                            onClick={() => setDate({
-                                ...date,
-                                day: new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate(),
-                                month: ("" + new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getMonth()).padStart(2, "0")
-                            })}
-                            key={day}
-                            size="small"
-                            color='secondary'
-                            sx={{ m: 0, p: 0 }}
-                        >
-                            {new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate()}
-                        </IconButton>
-                    </Stack>
-                </Grid>)}
+                {
+                    [...Array(new Date(date.year, date.month).getDay()).keys()].map(day => <Grid key={day} item xs={1.7}>
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                            <IconButton
+                                disabled={checkDisabled(date.year, ("" + new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getMonth()).padStart(2, "0"), new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate(), true)}
+                                onClick={() => setDate({
+                                    ...date,
+                                    day: new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate(),
+                                    month: ("" + new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getMonth()).padStart(2, "0")
+                                })}
+                                key={day}
+                                size="small"
+                                color='secondary'
+                                sx={{ m: 0, p: 0 }}
+                            >
+                                {new Date(date.year, date.month, -(new Date(date.year, date.month).getDay() - day) + 1).getDate()}
+                            </IconButton>
+                        </Stack>
+                    </Grid>)
+                }
 
 
-                {correctDays.map(day => <Grid item xs={1.7}
-                    key={day}
-                    onClick={() => {
-                        closePopover();
-                        setDate({ ...date, day: day })
-                    }}>
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                        <IconButton
-                            disabled={checkDisabled(date.year, date.month, day)}
-                            key={day}
-                            size="small"
-                            variant={date.day == day ? 'contained' : "text"}
-                            sx={{ m: 0, p: 0, bgcolor: date.day == day ? 'primary.main' : 'transparent', color: date.day == day ? 'primary.contrastText' : 'primary.main' }}
-                            color="primary"
-                        >
-                            {day}
-                        </IconButton>
-                    </Stack>
-                </Grid>)}
+                {
+                    correctDays.map(day => <Grid item xs={1.7}
+                        key={day}
+                        onClick={() => {
+                            closePopover();
+                            setDate({ ...date, day: day })
+                        }}>
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                            <IconButton
+                                disabled={checkDisabled(date.year, date.month, day)}
+                                key={day}
+                                size="small"
+                                variant={date.day === day ? 'contained' : "text"}
+                                sx={{ m: 0, p: 0, bgcolor: date.day === day ? 'primary.main' : 'transparent', color: date.day === day ? 'primary.contrastText' : 'primary.main' }}
+                                color="primary"
+                            >
+                                {day}
+                            </IconButton>
+                        </Stack>
+                    </Grid>)
+                }
 
-                {[...Array(6 - new Date(date.year, date.month, correctDays[correctDays.length - 1]).getDay()).keys()].map(day => <Grid key={day} item xs={1.7}>
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                        <IconButton
-                            disabled={checkDisabled(date.year, date.month, correctDays[correctDays.length - 1] + day + 1)}
-                            onClick={() => setDate({
-                                ...date,
-                                day: new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getDate(),
-                                month: ("" + new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getMonth()).padStart(2, "0")
-                            })}
-                            key={day}
-                            color='secondary'
-                            size="small"
-                            sx={{ m: 0, p: 0 }}
-                        >
-                            {new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getDate()}
-                        </IconButton>
-                    </Stack>
-                </Grid>)}
+                {
+                    [...Array(6 - new Date(date.year, date.month, correctDays[correctDays.length - 1]).getDay()).keys()].map(day => <Grid key={day} item xs={1.7}>
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                            <IconButton
+                                disabled={checkDisabled(date.year, date.month, correctDays[correctDays.length - 1] + day + 1)}
+                                onClick={() => setDate({
+                                    ...date,
+                                    day: new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getDate(),
+                                    month: ("" + new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getMonth()).padStart(2, "0")
+                                })}
+                                key={day}
+                                color='secondary'
+                                size="small"
+                                sx={{ m: 0, p: 0 }}
+                            >
+                                {new Date(date.year, date.month, correctDays[correctDays.length - 1] + day + 1).getDate()}
+                            </IconButton>
+                        </Stack>
+                    </Grid>)
+                }
 
-            </Grid>
+            </Grid >
 
-        </Stack>
+        </Stack >
     )
 }
 DatePicker.defaultProps = {
@@ -274,7 +282,7 @@ export default DatePicker
                         <Button
                             key={year}
                             onClick={() => setDate({ ...date, year: year })}
-                            variant={date.year == year ? 'contained' : "outlined"}
+                            variant={date.year === year ? 'contained' : "outlined"}
                         >{year}</Button>))}
                 </ButtonGroup>
                 <Typography variant="subtitle1" component="h2" gutterBottom>
@@ -285,7 +293,7 @@ export default DatePicker
                         <Button
                             key={month.value}
                             onClick={() => setDate({ ...date, month: month.value })}
-                            variant={date.month == month.value ? 'contained' : "outlined"}
+                            variant={date.month === month.value ? 'contained' : "outlined"}
                         >{month.labelHe}</Button>))}
                 </ButtonGroup>}
                 <Typography variant="subtitle1" component="h2" gutterBottom>
@@ -298,7 +306,7 @@ export default DatePicker
                         <Button
                             key={day}
                             onClick={() => setDate({ ...date, day: day })}
-                            variant={date.day == day ? 'contained' : "outlined"}
+                            variant={date.day === day ? 'contained' : "outlined"}
                         >{`${day}||
                     ${new Date(date.year, date.month, day).getDay() + 1}`}</Button>))}
                 </ButtonGroup>}

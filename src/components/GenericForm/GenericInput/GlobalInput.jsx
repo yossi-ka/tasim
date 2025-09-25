@@ -47,7 +47,7 @@ const GlobalInput = ({
 
     React.useEffect(() => {
         setErrorS(error);
-        if (error == true) addError(name);
+        if (error === true) addError(name);
         else removeError(name);
     }, [name, error]);
 
@@ -143,7 +143,7 @@ const GlobalInput = ({
                     e.target.select();
                 }}
             />
-            {popoverContent != null && <Popover
+            {popoverContent !== null && <Popover
                 open={open}
                 anchorEl={anchorEl}
                 onClose={handleClose}

@@ -1,7 +1,7 @@
 // material-ui
 import { alpha } from '@mui/material/styles';
 
-// ==============================|| OVERRIDES - OUTLINED INPUT ||============================== //
+// ==================================|| OVERRIDES - OUTLINED INPUT ||================================== //
 
 export default function FilledInput(theme) {
     return {

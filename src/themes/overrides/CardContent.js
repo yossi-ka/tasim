@@ -1,4 +1,4 @@
-// ==============================|| OVERRIDES - CARD CONTENT ||============================== //
+// ==================================|| OVERRIDES - CARD CONTENT ||================================== //
 
 export default function CardContent() {
     return {

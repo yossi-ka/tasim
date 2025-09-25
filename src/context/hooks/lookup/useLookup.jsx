@@ -27,7 +27,7 @@ function useLookup(user) {
         data.map(lookup => {
             if (lookup.tableCode === lookupName) {
                 if (parentID) {
-                    if (lookup.parentID == parentID) {
+                    if (lookup.parentID === parentID) {
                         arr.push({ value: lookup.code, label: lookup.name });
                     }
                 } else {
@@ -40,14 +40,14 @@ function useLookup(user) {
 
     const getLookupName = (lookupName, code) => {
         let name = "";
-        let singel = data.find(lookup => lookup.tableCode === lookupName && lookup.code == code);
+        let singel = data.find(lookup => lookup.tableCode === lookupName && lookup.code === code);
         if (singel) name = singel.name;
         return name;
     }
 
     const getLookupCode = (lookupName, name) => {
         let code = -1;
-        let singel = data.find(lookup => lookup.tableCode === lookupName && lookup.name == name);
+        let singel = data.find(lookup => lookup.tableCode === lookupName && lookup.name === name);
         if (singel) code = singel.code;
         return code;
     }

@@ -1,4 +1,4 @@
-// ==============================|| OVERRIDES - INPUT LABEL ||============================== //
+// ==================================|| OVERRIDES - INPUT LABEL ||================================== //
 
 export default function InputLabel(theme) {
     return {
