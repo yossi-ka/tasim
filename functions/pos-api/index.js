@@ -55,7 +55,7 @@ app.post('/login', async (req, res) => {
     })
 })
 
-app.get('/test', checkUserFunc, async (req, res) => {
+app.get('/test',  async (req, res) => {
     // const { isAll, areaId } = req.query;
 
     const data = "Hello from test..."; // await getProducts(req.userId)
