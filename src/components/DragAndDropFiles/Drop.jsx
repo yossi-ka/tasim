@@ -63,7 +63,7 @@ const Drop = ({ data, dispatch, title }) => {
             </Stack> */}
             <p>Drag files here to upload</p>
         </div>
-       
+
     );
 };
 
