@@ -350,18 +350,18 @@ const getOrderProductsV2 = async (userId, viewMode = "order", orderId = "None") 
     result.sort((a, b) => {
         if (viewMode === "order") {
 
-            const orderA = a.collectionIndex || 0;
-            const orderB = b.collectionIndex || 0;
+            const orderA = a.collectionGroupOrder || 0;
+            const orderB = b.collectionGroupOrder || 0;
             if (orderA !== orderB) return orderA - orderB;
         }
-        // אם אותו collectionIndex, מיין לפי productPlace
+        // אם אותו collectionGroupOrder, מיין לפי productPlace
         const aNum = extractNumber(a.productPlace);
         const bNum = extractNumber(b.productPlace);
         if (aNum !== bNum) {
             return aNum - bNum;
         }
-        const orderA = a.collectionIndex || 0;
-        const orderB = b.collectionIndex || 0;
+        const orderA = a.collectionGroupOrder || 0;
+        const orderB = b.collectionGroupOrder || 0;
         return orderA - orderB;
     });
 
