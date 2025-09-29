@@ -66,7 +66,7 @@ const Login = () => {
                 <Typography component="h1" variant="h3" color="primary.dark">
                     כניסה למערכת
                 </Typography>
-                <Typography component="h1" variant="h3" color="primary.dark">כנפי נשרים</Typography>
+                <Typography component="h1" variant="h3" color="primary.dark">טסים</Typography>
             </Stack>
             <Button
                 size="large"

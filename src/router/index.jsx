@@ -5,6 +5,7 @@ import Context from "../context";
 import LoadingData from "../components/LoadingData";
 
 import Login from "../pages/Login";
+import Landing from "../pages/Landing";
 
 
 const ProjectRoutes = () => {
@@ -15,7 +16,7 @@ const ProjectRoutes = () => {
     const path = useLocation().pathname;
     React.useEffect(() => {
         if (user === null && path !== '/login') {
-            navigate('/login')
+            navigate('/home')
         }
     }, [user, path])
 
@@ -24,8 +25,9 @@ const ProjectRoutes = () => {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/home" element={<Landing />} />
             <Route path="/" element={<Layout />} >
-                <Route index element={<Navigate to="/orders" replace />} />
+                <Route index element={<Navigate to="/home" replace />} />
             </Route>
         </Routes>
     )

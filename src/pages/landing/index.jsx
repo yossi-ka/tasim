@@ -340,7 +340,7 @@ function Landing() {
                     <div className={classes.faqContainer}>
                         <h2 className={classes.faqTitle}>שאלות נפוצות</h2>
                         <p className={classes.faqSubtitle}>
-                            הכל שרציתם לדעת על השירותים שלנו
+                            כל מה שרציתם לדעת על השירותים שלנו
                         </p>
 
                         <div className={classes.faqList}>
