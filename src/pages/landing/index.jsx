@@ -153,7 +153,7 @@ function Landing() {
                 {/* Hero Section */}
                 <section className={classes.heroSection}>
                     <div className={classes.logo}>
-                        <img src="/images/logo.png" alt="logo-tasim" />
+                        <img src="./logo.png" alt="logo-tasim" />
                     </div>
                     <div
                         className={`${classes.heroContent} ${isVisible ? classes.visible : ""

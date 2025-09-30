@@ -187,11 +187,48 @@ body {
 
 .logo img {
   position: absolute;
-  width: 150px;
+  width: 120px;
   height: auto;
-  top: 15px;
-  right: 15px;
+  top: 10px;
+  right: 10px;
   filter: drop-shadow(0 0 15px white);
+  transition: all 0.3s ease;
+}
+
+/* Mobile - Small screens */
+@media (max-width: 480px) {
+  .logo img {
+    width: 80px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 481px) and (max-width: 768px) {
+  .logo img {
+    width: 100px;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+/* Desktop - Medium */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .logo img {
+    width: 130px;
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* Desktop - Large */
+@media (min-width: 1025px) {
+  .logo img {
+    width: 150px;
+    top: 15px;
+    right: 15px;
+  }
 }
 
 .heroContent {
