@@ -84,6 +84,16 @@ body {
   /* overflow: hidden; */
 }
 
+/* Login Button */
+.loginButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+/* Login button styles now handled by LoginPopup component */
+
 /* Loading Styles */
 .loadingContainer {
   min-height: 100vh;
@@ -1223,6 +1233,8 @@ body {
     transform: translateX(-3px);
   }
 }
+
+/* Responsive Login Button - handled by LoginPopup component */
 
 /* Smooth transitions for all interactive elements */
 .primaryButton,

@@ -35,58 +35,43 @@ const Login = () => {
 
 
 
-    return <Grid container component="main" sx={{
-        height: "100vh",
-        backgroundImage: `url(/bgLogin.jpg)`,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        backgroundSize: "cover",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "end",
-    }} >
-        <Grid
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-around",
-                height: "100vh",
-                width: "50vh",
-                px: 4,
+    return
+    <Grid
+        sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-around",
+            height: "100vh",
+            width: "50vh",
+            px: 4,
 
-            }}
-            item
-            component={Paper}
-            elevation={20}
-            square
+        }}
+        item
+        component={Paper}
+        elevation={20}
+        square
 
-        >
-            <Stack spacing={2} direction="column" alignItems="center" justifyContent="center" sx={{ pt: 10 }}>
-                <Typography component="h1" variant="h3" color="primary.dark">
-                    כניסה למערכת
-                </Typography>
-                <Typography component="h1" variant="h3" color="primary.dark">טסים</Typography>
-            </Stack>
-            <Button
-                size="large"
-                onClick={() => login()
-                    .then((user) => {
-                        restartUser(user.user)
-                        nav('/')
-                    })
-                    .catch((error) => {
-                        setError(true)
-                    })
-                }
-                variant="contained"
-                startIcon={<GoogleIcon />}>
-                כניסה עם חשבון גוגל
-            </Button>
+    >
+
+        <Button
+            size="large"
+            onClick={() => login()
+                .then((user) => {
+                    restartUser(user.user)
+                    nav('/')
+                })
+                .catch((error) => {
+                    setError(true)
+                })
+            }
+            variant="contained"
+            startIcon={<GoogleIcon />}>
+            כניסה עם חשבון גוגל
+        </Button>
 
 
 
-        </Grid>
         <Snackbar
             open={error}
             autoHideDuration={10000}

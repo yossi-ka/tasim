@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, ArrowLeft, Star, ChevronDown as FaqToggle } from "lucide-react";
+import LoginButton from './LoginButton.jsx';
 import classes from "./landing.module.css";
 import { heroTexts, features, services, stats, testimonials, faqs } from "./HomeAnimations";
 import HomeBGEffects from "./HomeBGEffects";
+import Popup from "../../layout/Popup";
+import SmallPopup from "../../layout/SmallPopup";
 
 function Landing() {
     const navigate = useNavigate();
@@ -137,6 +140,11 @@ function Landing() {
 
     return (
         <div className={classes.container}>
+            {/* Login Popup */}
+            <div className={classes.loginButton}>
+                <LoginButton />
+            </div>
+
             {/* Background Effects */}
             <HomeBGEffects setIsVisible={setIsVisible} />
 
@@ -395,6 +403,10 @@ function Landing() {
                     </div>
                 </section>
             </div>
+
+            {/* Popups */}
+            <Popup />
+            <SmallPopup />
         </div>
     );
 }
