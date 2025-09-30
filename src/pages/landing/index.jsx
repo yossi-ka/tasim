@@ -58,7 +58,7 @@ function Landing() {
 
     // useEffect לעדכון כותרת הדף
     useEffect(() => {
-        document.title = "טסים - דף הבית";
+        document.title = "טסים - דף נחיתה";
         // סימולציה של loading
         const timer = setTimeout(() => setPageLoaded(true), 800);
         return () => clearTimeout(timer);
