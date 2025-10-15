@@ -12,6 +12,7 @@ export const getLookupData = async () => {
     const globalProductCategoriesQ = query(collection(db, 'globalProductCategories'), orderBy("name"));
     const globalSuppliersQ = query(collection(db, 'suppliers'), orderBy("name"));
     const mistakeOrderTypeQ = query(collection(db, 'mistakeOrderType'), where("isActive", "==", true), orderBy("name"));
+    const deviceStatusesQ = query(collection(db, 'deviceStatuses'), orderBy("name"));
 
     const res = await Promise.all([
         getDocs(employeesQ).then((res) => res.docs.map(d => {
@@ -45,6 +46,7 @@ export const getLookupData = async () => {
         getDocs(globalProductCategoriesQ).then((res) => convertFirebaseData(res, "name", "globalProductCategories", null)),
         getDocs(globalSuppliersQ).then((res) => convertFirebaseData(res, "name", "globalSuppliers", null)),
         getDocs(mistakeOrderTypeQ).then((res) => convertFirebaseData(res, "name", "mistakeOrderType", null)),
+        getDocs(deviceStatusesQ).then((res) => convertFirebaseData(res, "name", "deviceStatuses", null)),
     ])
 
     return res.reduce((acc, val) => acc.concat(val), []);

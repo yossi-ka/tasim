@@ -1141,5 +1141,51 @@
             "label": "סכום כולל",
             "type": "currencyIL"
         }
+    ],
+    "devicesTable": [
+        {
+            "name": "sheetsId",
+            "label": "מס' מכשיר",
+            "type": "text"
+        },
+        {
+            "name": "model",
+            "label": "דגם",
+            "type": "text"
+        },
+        {
+            "name": "purchaseDate",
+            "label": "תאריך רכישה",
+            "type": "date"
+        },
+        {
+            "name": "statusId",
+            "label": "סטטוס",
+            "type": "lookup",
+            "lookup": "deviceStatuses"
+        }
+    ],
+    "devices": [
+        {
+            "name": "sheetsId",
+            "label": "מס' מכשיר",
+            "type": "text"
+        },
+        {
+            "name": "model",
+            "label": "דגם",
+            "type": "text"
+        },
+        {
+            "name": "purchaseDate",
+            "label": "תאריך רכישה",
+            "type": "date"
+        },
+        {
+            "name": "statusId",
+            "label": "סטטוס",
+            "type": "lookup",
+            "lookup": "deviceStatuses"
+        }
     ]
 }
