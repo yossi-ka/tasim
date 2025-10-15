@@ -16,6 +16,19 @@ const Theme = (colors) => {
         9: '#890d08',
     }
 
+    const tasim = {
+        0: '#d9e8f7',
+        1: '#b3d1ef',
+        2: '#8db9e7',
+        3: '#67a2df',
+        4: '#4b8cd7',
+        5: '#2e76cf',
+        6: '#1f5fb8',
+        7: '#1048a1',
+        8: '#0d3b8a',
+        9: '#0a2e73',
+    }
+
     const greyColors = {
         0: grey[0],
         50: grey[1],
@@ -39,16 +52,16 @@ const Theme = (colors) => {
 
     return {
         primary: {
-            lighter: ktzdaka[0],
-            100: ktzdaka[1],
-            200: ktzdaka[2],
-            light: ktzdaka[3],
-            400: ktzdaka[4],
-            main: ktzdaka[5],
-            dark: ktzdaka[6],
-            700: ktzdaka[7],
-            darker: ktzdaka[8],
-            900: ktzdaka[9],
+            lighter: tasim[0],
+            100: tasim[1],
+            200: tasim[2],
+            light: tasim[3],
+            400: tasim[4],
+            main: tasim[5],
+            dark: tasim[6],
+            700: tasim[7],
+            darker: tasim[8],
+            900: tasim[9],
             contrastText
         },
         secondary: {

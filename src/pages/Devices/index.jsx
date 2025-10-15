@@ -94,11 +94,10 @@ const Devices = () => {
   return (
     <GenericTable
       height="main"
-      // data={tableData}
       data={status == "loading" ? [] : filteredData}
       columns={columns}
       loading={status === "loading"}
-      title="ניהול מכשירים"
+      title="מכשירים"
       header={<Search
         params={params}
         setParams={setParams}
