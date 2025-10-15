@@ -17,7 +17,6 @@ import Suppliers from "../pages/Suppliers";
 import Invoices from "../pages/Invoices";
 import RouteOrders from "../pages/RouteOrders";
 import Report from "../pages/Reports";
-import MistakeOrders from "../pages/MistakeOrders";
 import Rentals from "../pages/Rentals";
 import Devices from "../pages/Devices";
 import Expenses from "../pages/Expenses";
@@ -32,12 +31,12 @@ const ProjectRoutes = () => {
     const navigate = useNavigate()
     const path = useLocation().pathname;
     React.useEffect(() => {
-        if (user == null && path != '/login') {
+        if (user === null && path !== '/login') {
             navigate('/login')
         }
     }, [user, path])
 
-    if (user == 'loading' && path != '/login') return <LoadingData />
+    if (user === 'loading' && path !== '/login') return <LoadingData />
 
     return (
         <Routes>
