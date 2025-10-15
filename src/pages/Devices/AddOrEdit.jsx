@@ -27,7 +27,8 @@ const AddOrEditDevice = ({ row, refetch }) => {
     const fields = [
         term.field("sheetsId", { variant: "outlined", size: 12, required: true }),
         term.field("purchaseDate", { variant: "outlined", size: 12 }),
-        term.field("model", { variant: "outlined", size: 12 }),
+        term.field("modelId", { variant: "outlined", size: 12 }),
+        term.field("statusId", { variant: "outlined", size: 12 }),
         { type: 'submit', label: row ? "עדכן מכשיר" : "הוסף מכשיר", variant: "contained", disabled: update.isLoading }
     ]
 

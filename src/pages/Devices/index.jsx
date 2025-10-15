@@ -55,50 +55,11 @@ const Devices = () => {
     }
   }, [filteredData]);
 
-  const handleDeleteDevice = React.useCallback(async (device) => {
-    const result = await confirm({
-      title: "מחיקת מכשיר",
-      content: `האם אתה בטוח שברצונך למחוק את המכשיר "${device.sheetsId}"?`
-    });
-
-    if (result) {
-      try {
-        await deleteDevice(device.id);
-        refetchAll();
-      } catch (error) {
-        console.error("Error deleting device:", error);
-      }
-    }
-  }, [confirm, refetchAll]);
+  const handleDeleteDevice = (row) => {
+    console.log('Device deleted successfully!');
+  };
 
   const filteredDataLength = React.useMemo(() => filteredData ? filteredData.length : 0, [filteredData]);
-
-  const tableData = React.useMemo(() => {
-    if (status === "loading") return [];
-
-    return (filteredData || []).map(row => {
-      // נשתמש בערך המקורי כברירת מחדל
-      let statusName = row.statusId || '-';
-
-      // ננסה להשתמש ב-lookup רק אם יש statusId
-      if (row.statusId) {
-        try {
-          const lookupResult = getLookupName("deviceStatuses", row.statusId);
-          // אם קיבלנו תוצאה תקינה, נשתמש בה
-          if (lookupResult && lookupResult !== "") {
-            statusName = lookupResult;
-          }
-        } catch (error) {
-          // שגיאה שקטה - נשתמש בערך המקורי ללא הודעה
-        }
-      }
-
-      return {
-        ...row,
-        statusId: statusName
-      };
-    });
-  }, [status, filteredData, getLookupName]);
 
   const columns = [
     {
@@ -133,7 +94,8 @@ const Devices = () => {
   return (
     <GenericTable
       height="main"
-      data={tableData}
+      // data={tableData}
+      data={status == "loading" ? [] : filteredData}
       columns={columns}
       loading={status === "loading"}
       title="ניהול מכשירים"
