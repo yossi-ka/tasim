@@ -22,13 +22,13 @@ const Background = ({ status, files, title, uploadButton, dispatch, small, doAct
             {status && <Typography variant="h6" align="justify" component='p' sx={{ color: theme.palette.text.secondary }}>
                 אפשר לשחרר
             </Typography>}
-            {(files === 0 && !status) && <CloudUploadIcon color='secondary' sx={{ fontSize: 75 }} />}
-            {(files === 0 && !status) && <Typography variant="h6" align="center" component='p' sx={{ color: theme.palette.text.secondary }}>
+            {(files == 0 && !status) && <CloudUploadIcon color='secondary' sx={{ fontSize: 75 }} />}
+            {(files == 0 && !status) && <Typography variant="h6" align="center" component='p' sx={{ color: theme.palette.text.secondary }}>
                 {title}
             </Typography>}
 
 
-            {(files.length > 0 && (uploadButton || multiple)) && statusUpload !== "uploading" && <Box
+            {(files.length > 0 && (uploadButton || multiple)) && statusUpload != "uploading" && <Box
                 sx={{
                     maxHeight: 1,
                     overflow: "auto",
@@ -50,26 +50,26 @@ const Background = ({ status, files, title, uploadButton, dispatch, small, doAct
                     </ListItem>)}
                 </List>
             </Box>}
-            {statusUpload !== "uploading" && <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+            {statusUpload != "uploading" && <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
 
                 {files.length > 0 && multiple && <Button variant="contained" onClick={() => inputRef.current.click()} endIcon={<AddIcon />}>הוספת קבצים</Button>}
 
 
                 {(files.length > 0 && uploadButton) && <Button variant="contained" onClick={() => doAction(files)} endIcon={<BackupIcon />}>העלאה</Button>}
             </Stack>}
-            {statusUpload === "uploading" && <>
+            {statusUpload == "uploading" && <>
                 <CloudUploadIcon color='secondary' sx={{ fontSize: 75 }} />
                 <Typography align="center" variant="h4" component='p' sx={{ color: theme.palette.text.secondary }}>
                     מעלה קבצים
                 </Typography>
             </>}
-            {(files.length > 0 && !uploadButton && statusUpload === "success") && <>
+            {(files.length > 0 && !uploadButton && statusUpload == "success") && <>
                 <CloudDoneIcon color='secondary' sx={{ fontSize: 75 }} />
                 <Typography align="center" variant="h4" component='p' sx={{ color: theme.palette.text.secondary }}>
                     העלאה הסתיימה בהצלחה
                 </Typography>
             </>}
-            {(files.length > 0 && !uploadButton && statusUpload === "success") && <>
+            {(files.length > 0 && !uploadButton && statusUpload == "success") && <>
                 <DisabledByDefaultIcon color='secondary' sx={{ fontSize: 75 }} />
                 <Typography align="center" variant="h4" component='p' sx={{ color: theme.palette.text.secondary }}>
                     שגיאה בהעלאה
@@ -77,9 +77,9 @@ const Background = ({ status, files, title, uploadButton, dispatch, small, doAct
             </>}
             {/* {(files.length > 0 && !uploadButton) && <CloudDoneIcon color='secondary' sx={{ fontSize: 75 }} />}
             {(files.length > 0 && !uploadButton) && <Typography align="center" variant="h4" component='p' sx={{ color: theme.palette.text.secondary }}>
-                {statusUpload === "uploading" && "מעלה קבצים"}
-                {statusUpload === "success" && "הקבצים עלו בהצלחה"}
-                {statusUpload === "error" && "שגיאה בהעלאת"}
+                {statusUpload == "uploading" && "מעלה קבצים"}
+                {statusUpload == "success" && "הקבצים עלו בהצלחה"}
+                {statusUpload == "error" && "שגיאה בהעלאת"}
             </Typography>} */}
         </Stack>
     );

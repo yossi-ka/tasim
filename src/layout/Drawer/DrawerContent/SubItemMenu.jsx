@@ -40,11 +40,11 @@ const SubItemMenu = ({ title, path, active, setActive, isSubItem, icon, setSelec
                 {title}
             </ListItemText> :
                 <ListItemText>
-                    <Typography variant="subtitle2" color={active === path ? 'white' : 'primary.main'}>
+                    <Typography variant="subtitle2" color={active === path ? 'white':'primary.main'}>
                         {title}
                     </Typography>
                 </ListItemText>}
-        </MenuItem >
+        </MenuItem>
     )
 }
 

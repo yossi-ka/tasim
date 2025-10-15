@@ -32,7 +32,7 @@ const GenericAutocomplete = ({
 }) => {
     const autocompleteValue = React.useMemo(() => {
         if (!inputs[name]) return null;
-        const option = options.find(o => o.value === inputs[name]);
+        const option = options.find(o => o.value == inputs[name]);
         return option;
     }, [inputs[name], options])
 

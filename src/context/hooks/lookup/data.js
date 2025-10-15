@@ -11,7 +11,7 @@ export const getLookup = (lookupName, parentID = null) => {
     data.map(lookup => {
         if (lookup.tableCode === lookupName) {
             if (parentID) {
-                if (lookup.parentID === parentID) {
+                if (lookup.parentID == parentID) {
                     arr.push({ value: lookup.code, label: lookup.name });
                 }
             } else {

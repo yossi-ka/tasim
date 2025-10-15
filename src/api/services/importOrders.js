@@ -449,7 +449,7 @@
 //             normalizedData.push(product);
 //         });
 
-//         console.log('✅ Data normalization completed', normalizedData.length, normalizedData.length !== 0 ? normalizedData[0] : 'No data');
+//         console.log('✅ Data normalization completed', normalizedData.length, normalizedData.length != 0 ? normalizedData[0] : 'No data');
 
 //         console.log('Parsed and Normalized Order Products Data:');
 //         console.log(`Total normalized products: ${normalizedData.length}`);

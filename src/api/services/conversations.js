@@ -1,12 +1,12 @@
 import { db } from '../../firebase-config'
-import {
+import { 
     addDoc,
-    collection,
+    collection, 
     doc,
     getDoc,
-    getDocs,
-    orderBy,
-    query,
+    getDocs, 
+    orderBy, 
+    query, 
     where,
     Timestamp,
     updateDoc,
@@ -15,9 +15,9 @@ import {
     getAggregateFromServer
 } from "firebase/firestore";
 
-// =============================================
+// ========================================
 // פונקציות עבור שיחות (Conversations)
-// =============================================
+// ========================================
 
 /**
  * קבלת כל השיחות הפעילות מסודרות לפי הודעה אחרונה
@@ -25,8 +25,8 @@ import {
 export const getAllConversations = async () => {
     const conversationsRef = collection(db, "conversations");
     const q = query(
-        conversationsRef,
-        where("isActive", "===", true),
+        conversationsRef, 
+        where("isActive", "==", true),
         orderBy("lastMessageTime", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -39,9 +39,9 @@ export const getAllConversations = async () => {
 export const getConversationsWithPendingMessages = async () => {
     const conversationsRef = collection(db, "conversations");
     const q = query(
-        conversationsRef,
-        where("isActive", "===", true),
-        where("hasPendingMessages", "===", true),
+        conversationsRef, 
+        where("isActive", "==", true),
+        where("hasPendingMessages", "==", true),
         orderBy("lastMessageTime", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -101,26 +101,26 @@ export const updateConversation = async (id, data) => {
 export const findConversationByCustomerOrPhone = async (customerId, phone) => {
     const conversationsRef = collection(db, "conversations");
     let q;
-
+    
     if (customerId) {
         // חיפוש לפי מזהה לקוח
         q = query(
-            conversationsRef,
-            where("customerId", "===", customerId),
-            where("isActive", "===", true)
+            conversationsRef, 
+            where("customerId", "==", customerId),
+            where("isActive", "==", true)
         );
     } else if (phone) {
         // חיפוש לפי טלפון (רק אם אין מזהה לקוח)
         q = query(
-            conversationsRef,
-            where("phone", "===", phone),
-            where("customerId", "===", ""),
-            where("isActive", "===", true)
+            conversationsRef, 
+            where("phone", "==", phone),
+            where("customerId", "==", ""),
+            where("isActive", "==", true)
         );
     } else {
         return null;
     }
-
+    
     const querySnapshot = await getDocs(q);
     const conversations = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return conversations.length > 0 ? conversations[0] : null;
@@ -132,7 +132,7 @@ export const findConversationByCustomerOrPhone = async (customerId, phone) => {
 export const findOrCreateConversation = async (customerId, phone, customerName) => {
     // חיפוש שיחה קיימת
     let conversation = await findConversationByCustomerOrPhone(customerId, phone);
-
+    
     if (!conversation) {
         // יצירת שיחה חדשה
         const conversationData = {
@@ -140,16 +140,16 @@ export const findOrCreateConversation = async (customerId, phone, customerName) 
             phone: phone || "",
             customerName: customerName || "",
         };
-
+        
         conversation = await createConversation(conversationData);
     }
-
+    
     return conversation;
 };
 
-// =============================================
+// ========================================
 // פונקציות זמניות למעבר הדרגתי
-// =============================================
+// ========================================
 
 /**
  * נתונים זמניים לבדיקות - יוסרו כשהטבלה תהיה מוכנה
@@ -174,7 +174,7 @@ export const getAllConversationsTemp = async () => {
         },
         {
             id: "2",
-            customerId: "cust_002",
+            customerId: "cust_002", 
             phone: "",
             customerName: 'מרים לוי',
             lastMessageTime: Timestamp.fromDate(new Date(Date.now() - 86400000)),
@@ -237,8 +237,8 @@ export const getAllConversationsTemp = async () => {
             updatedAt: Timestamp.fromDate(new Date(Date.now() - 3600000))
         }
     ];
-
-    return tempConversations.sort((a, b) =>
+    
+    return tempConversations.sort((a, b) => 
         b.lastMessageTime.toDate().getTime() - a.lastMessageTime.toDate().getTime()
     );
 };
@@ -260,21 +260,21 @@ export const getMessagesCounts = async () => {
         const conversationsRef = collection(db, "conversations");
         const activeConversationsQuery = query(
             conversationsRef,
-            where("isActive", "===", true)
+            where("isActive", "==", true)
         );
-
+        
         const unreadCountSnapshot = await getAggregateFromServer(activeConversationsQuery, {
             totalUnread: sum('unreadCountBySystem')
         });
-
+        
         // ספירת הודעות לטיפול - מספר הודעות שמסומנות לטיפול
         const messagesRef = collection(db, "messages");
         const pendingMessagesQuery = query(
             messagesRef,
-            where("isForFollowUp", "===", true)
+            where("isForFollowUp", "==", true)
         );
         const pendingMessagesSnapshot = await getCountFromServer(pendingMessagesQuery);
-
+        
         return {
             messages: unreadCountSnapshot.data().totalUnread || 0,
             pending: pendingMessagesSnapshot.data().count || 0

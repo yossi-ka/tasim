@@ -17,7 +17,7 @@ import LoadingData from '../components/LoadingData';
 
 // import LoadingData from '../../components/LoadingData';
 
-// ==================================|| MAIN LAYOUT ||================================== //
+// ==============================|| MAIN LAYOUT ||============================== //
 
 const Layout = () => {
     const theme = useTheme();
@@ -27,7 +27,7 @@ const Layout = () => {
     // const navigate = useNavigate();
     // React.useEffect(() => {
     //     console.log(authData);
-    //     if (authData === null) {
+    //     if (authData == null) {
     //         navigate('/login');
     //     }
     // }, [authData]);
@@ -53,7 +53,7 @@ const Layout = () => {
     };
 
 
-    if (user === 'loading' || user === null) return <LoadingData />
+    if (user == 'loading' || user == null) return <LoadingData />
 
     return (
         <>
@@ -69,17 +69,17 @@ const Layout = () => {
                     <Toolbar />
                     <Snackbar
                         open={openSnackbar}
-                        autoHideDuration={snackbarTitle === null ? 5000 : 1000}
+                        autoHideDuration={snackbarTitle == null ? 5000 : 1000}
                         onClose={handleClose}
                     >
                         <Alert
                             onClose={handleClose}
                             severity={snackbarMessageType}
-                            variant={snackbarTitle === null ? "filled" : "outlined"}
+                            variant={snackbarTitle == null ? "filled" : "outlined"}
                             sx={{ width: '100%' }}
                         >
-                            {snackbarTitle !== null && <AlertTitle>{snackbarTitle}</AlertTitle>}
-                            <Typography variant={snackbarTitle === null ? "h6" : "h4"}>{snackbarMessage}</Typography>
+                            {snackbarTitle != null && <AlertTitle>{snackbarTitle}</AlertTitle>}
+                            <Typography variant={snackbarTitle == null ? "h6" : "h4"}>{snackbarMessage}</Typography>
                         </Alert>
                     </Snackbar>
                     <Outlet />

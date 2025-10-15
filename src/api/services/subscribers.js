@@ -7,7 +7,7 @@ export const getSubscribers = async (isDelete) => {
 
     // console.log(new Date().getTime(), "0")
 
-    const q = query(collection(db, 'subscribers'), where("projectId", "===", isDelete ? 2 : 1))
+    const q = query(collection(db, 'subscribers'), where("projectId", "==", isDelete ? 2 : 1))
     const data = await getDocs(q)
 
     const res = data.docs.map(d => {

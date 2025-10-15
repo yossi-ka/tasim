@@ -95,7 +95,7 @@ const GlobalSearch = ({ fields, params, setParams, quickSearchFields, quickSearc
 
 
     const onSubmit = (inputs = null) => {
-        const newParams = inputs === null ? { ...initInputs } : inputs;
+        const newParams = inputs == null ? { ...initInputs } : inputs;
 
         Object.keys(newParams).forEach(key => {
             if (newParams[key] instanceof Date) {

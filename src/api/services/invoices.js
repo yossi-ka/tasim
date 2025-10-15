@@ -22,29 +22,29 @@ export const getInvoiceById = async (id) => {
 
 export const addInvoice = async (data, userId) => {
     console.log('addInvoice נקראה עם הנתונים:', data);
-
+    
     const products = data.products || [];
     console.log('מוצרים שנמצאו:', products);
-
+    
     // יצירת עותק של הנתונים בלי המוצרים
     const invoiceData = { ...data };
     delete invoiceData.products;
-
+    
     const batch = writeBatch(db);
     const invRef = doc(collection(db, 'invoices'));
 
-    if (invoiceData.invoiceDate && !(invoiceData.invoiceDate instanceof Timestamp)) {
+    if(invoiceData.invoiceDate && !(invoiceData.invoiceDate instanceof Timestamp)) {
         invoiceData.invoiceDate = Timestamp.fromDate(new Date(invoiceData.invoiceDate));
     }
-    if (invoiceData.dueDate && !(invoiceData.dueDate instanceof Timestamp)) {
+    if(invoiceData.dueDate && !(invoiceData.dueDate instanceof Timestamp)) {
         invoiceData.dueDate = Timestamp.fromDate(new Date(invoiceData.dueDate));
-    }
+    }   
 
     invoiceData.totalRows = products.length;
     invoiceData.totalAmount = products.reduce((total, product) => total + (product.unitPrice * product.quantity), 0);
-    invoiceData.totalQuantity = products.reduce((total, product) => total + (product.quantity || 0), 0);
+    invoiceData.totalQuantity = products.reduce((total, product) => total + (product.quantity || 0), 0);   
 
-
+    
     batch.set(invRef, {
         ...invoiceData,
         createdBy: userId,
@@ -56,7 +56,7 @@ export const addInvoice = async (data, userId) => {
 
     products.forEach(product => {
         console.log('מעבד מוצר:', product);
-
+        
         // ניקוי ערכים undefined
         const cleanProduct = {};
         Object.keys(product).forEach(key => {
@@ -64,9 +64,9 @@ export const addInvoice = async (data, userId) => {
                 cleanProduct[key] = product[key];
             }
         });
-
+        
         console.log('מוצר נקי:', cleanProduct);
-
+        
         const productRef = doc(collection(db, 'invoiceProducts'));
         batch.set(productRef, {
             ...cleanProduct,
@@ -176,7 +176,7 @@ export const uploadInvoices = async (invoicesData, userId) => {
 
 export const getInvoicesCount = async () => {
     const invoicesRef = collection(db, "invoices");
-    const countQuery = query(invoicesRef, where("isActive", "===", true));
+    const countQuery = query(invoicesRef, where("isActive", "==", true));
 
     try {
         const countSnapshot = await getCountFromServer(countQuery);
@@ -189,18 +189,18 @@ export const getInvoicesCount = async () => {
 
 export const deleteInvoice = async (id, userId) => {
     const docRef = doc(db, 'invoices', id);
-
+    
     await updateDoc(docRef, {
         isActive: false,
         updateBy: userId,
         updateDate: Timestamp.now(),
     });
-
+    
     return { id, isActive: false }
 }
 
 export const getInvoiceProducts = async (invoiceId) => {
-    const q = query(collection(db, "invoiceProducts"), where("invoiceId", "===", invoiceId));
+    const q = query(collection(db, "invoiceProducts"), where("invoiceId", "==", invoiceId));
     const productsSnapshot = await getDocs(q);
     const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return products;

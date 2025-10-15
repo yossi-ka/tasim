@@ -19,7 +19,7 @@ const PdfViewer = () => {
     const iframeRef = React.useRef(null);
 
     const handleFileChange = (e) => {
-        if (e.target.files[0].type === 'application/pdf') {
+        if (e.target.files[0].type == 'application/pdf') {
             fileRef.current = e.target.files[0];
             setFile(true);
         } else {

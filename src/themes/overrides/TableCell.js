@@ -1,4 +1,4 @@
-// ==================================|| OVERRIDES - TABLE CELL ||================================== //
+// ==============================|| OVERRIDES - TABLE CELL ||============================== //
 
 export default function TableCell(theme) {
     return {
@@ -13,7 +13,7 @@ export default function TableCell(theme) {
                     // borderColor: theme.palette.divider
                 },
                 head: {
-                    backgroundColor: theme.palette.grey[100],
+                    backgroundColor : theme.palette.grey[100],
                     fontSize: '110%',
                     textAlign: "center",
                     lineHeight: 1.5,

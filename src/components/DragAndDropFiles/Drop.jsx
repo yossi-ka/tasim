@@ -44,9 +44,9 @@ const Drop = ({ data, dispatch, title }) => {
             style={{
                 padding: "2rem",
                 textAlign: "center",
-                background: "#2196f3",
+                background: "#07F",
                 borderRadius: "0.5rem",
-                boxShadow: "5px 5px 10px #90caf9",
+                boxShadow: "5px 5px 10px #C0C0C0",
             }}
             onDrop={e => handleDrop(e)}
             onDragOver={e => handleDragOver(e)}
@@ -63,7 +63,7 @@ const Drop = ({ data, dispatch, title }) => {
             </Stack> */}
             <p>Drag files here to upload</p>
         </div>
-
+       
     );
 };
 

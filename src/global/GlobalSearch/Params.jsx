@@ -30,7 +30,7 @@ const Params = ({ setCollapseOpen, quickSearchFields, quickSearchOnTyping, heade
     const paramsHeader = React.useMemo(() => {
         const newParams = {};
         for (const key in params) {
-            if (key === "globalSearch") continue;
+            if (key == "globalSearch") continue;
             if (isEmptyWithoutZiro(params[key])) continue;
             newParams[key] = params[key];
         }
@@ -83,7 +83,7 @@ const Params = ({ setCollapseOpen, quickSearchFields, quickSearchOnTyping, heade
             </Grid>}
             {isNotPhoneScreen && <Grid item xs={quickSearchFields.length > 0 ? (header ? 6.5 : 7.5) : (header ? 8.5 : 9.5)}>
                 <Stack direction='row' justifyContent="start" alignItems="center" spacing={4} sx={{ width: 1, height: 1 }}>
-                    {Object.keys(paramsHeader).length === 0 && cbParams.length === 0 && <Typography
+                    {Object.keys(paramsHeader).length === 0 && cbParams.length == 0 && <Typography
                         variant='body1'
                         color="text.secondary"
                         sx={{ width: 1 }}

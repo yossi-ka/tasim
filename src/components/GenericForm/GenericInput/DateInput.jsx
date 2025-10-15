@@ -50,7 +50,7 @@ const DateInput = ({
 
     React.useEffect(() => {
         var inputSelect = inputs[name];
-        if (inputSelect && inputSelect !== 0) {
+        if (inputSelect && inputSelect != 0) {
             if (inputSelect.toDate) {
                 inputSelect = formatDateJS(inputSelect.toDate());
             }
@@ -72,15 +72,15 @@ const DateInput = ({
 
         if (!isDateNumber(v)) return;
 
-        if (v.charAt(v.length - 1) === "/" && v.charAt(v.length - 2) === "/") return;
+        if (v.charAt(v.length - 1) == "/" && v.charAt(v.length - 2) == "/") return;
 
         if (v.length < valueState.length) {
-            if (valueState.charAt(valueState.length - 1) === "/") v = v.slice(0, v.length - 1)
+            if (valueState.charAt(valueState.length - 1) == "/") v = v.slice(0, v.length - 1)
             setValueState(v)
             return
         };
 
-        if (v.charAt(v.length - 1) === "/") {
+        if (v.charAt(v.length - 1) == "/") {
             let arr = v.split("/");
             let last = arr[arr.length - 2];
             arr[arr.length - 2] = last.padStart(2, 0);
@@ -88,18 +88,18 @@ const DateInput = ({
             return;
         };
 
-        if (v.length === 2 || v.length === 5) v = `${v}/`;
+        if (v.length == 2 || v.length == 5) v = `${v}/`;
 
         let arr = v.split("/");
         let len = arr.length;
 
-        if (len === 2 && !isBetween(arr[0], 0, 31)) arr[0] = "31";
-        if (len === 3 && !isBetween(arr[1], 0, 12)) arr[1] = "12";
-        if (len === 3 && arr[2].length > 4) return;
+        if (len == 2 && !isBetween(arr[0], 0, 31)) arr[0] = "31";
+        if (len == 3 && !isBetween(arr[1], 0, 12)) arr[1] = "12";
+        if (len == 3 && arr[2].length > 4) return;
 
         setValueState(arr.join("/"));
 
-        if (len !== 3 || arr[2].length < 4) return;
+        if (len != 3 || arr[2].length < 4) return;
 
 
         if (required && isValueEmpty(v)) {
@@ -145,7 +145,7 @@ const DateInput = ({
             }
         }
 
-        if (date !== 'Invalid Date') {
+        if (date != 'Invalid Date') {
             setErrorS(false);
             removeError(name);
             setHelperTextS("");
@@ -195,15 +195,15 @@ const DateInput = ({
         //     // console.log(v);
         //     if (!isDateNumber(v)) return;
 
-        //     if (v.charAt(v.length - 1) === "/" && v.charAt(v.length - 2) === "/") return;
+        //     if (v.charAt(v.length - 1) == "/" && v.charAt(v.length - 2) == "/") return;
 
         //     if (v.length < valueState.length) {
-        //         if (valueState.charAt(valueState.length - 1) === "/") v = v.slice(0, v.length - 1)
+        //         if (valueState.charAt(valueState.length - 1) == "/") v = v.slice(0, v.length - 1)
         //         setValueState(v)
         //         return
         //     };
 
-        //     if (v.charAt(v.length - 1) === "/") {
+        //     if (v.charAt(v.length - 1) == "/") {
         //         let arr = v.split("/");
         //         let last = arr[arr.length - 2];
         //         arr[arr.length - 2] = last.padStart(2, 0);
@@ -211,19 +211,19 @@ const DateInput = ({
         //         return;
         //     };
 
-        //     if (v.length === 2 || v.length === 5) v = `${v}/`;
+        //     if (v.length == 2 || v.length == 5) v = `${v}/`;
 
         //     let arr = v.split("/");
         //     let len = arr.length;
 
-        //     if (len === 2 && !isBetween(arr[0], 0, 31)) arr[0] = "31";
-        //     if (len === 3 && !isBetween(arr[1], 0, 12)) arr[1] = "12";
-        //     if (len === 3 && arr[2].length > 4) return;
+        //     if (len == 2 && !isBetween(arr[0], 0, 31)) arr[0] = "31";
+        //     if (len == 3 && !isBetween(arr[1], 0, 12)) arr[1] = "12";
+        //     if (len == 3 && arr[2].length > 4) return;
 
 
         //     setValueState(arr.join("/"));
 
-        //     if (len !== 3 || arr[2].length < 4) return;
+        //     if (len != 3 || arr[2].length < 4) return;
 
 
         //     const arrFormatDate = `${arr[1]}/${arr[0]}/${arr[2]}`;
@@ -265,7 +265,7 @@ const DateInput = ({
         //         setHelperTextS("");
         //     }
 
-        //     if (date !== 'Invalid Date') {
+        //     if (date != 'Invalid Date') {
         //         setErrorS(false);
         //         removeError(name);
         //         setHelperTextS("");

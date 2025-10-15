@@ -1,4 +1,4 @@
-// ==================================|| OVERRIDES - BUTTON ||================================== //
+// ==============================|| OVERRIDES - BUTTON ||============================== //
 
 export default function Button(theme) {
     const disabledStyle = {

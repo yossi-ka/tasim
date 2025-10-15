@@ -92,7 +92,7 @@ const GenericTable = ({ header, columns, data, title, footer, actions, selectedA
                                     {columns.find(x => x.first).checkbox && <Checkbox
                                         size="small"
                                         sx={{ p: 0, '& .MuiSvgIcon-root': { fontSize: 18 } }}
-                                        checked={(selected && dataToShow) && selected.length === dataToShow.filter(row => {
+                                        checked={(selected && dataToShow) && selected.length == dataToShow.filter(row => {
                                             const disabled = columns.find(row => row.first).first.checkbox.disabled;
                                             if (!disabled) return true;
                                             return isFunction(disabled) ? !disabled({ row }) : !disabled;
@@ -102,7 +102,7 @@ const GenericTable = ({ header, columns, data, title, footer, actions, selectedA
                                             const disabled = columns.find(row => row.first).first.checkbox.disabled;
                                             if (!disabled) return true;
                                             return isFunction(disabled) ? !disabled({ row }) : !disabled;
-                                        }).length === 0 ? true : false}
+                                        }).length == 0 ? true : false}
                                         onChange={(e, v) => {
                                             //filter data to show and remove data that the disabled is true
                                             let data = dataToShow.filter(row => {

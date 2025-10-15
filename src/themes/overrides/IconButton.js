@@ -1,4 +1,4 @@
-// ==================================|| OVERRIDES - ICON BUTTON ||================================== //
+// ==============================|| OVERRIDES - ICON BUTTON ||============================== //
 
 export default function IconButton(theme) {
     return {

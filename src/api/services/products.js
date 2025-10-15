@@ -12,7 +12,7 @@ export const getAllProducts = async () => {
         const data = doc.data();
         if (!isNaN(data.lastBuyPrice) && !isNaN(data.price)) {
             data.profit = removeVat(data.isVatExempt, data.price) - data.lastBuyPrice;
-            data.profitPercentage = calculateProfitPercentage(data.lastBuyPrice, removeVat(data.isVatExempt, data.price));
+            data.profitPercentage = calculateProfitPercentage( data.lastBuyPrice, removeVat(data.isVatExempt, data.price));
         }
         return { id: doc.id, ...data };
     });
@@ -149,7 +149,7 @@ export const uploadProducts = async (productsData, userId) => {
 
 export const getProductsCount = async () => {
     const productsRef = collection(db, "products");
-    const countQuery = query(productsRef, where("isActive", "===", true));
+    const countQuery = query(productsRef, where("isActive", "==", true));
 
     try {
         const countSnapshot = await getCountFromServer(countQuery);
@@ -203,7 +203,7 @@ export const updateIsQuantityForShipping = async (products, isQuantityForShippin
 }
 
 export const checkProductPlace = async (productId, place) => {
-    const q = query(collection(db, "products"), where("__name__", "!==", productId), where("productPlace", "===", place));
+    const q = query(collection(db, "products"), where("__name__", "!=", productId), where("productPlace", "==", place));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
         return null; // מקום המוצר פנוי

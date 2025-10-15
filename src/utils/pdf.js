@@ -1,6 +1,6 @@
 import pdfMake from "pdfmake/build/pdfmake";
 
-let base_url = process.env.NODE_ENV === "development"
+let base_url = process.env.NODE_ENV == "development"
     ? "http://XXXXXX/fonts/"
     : "https://XXXXX/fonts/"
 
@@ -54,17 +54,17 @@ export function pdf(docDefinition, fileName = "file", isRTL = true) {
         if (content.text) {
             content.text = rightToLeftText(content.text);
             content.font = 'Hebrew';
-            content.alignment = content.alignment ? content.alignment : isRTL ? 'right' : 'left';
+            content.alignment = content.alignment ? content.alignment : isRTL?'right':'left';
             content.margin = content.margin ? content.margin : [2, 2, 2, 2];
-            content.direction = isRTL ? 'rtl' : 'ltr';
+            content.direction = isRTL?'rtl':'ltr';
         }
         if (content.columns) {
             content.columns.forEach((c) => {
                 if (c.text) {
                     c.text = rightToLeftText(c.text);
                     c.font = 'Hebrew';
-                    c.direction = isRTL ? 'rtl' : 'ltr';
-                    c.alignment = c.alignment ? c.alignment : isRTL ? 'right' : 'left';
+                    c.direction = isRTL? 'rtl': 'ltr';
+                    c.alignment = c.alignment ? c.alignment :isRTL? 'right': 'left';
                     c.margin = c.margin ? c.margin : [2, 2, 2, 2];
                 }
             })
@@ -74,19 +74,19 @@ export function pdf(docDefinition, fileName = "file", isRTL = true) {
                 row.map((cell, idx2) => {
                     content.table.body[idx][idx2].text = rightToLeftText(content.table.body[idx][idx2].text);
                     content.table.body[idx][idx2].font = 'Hebrew';
-                    content.table.body[idx][idx2].direction = isRTL ? 'rtl' : 'ltr';
+                    content.table.body[idx][idx2].direction =isRTL? 'rtl': 'ltr';
                     content.table.body[idx][idx2].alignment = content.table.body[idx][idx2].alignment ?
-                        content.table.body[idx][idx2].alignment : isRTL ? 'right' : 'left';
+                        content.table.body[idx][idx2].alignment:isRTL? 'right': 'left';
                     content.table.body[idx][idx2].margin = content.table.body[idx][idx2].margin ?
-                        content.table.body[idx][idx2].margin : [2, 2, 2, 2];
+                        content.table.body[idx][idx2].margin: [2,2,2,2];
 
-
+                   
 
                     return {
                         text: rightToLeftText("cell"),
                         font: 'Hebrew',
-                        alignment: isRTL ? 'right' : 'left',
-                        direction: isRTL ? 'rtl' : 'ltr',
+                        alignment:isRTL? 'right': 'left',
+                        direction:isRTL? 'rtl': 'ltr',
                     }
                 }))
         }

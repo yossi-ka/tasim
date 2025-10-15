@@ -95,7 +95,7 @@ const GenericInput = ({
         } else if (inputs && inputs[name] && (readonly || formReadOnly)) {
             switch (type) {
                 case 'date':
-                    if (inputs[name] === null || inputs[name] === undefined) return '-';
+                    if (inputs[name] == null || inputs[name] == undefined) return '-';
                     return formatDate(inputs[name]);
                 case 'month':
                     return formatMonthJS(inputs[name]);
@@ -173,11 +173,11 @@ const GenericInput = ({
     }
 
     const isStartAdornment = React.useMemo(() => {
-        return type === 'currencyIL' || type === 'percent';
+        return type == 'currencyIL' || type == 'percent';
     }, [type]);
 
     const floatNumberInputProps = React.useMemo(() => {
-        if (type === 'currencyIL' || type === 'percent') {
+        if (type == 'currencyIL' || type == 'percent') {
             return {
                 inputMode: 'decimal',
                 pattern: '[0-9]*',
@@ -211,8 +211,8 @@ const GenericInput = ({
         InputProps={{
             sx: { bgcolor: (readonly && !formReadOnly) ? "secondary.lighter" : null },
             startAdornment: !isStartAdornment ? null : <Stack direction="column" justifyContent="center" alignItems="center" sx={{ height: 1 }}>
-                {type === 'currencyIL' && <span>₪</span>}
-                {type === 'percent' && <span>%</span>}
+                {type == 'currencyIL' && <span>₪</span>}
+                {type == 'percent' && <span>%</span>}
             </Stack>,
             endAdornment: loading ? <Stack direction="column" justifyContent="center" alignItems="center" sx={{ height: 1 }}>
                 <CircularProgress size={15} />
@@ -241,7 +241,7 @@ const GenericInput = ({
         }}
         onBlur={(e) => {
 
-            if (type === 'currencyIL' || type === 'currency' || type === 'percent') {
+            if (type == 'currencyIL' || type == 'currency' || type == 'percent') {
                 setInputs({ ...inputs, [name]: parseFloat(e.target.value).toFixed(toFixed) });
             }
 

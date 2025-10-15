@@ -10,9 +10,12 @@ import EngineeringIcon from '@mui/icons-material/Engineering';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import RouteIcon from '@mui/icons-material/Route';
+import GradingIcon from '@mui/icons-material/Grading';
 import DescriptionIcon from '@mui/icons-material/Description';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
@@ -23,25 +26,19 @@ const DrawerContent = () => {
 
     const permission = "admin"// user?.permission
     const admin = [
-        { title: "הזמנות", to: "orders", icon: <ShoppingCartIcon color='primary' /> },
         {
-            title: "קבוצות ליקוט",
-            to: "collectionGroups",
-            icon: <ShoppingBagIcon color='primary' />,
+            title: "השכרות", to: "rentals",
+            icon: <GradingIcon color='primary' />,
             items: [
-                { title: "קבוצה פעילה", to: "collection-groups" },
-                { title: "היסטוריה", to: "collection-groups-history" }
+                { title: "השכרות פעילות", to: "rentals" },
+                { title: "הסטוריית השכרות", to: "rentals-history" }
             ]
         },
-        { title: "הודעות קוליות", to: "voice-msg", icon: <PermPhoneMsgIcon color='primary' /> },
+        { title: "מכשירים", to: "devices", icon: <PhoneIphoneIcon color='primary' /> },
         { title: "לקוחות", to: "customers", icon: <GroupsIcon color='primary' /> },
-        { title: "מוצרים", to: "products", icon: <InventoryIcon color='primary' /> },
-        { title: "סדר מסלולים", to: "route-orders", icon: <RouteIcon color='primary' /> },
-        { title: "עובדים", to: "employees", icon: <EngineeringIcon color='primary' /> },
-        { title: "ספקים", to: "suppliers", icon: <LocalShippingIcon color='primary' /> },
-        { title: "חשבוניות", to: "invoices", icon: <DescriptionIcon color='primary' /> },
-        { title: "דוחו\"ת", to: "reports", icon: <TrendingUpIcon color='primary' /> },
-
+        { title: "מספרים ישראליים", to: "il-numbers", icon: <InventoryIcon color='primary' /> },
+        { title: "הוצאות", to: "expenses", icon: <TrendingDownIcon color='primary' /> },
+        { title: "הכנסות", to: "revenues", icon: <TrendingUpIcon color='primary' /> },
     ]
 
 
@@ -87,19 +84,16 @@ const DrawerContent = () => {
                     </ListItemText>
 
                 </MenuItem>
-                <Collapse in={index === selectedIndex} timeout="auto" unmountOnExit sx={{ bgcolor: "primary.lighter" }
-                } >
-                    {
-                        menuItem.items.map((subItem, subIndex) => {
-                            return (
-                                <MenuList component="div" disablePadding key={subIndex}>
-                                    <SubItemMenu title={subItem.title} path={subItem.to} active={active} setActive={setActive} isSubItem disabled={subItem.disabled} />
-                                </MenuList>
-                            )
-                        })
-                    }
-                </Collapse >
-            </Box >
+                <Collapse in={index === selectedIndex} timeout="auto" unmountOnExit sx={{ bgcolor: "primary.lighter" }} >
+                    {menuItem.items.map((subItem, subIndex) => {
+                        return (
+                            <MenuList component="div" disablePadding key={subIndex}>
+                                <SubItemMenu title={subItem.title} path={subItem.to} active={active} setActive={setActive} isSubItem disabled={subItem.disabled} />
+                            </MenuList>
+                        )
+                    })}
+                </Collapse>
+            </Box>
         }
         else {
             return <SubItemMenu key={"f" + index} title={menuItem.title}

@@ -17,7 +17,7 @@ const DataCard = ({ title, data, linkTo, icon }) => {
                     <Grid item xs={10}>
                         <Stack direction="column" spacing={1}>
                             <Typography fontSize={12} variant="h3" color="primary.400">{title}</Typography>
-                            {data !== "loading" ?
+                            {data != "loading" ?
                                 <Typography align="center" variant="h4" color="primary.main">{data}</Typography> :
                                 <LoudingData height={25} />}
                         </Stack>

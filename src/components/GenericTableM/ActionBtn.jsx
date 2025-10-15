@@ -76,8 +76,8 @@ const ActionBtn = ({ isDense, actions, row, setOpenCollapse, openCollapse, index
                     aria-expanded={open ? 'true' : undefined}
                     disabled={actions.length > 1 ? false : isFunction(actions[0].disabled) ? actions[0].disabled(row) : actions[0].disabled}
                 >
-                    {(actions.length > 1 || (actions.length === 1 && !actions[0].icon))
-                        ? <MoreVertIcon sx={{ fontSize: 18 }} />
+                    {(actions.length > 1 || (actions.length == 1 && !actions[0].icon))
+                        ? <MoreVertIcon sx={{fontSize:18}} />
                         : actions[0].icon}
                 </IconButton>
             </Tooltip>

@@ -5,7 +5,7 @@ import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, up
 export const getOrdersByStatus = async (status) => {
     console.log('Fetching orders with status:', status);
     const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, status ? where("orderStatus", "===", status) : null, orderBy("updateDate", "desc"));
+    const q = query(ordersRef, status ? where("orderStatus", "==", status) : null, orderBy("updateDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => {
 
@@ -28,6 +28,96 @@ export const getOrderById = async (id) => {
     } else {
         throw new Error("No such document!");
     }
+}
+
+export const getOrdersWithProductsByOrderIds = async (ids, category = null, isNeedProducts = false) => {
+
+    if (!ids || ids.length === 0) {
+        return [];
+    }
+
+    // //  אם יש קטגוריה, נשלוף את שם הקטגוריה
+    // let categoryName = null;
+    // if (category) {
+    //     const categoryRef = doc(db, 'globalProductCategories', category);
+    //     const categorySnap = await getDoc(categoryRef);
+    //     if (categorySnap.exists()) {
+    //         categoryName = categorySnap.data()?.name;
+    //     } else {
+    //         console.warn(`Category with id ${category} not found.`);
+    //         return [];
+    //     }
+    // }
+
+
+
+    // שליפת ההזמנות במנות של 30 ושמירת הנתונים בorders
+    const orders = [];
+    for (let i = 0; i < ids.length; i += 30) {
+        const batchIds = ids.slice(i, i + 30);
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef, where('__name__', 'in', batchIds));
+        const batchRefs = await getDocs(q);
+        batchRefs.docs.forEach(docSnap => {
+            if (docSnap.exists()) {
+                orders.push({ id: docSnap.id, ...docSnap.data() });
+            } else {
+                console.warn(`Order with id ${docSnap.id} not found.`);
+            }
+        });
+    }
+
+    if (!isNeedProducts && !category) {
+        return orders;
+    }
+
+    //שליפה של כל המוצרים בהזמנות האלו
+    const allProducts = [];
+    for (let i = 0; i < orders.length; i += 30) {
+        const batchOrders = orders.slice(i, i + 30);
+        const batchOrderIds = batchOrders.map(order => order.id);
+        const productsRef = collection(db, 'orderProducts');
+        const productsSnapshot = await getDocs(query(productsRef, where('orderId', 'in', batchOrderIds)));
+        productsSnapshot.docs.forEach(productDoc => {
+            allProducts.push({ id: productDoc.id, ...productDoc.data() });
+        });
+    }
+
+    //איגוד בפעם אחת של כל המוצרים להזמנות
+    const productsByOrderId = new Map();
+    allProducts.forEach(product => {
+        if (!productsByOrderId.has(product.orderId)) {
+            productsByOrderId.set(product.orderId, []);
+        }
+        productsByOrderId.get(product.orderId).push(product);
+    });
+
+    const orderWithProducts = orders.map(order => ({
+        ...order,
+        products: productsByOrderId.get(order.id) || []
+    }));
+
+    if (!category) {
+        return orderWithProducts;
+    } else {
+        const productsQuery = query(
+            collection(db, 'products'),
+            where("categories", "array-contains", category)
+        );
+        const productsSnapshot = await getDocs(productsQuery);
+        const productIds = productsSnapshot.docs.map(doc => doc.id);
+
+        if (productIds.length === 0) {
+            return []; // אין מוצרים עם הקטגוריה הזו
+        }
+
+        //סינון רק הזמנות שיש להם מוצרים בקטגוריה הזו
+        return orderWithProducts.filter(order => {
+            return order.products.some(product => productIds.includes(product.productId));
+        });
+
+    }
+
 }
 
 export const addOrder = async (data, userId) => {
@@ -154,13 +244,13 @@ export const getSummaryByStatus = async () => {
     // יצירת queries לכל סטטוס במקביל
     const countPromises = [
         getCountFromServer(query(ordersRef)), // כל ההזמנות
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 1))), // start
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 2))), // likut
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 3))), // mamtinLemishloach
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 4))), // mishloach
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 5))), // end
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 6))), // kvitzat likut
-        getCountFromServer(query(ordersRef, where("orderStatus", "===", 7)))  // kfuim-start
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 1))), // start
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 2))), // likut
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 3))), // mamtinLemishloach
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 4))), // mishloach
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 5))), // end
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 6))), // kvitzat likut
+        getCountFromServer(query(ordersRef, where("orderStatus", "==", 7)))  // kfuim-start
     ];
 
     try {
@@ -310,7 +400,7 @@ export const syncOrderNumbers = async (userId) => {
         // 1. שליפת הזמנות בסטטוס 1
         console.log('🔍 Fetching orders with status 1...');
         const ordersRef = collection(db, "orders");
-        const ordersQuery = query(ordersRef, where("orderStatus", "===", 1));
+        const ordersQuery = query(ordersRef, where("orderStatus", "==", 1));
         const ordersSnapshot = await getDocs(ordersQuery);
 
         if (ordersSnapshot.empty) {
@@ -345,7 +435,7 @@ export const syncOrderNumbers = async (userId) => {
         // 3. טעינת מיפוי מסלולים (רשימה עם סדר כתובות)
         console.log('🔄 Loading route orders mapping...');
         const routeOrdersRef = collection(db, "routeOrders");
-        const routeOrdersQuery = query(routeOrdersRef, where("isActive", "===", true));
+        const routeOrdersQuery = query(routeOrdersRef, where("isActive", "==", true));
         const routeOrdersSnapshot = await getDocs(routeOrdersQuery);
 
         const routeMapping = new Map();

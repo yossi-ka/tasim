@@ -10,7 +10,7 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import MenuIcon from '@mui/icons-material/Menu';
 // import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 
-// ==================================|| MAIN LAYOUT - HEADER ||================================== //
+// ==============================|| MAIN LAYOUT - HEADER ||============================== //
 
 const Header = ({ open, handleDrawerToggle }) => {
     const theme = useTheme();

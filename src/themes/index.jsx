@@ -12,7 +12,7 @@ import CustomShadows from './shadows';
 import componentsOverride from './overrides';
 import cacheRtl from "./cacheRtl";
 
-// ==================================|| DEFAULT THEME - MAIN  ||================================== //
+// ==============================|| DEFAULT THEME - MAIN  ||============================== //
 
 export default function ThemeCustomization({ children }) {
     const theme = Palette('light', 'default');

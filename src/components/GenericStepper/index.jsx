@@ -14,16 +14,16 @@ const GenericStepper = ({ steps, finish, height }) => {
     const [activeStep, setActiveStep] = React.useState(0);
     const handleNext = () => {
         let stop = finish ? steps.length : steps.length - 1;
-        if (activeStep === stop) return;
+        if (activeStep == stop) return;
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
     };
     const handleBack = () => {
-        if (activeStep === 0) return;
+        if (activeStep == 0) return;
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
 
     const labelColor = (index) => {
-        if (index === activeStep) return 'primary.main';
+        if (index == activeStep) return 'primary.main';
         if (index < activeStep) return 'success.main';
         if (index > activeStep) return 'disabled.main';
     }
@@ -36,13 +36,13 @@ const GenericStepper = ({ steps, finish, height }) => {
                         <Step key={index}>
                             <StepLabel
                                 icon={<>
-                                    {index === activeStep && <ArrowDropDownIcon color='primary' />}
+                                    {index == activeStep && <ArrowDropDownIcon color='primary' />}
                                     {index < activeStep && <CheckIcon color='success' />}
                                     {index > activeStep && <CloseIcon color='disabled' />}
                                 </>}
                             >
                                 <Typography
-                                    variant={index === activeStep ? 'subtitle2' : 'body1'}
+                                    variant={index == activeStep ? 'subtitle2' : 'body1'}
                                     color={labelColor(index)}
                                 >{step.label}</Typography>
                             </StepLabel>
@@ -58,7 +58,7 @@ const GenericStepper = ({ steps, finish, height }) => {
                             ? steps[activeStep].content({ activeStep, setActiveStep, handleBack, handleNext })
                             : steps[activeStep].content
                         : null}
-                    {(activeStep === steps.length && finish) && <>Fin</>}
+                    {(activeStep == steps.length && finish) && <>Fin</>}
                 </Box>
                 <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ width: 1, mt: 3 }}>
                     <Button

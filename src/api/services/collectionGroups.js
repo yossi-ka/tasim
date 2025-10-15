@@ -47,8 +47,8 @@ const extractNumber = (val) => {
 export const addToCollectionGroup = async (lineId, orderIds, userId) => {
 
     const q = query(collection(db, 'collectionsGroups'),
-        where("lineId", "===", lineId),
-        where("status", "===", 1)
+        where("lineId", "==", lineId),
+        where("status", "==", 1)
     );
     const getExistingGroup = await getDocs(q);
 
@@ -94,13 +94,13 @@ export const addToCollectionGroup = async (lineId, orderIds, userId) => {
 };
 
 export const getOpenCollectionGroups = async () => {
-    const q = query(collection(db, 'collectionsGroups'), where("status", "===", 1));
+    const q = query(collection(db, 'collectionsGroups'), where("status", "==", 1));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 export const getCollectionGroupsHistory = async () => {
-    const q = query(collection(db, 'collectionsGroups'), where("status", "===", 3), orderBy("createdAt", "desc"));
+    const q = query(collection(db, 'collectionsGroups'), where("status", "==", 3), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -112,7 +112,7 @@ export const getProccessingCollectionGroups = async () => {
 }
 
 export const getOrdersByCollectionGroup = async (collectionGroupId) => {
-    const q = query(collection(db, 'orders'), where("collectionGroupId", "===", collectionGroupId));
+    const q = query(collection(db, 'orders'), where("collectionGroupId", "==", collectionGroupId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), deliveryIndex: isNaN(doc.data().deliveryIndex) ? null : doc.data().deliveryIndex }))
         .sort((a, b) => {
@@ -159,8 +159,8 @@ export const saveCollectionGroupOrder = async (collectionGroupId, organized, uno
     await batch.commit();
 
     const q = query(collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId),
-        where("collectionGroupOrder", "===", 0)
+        where("collectionGroupId", "==", collectionGroupId),
+        where("collectionGroupOrder", "==", 0)
     );
 
     const unorganizedCount = await getCountFromServer(q);
@@ -190,7 +190,7 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
 
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const orderIds = ordersSnapshot.docs.map(doc => doc.id);
@@ -305,7 +305,7 @@ export const closeCollectionGroup = async (collectionGroupId, userId) => {
 export const getCollectionGroupProducts = async (collectionGroupId) => {
     const q = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -333,7 +333,7 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
     // קבלת המוצרים מטבלת collectionGroupProducts
     const productsQuery = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const productsSnapshot = await getDocs(productsQuery);
     const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -343,7 +343,7 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
     // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
     const orderProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const orderProductsSnapshot = await getDocs(orderProductsQuery);
     const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -351,7 +351,7 @@ export const getCollectionGroupProductsWithOrders = async (collectionGroupId) =>
     // קבלת כל ההזמנות עבור קבוצת האיסוף
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -411,7 +411,7 @@ export const getCollectionOrdersAndGroupProducts = async (collectionGroupId) => 
     // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
     const orderProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const orderProductsSnapshot = await getDocs(orderProductsQuery);
     const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -419,7 +419,7 @@ export const getCollectionOrdersAndGroupProducts = async (collectionGroupId) => 
     // קבלת כל ההזמנות עבור קבוצת האיסוף
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -427,7 +427,7 @@ export const getCollectionOrdersAndGroupProducts = async (collectionGroupId) => 
     // קבלת כל collectionGroupProducts עבור קבוצת האיסוף
     const groupProductsQuery = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const groupProductsSnapshot = await getDocs(groupProductsQuery);
     const collectionGroupProducts = groupProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -488,7 +488,7 @@ export const getCollectionOrderWithProducts = async (collectionGroupId) => {
     // קבלת כל פריטי ההזמנות עבור קבוצת האיסוף
     const orderProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const orderProductsSnapshot = await getDocs(orderProductsQuery);
     const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -496,7 +496,7 @@ export const getCollectionOrderWithProducts = async (collectionGroupId) => {
     // קבלת כל ההזמנות עבור קבוצת האיסוף
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -540,7 +540,7 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
     // עדכון הסטטוס של כל ההזמנות בקבוצת האיסוף
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const orderDocs = ordersSnapshot.docs;
@@ -548,8 +548,8 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
     // עדכון הסטטוס של כל המוצרים בקבוצת האיסוף
     const productsQuery = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId),
-        where("status", "!==", 3) // רק מוצרים פעילים
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "!=", 3) // רק מוצרים פעילים
     );
     const productsSnapshot = await getDocs(productsQuery);
     const productDocs = productsSnapshot.docs;
@@ -557,8 +557,8 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
     // קבלת כל המוצרים 
     const allProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId),
-        where("status", "!==", 3)
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "!=", 3)
     );
     const allProductsSnapshot = await getDocs(allProductsQuery);
     const allProductDocs = allProductsSnapshot.docs;
@@ -628,7 +628,7 @@ export const completeCollectionGroup = async (collectionGroupId, userId, employe
 export const moveAllOrdersFrom4To5 = async (userId) => {
     const q = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", "Lu4ZLhg1TLagxdOxg46C")
+        where("collectionGroupId", "==", "Lu4ZLhg1TLagxdOxg46C")
     );
     const querySnapshot = await getDocs(q);
     const orderDocs = querySnapshot.docs;
@@ -695,7 +695,7 @@ export const getProductsWithStatusSummaryOnly = async (collectionGroupId) => {
     // שליפת כל פריטי ההזמנות עבור קבוצת האיסוף
     const orderProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const orderProductsSnapshot = await getDocs(orderProductsQuery);
     const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -704,7 +704,7 @@ export const getProductsWithStatusSummaryOnly = async (collectionGroupId) => {
     // שליפת כל המוצרים מטבלת collectionGroupProducts
     const productsQuery = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const productsSnapshot = await getDocs(productsQuery);
     const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -739,7 +739,7 @@ export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) =
     // שליפת כל פריטי ההזמנות עבור קבוצת האיסוף
     const orderProductsQuery = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const orderProductsSnapshot = await getDocs(orderProductsQuery);
     const orderProducts = orderProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -747,7 +747,7 @@ export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) =
     // שליפת כל המוצרים מטבלת collectionGroupProducts
     const productsQuery = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const productsSnapshot = await getDocs(productsQuery);
     const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -755,7 +755,7 @@ export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) =
     // שליפת כל ההזמנות עבור קבוצת האיסוף (כדי להחזיר פרטי הזמנה)
     const ordersQuery = query(
         collection(db, 'orders'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const ordersSnapshot = await getDocs(ordersQuery);
     const ordersMap = ordersSnapshot.docs.reduce((map, doc) => {
@@ -808,8 +808,8 @@ export const getProductsWithOrdersAndStatusSummary = async (collectionGroupId) =
 export const getMissingProductsByOrder = async (collectionGroupId) => {
     const q = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId),
-        where("status", "===", 4) // סטטוס חסר
+        where("collectionGroupId", "==", collectionGroupId),
+        where("status", "==", 4) // סטטוס חסר
     );
     const querySnapshot = await getDocs(q);
     const missingProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -858,7 +858,7 @@ export const updateCollectionGroupProducts = async () => {
     const collectionGroupId = "k04NXPMZMXZLX8BsrO7J"
     const q = query(
         collection(db, 'collectionGroupProducts'),
-        where("collectionGroupId", "===", collectionGroupId)
+        where("collectionGroupId", "==", collectionGroupId)
     );
     const querySnapshot = await getDocs(q);
     // return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -879,7 +879,7 @@ export const updateCollectionGroupProducts = async () => {
 export const getUnprocessedProductsCount = async (collectionGroupId) => {
     const q = query(
         collection(db, 'orderProducts'),
-        where("collectionGroupId", "===", collectionGroupId),
+        where("collectionGroupId", "==", collectionGroupId),
         where("status", "not-in", [3, 4]) // סטטוסים פעילים
     );
     const querySnapshot = await getCountFromServer(q);
@@ -908,7 +908,7 @@ export const getOrdersByProductCategory = async (collectionGroupId, categoryId) 
             const batchProductIds = productIds.slice(i, i + 30);
             const orderProductsQuery = query(
                 collection(db, 'orderProducts'),
-                where("collectionGroupId", "===", collectionGroupId),
+                where("collectionGroupId", "==", collectionGroupId),
                 where("productId", "in", batchProductIds)
             );
             const orderProductsSnapshot = await getDocs(orderProductsQuery);
@@ -981,11 +981,11 @@ export const sendTzintukForMissingOrders = async (collectionGroupId, userId) => 
 
     //update collectionGroup
     const collectionGroupRef = doc(db, 'collectionsGroups', collectionGroupId);
-    batch.update(collectionGroupRef, {
-        isMissingSendTzintuk: true,
-        updatedAt: Timestamp.now(),
-        updatedBy: userId,
-    });
+        batch.update(collectionGroupRef, {
+            isMissingSendTzintuk: true,
+            updatedAt: Timestamp.now(),
+            updatedBy: userId,
+        });
 
     await batch.commit();
 }
@@ -1101,14 +1101,14 @@ export const removeOrderFromCollectionGroup = async (orderId, userId) => {
 // export const fixGroup = async () => {
 //     const collectionGroupId = "bxDEM0IB5l2A0NpjIjtz";
 
-//     const collectionGroupProducts = await getDocs(query(collection(db, 'collectionGroupProducts'), where("collectionGroupId", "===", collectionGroupId)));
+//     const collectionGroupProducts = await getDocs(query(collection(db, 'collectionGroupProducts'), where("collectionGroupId", "==", collectionGroupId)));
 //     const data = collectionGroupProducts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 //     console.log(`Found ${data.length} products in collection group ${collectionGroupId}`);
 
 //     //-----
 //     const ordersQuery = query(
 //         collection(db, 'orders'),
-//         where("collectionGroupId", "===", collectionGroupId)
+//         where("collectionGroupId", "==", collectionGroupId)
 //     );
 //     const ordersSnapshot = await getDocs(ordersQuery);
 //     const orderIds = ordersSnapshot.docs.map(doc => doc.id);

@@ -139,7 +139,7 @@ export const uploadSuppliers = async (suppliersData, userId) => {
 
 export const getSuppliersCount = async () => {
     const suppliersRef = collection(db, "suppliers");
-    const countQuery = query(suppliersRef, where("isActive", "===", true));
+    const countQuery = query(suppliersRef, where("isActive", "==", true));
 
     try {
         const countSnapshot = await getCountFromServer(countQuery);
@@ -152,12 +152,12 @@ export const getSuppliersCount = async () => {
 
 export const deleteSupplier = async (id, userId) => {
     const docRef = doc(db, 'suppliers', id);
-
+    
     await updateDoc(docRef, {
         isActive: false,
         updateBy: userId,
         updateDate: Timestamp.now(),
     });
-
+    
     return { id, isActive: false }
 }

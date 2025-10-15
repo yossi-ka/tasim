@@ -49,7 +49,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
     React.useEffect(() => {
         if (initInputs) {
             let newInput = initInputs;
-            let dateFields = fields.filter(f => f.type === "date");
+            let dateFields = fields.filter(f => f.type == "date");
             // console.log(fields);
             setInputs(initInputs);
         } else {
@@ -113,7 +113,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
     }
 
     const switchField = (field) => {
-        // if( field.type === 'line')
+        // if( field.type == 'line')
         if (field.displayCondition && !field.displayCondition(inputs)) return null;
         if (field.cb) return field.cb(inputs, setInputs);
         switch (field.type) {
@@ -200,7 +200,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
                 return <GenericRadio {...field} inputs={inputs} handleChange={handleChange} />;
             case 'lookup':
                 if (field.parentID) {
-                    if (inputs[field.parentID] === 0 || inputs[field.parentID] === null) {
+                    if (inputs[field.parentID] == 0 || inputs[field.parentID] == null) {
                         field.options = [];
                     } else {
                         field.options = getLookup(field.lookup, field.parentID ? inputs[field.parentID] : null);
@@ -212,7 +212,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
                     : <GenericAutocomplete {...field} inputs={inputs} handleChange={handleChange} />;
             case 'lookupMulti':
                 if (field.parentID) {
-                    if (inputs[field.parentID] === 0 || inputs[field.parentID] === null) {
+                    if (inputs[field.parentID] == 0 || inputs[field.parentID] == null) {
                         field.options = [];
                     } else {
                         field.options = getLookup(field.lookup, field.parentID ? inputs[field.parentID] : null);
@@ -224,7 +224,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
 
             case 'lookup-autocomplete':
                 if (field.parentID) {
-                    if (inputs[field.parentID] === 0 || inputs[field.parentID] === null) {
+                    if (inputs[field.parentID] == 0 || inputs[field.parentID] == null) {
                         field.options = [];
                     } else {
                         field.options = getLookup(field.lookup, field.parentID ? inputs[field.parentID] : null);
@@ -290,19 +290,15 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
                                 >
                                     {button.icon}
                                 </IconButton>
-                            </Tooltip>
-                            }
-                            {
-                                button.disabled && <IconButton
-                                    disabled={button.disabled}
-                                >
-                                    {button.icon}
-                                </IconButton>
-                            }
+                            </Tooltip>}
+                            {button.disabled && <IconButton
+                                disabled={button.disabled}
+                            >
+                                {button.icon}
+                            </IconButton>}
                         </Box>
-                    })
-                    }
-                </ButtonGroup >;
+                    })}
+                </ButtonGroup>;
             case 'integer':
                 return <NumberInput
                     {...field}
@@ -327,7 +323,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
             //         setInputs={setInputs}
             //         isFloat={false}
             //     />
-
+            
             case 'float':
                 return <NumberInput
                     {...field}
@@ -397,7 +393,7 @@ const GenericForm = ({ fields, onSubmit, initInputs, setInitInput, onChange, bor
         <Box
             component={isForm ? 'form' : 'div'}
             onSubmit={handleSubmit} sx={{
-                border: border ? '3px solid #bbdefb' : 'none',
+                border: border ? '3px solid #E6F7FF' : 'none',
                 borderRadius: '4px',
                 p: border ? '1rem' : '0'
             }}

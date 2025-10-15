@@ -62,9 +62,9 @@ const IOSSwitch = styled((props) => (
 
 export default function MySwitch(props) {
   return (
-    <FormControlLabel
-      control={<IOSSwitch sx={{ m: 1 }} {...props} />}
-      label={props.label}
-    />
+      <FormControlLabel
+        control={<IOSSwitch sx={{ m: 1 }} {...props} />}
+        label={props.label}
+      />
   );
 }

@@ -1,0 +1,9 @@
+# Query: כנפי נשרים
+# ContextLines: 1
+
+1 result - 1 file
+
+src\pages\Login\index.jsx:
+  68                  </Typography>
+  69:                 <Typography component="h1" variant="h3" color="primary.dark">טסים</Typography>
+  70              </Stack>

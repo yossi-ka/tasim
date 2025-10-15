@@ -1,4 +1,4 @@
-// ==================================|| OVERRIDES - LIST ITEM ICON ||================================== //
+// ==============================|| OVERRIDES - LIST ITEM ICON ||============================== //
 
 export default function ListItemIcon() {
     return {

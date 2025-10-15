@@ -1,4 +1,4 @@
-// ==================================|| OVERRIDES - LINER PROGRESS ||================================== //
+// ==============================|| OVERRIDES - LINER PROGRESS ||============================== //
 
 export default function LinearProgress() {
     return {

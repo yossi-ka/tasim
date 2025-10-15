@@ -1,23 +1,23 @@
 import { db } from '../../firebase-config'
-import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    orderBy,
-    query,
-    Timestamp,
-    updateDoc,
-    where,
+import { 
+    addDoc, 
+    collection, 
+    doc, 
+    getDoc, 
+    getDocs, 
+    orderBy, 
+    query, 
+    Timestamp, 
+    updateDoc, 
+    where, 
     writeBatch,
     limit,
     startAfter
 } from "firebase/firestore";
 
-// =============================================
+// ========================================
 // פונקציות עבור הודעות (Messages)
-// =============================================
+// ========================================
 
 /**
  * קבלת הודעות בשיחה
@@ -26,7 +26,7 @@ export const getMessagesByConversation = async (conversationId, limitCount = 50)
     const messagesRef = collection(db, "messages");
     const q = query(
         messagesRef,
-        where("conversationId", "===", conversationId),
+        where("conversationId", "==", conversationId),
         orderBy("timestamp", "asc"),
         limit(limitCount)
     );
@@ -41,7 +41,7 @@ export const getOlderMessages = async (conversationId, lastMessage, limitCount =
     const messagesRef = collection(db, "messages");
     const q = query(
         messagesRef,
-        where("conversationId", "===", conversationId),
+        where("conversationId", "==", conversationId),
         orderBy("timestamp", "desc"),
         startAfter(lastMessage.timestamp),
         limit(limitCount)
@@ -69,15 +69,15 @@ export const addMessage = async (messageData) => {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
     });
-
-    const newMessage = {
-        id: docRef.id,
-        ...messageData,
+    
+    const newMessage = { 
+        id: docRef.id, 
+        ...messageData, 
         timestamp: Timestamp.now(),
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
     };
-
+    
     return newMessage;
 }
 
@@ -107,9 +107,9 @@ export const markConversationAsReadByUser = async (conversationId, lastMessageId
     return { conversationId, lastReadByUser: lastMessageId };
 };
 
-// =============================================
+// ========================================
 // פונקציות עבור תמלול (Transcription)
-// =============================================
+// ========================================
 
 /**
  * עדכון תמלול הודעה
@@ -123,9 +123,9 @@ export const updateMessageTranscription = async (messageId, transcription) => {
     return { messageId, transcription };
 }
 
-// =============================================
+// ========================================
 // פונקציות עבור תיוג הודעות (Message Tags)
-// =============================================
+// ========================================
 
 /**
  * הוספת תגיות להודעה
@@ -147,22 +147,22 @@ export const removeMessageTags = async (messageId, tagsToRemove) => {
     if (!messageDoc.exists()) {
         throw new Error("Message not found!");
     }
-
+    
     const currentTags = messageDoc.data().tags || [];
     const updatedTags = currentTags.filter(tag => !tagsToRemove.includes(tag));
-
+    
     const messageRef = doc(db, 'messages', messageId);
     await updateDoc(messageRef, {
         tags: updatedTags,
         updatedAt: Timestamp.now()
     });
-
+    
     return { messageId, tags: updatedTags };
 }
 
-// =============================================
+// ========================================
 // פונקציות עבור סימון לטיפול בהמשך (Follow-up)
-// =============================================
+// ========================================
 
 /**
  * סימון הודעה לטיפול בהמשך
@@ -173,7 +173,7 @@ export const markMessageForFollowUp = async (messageId) => {
         isForFollowUp: true,
         updatedAt: Timestamp.now()
     });
-
+    
     return { messageId, isForFollowUp: true };
 }
 
@@ -186,7 +186,7 @@ export const unmarkMessageForFollowUp = async (messageId) => {
         isForFollowUp: false,
         updatedAt: Timestamp.now()
     });
-
+    
     return { messageId, isForFollowUp: false };
 }
 
@@ -199,7 +199,7 @@ export const updateMessageForFollowUp = async (messageId, isForFollowUp) => {
         isForFollowUp,
         updatedAt: Timestamp.now()
     });
-
+    
     return { messageId, isForFollowUp };
 }
 
@@ -209,31 +209,31 @@ export const updateMessageForFollowUp = async (messageId, isForFollowUp) => {
 export const getPendingMessages = async (conversationId = null) => {
     const messagesRef = collection(db, "messages");
     let q;
-
+    
     if (conversationId) {
         // הודעות לטיפול בשיחה ספציפית
         q = query(
             messagesRef,
-            where("conversationId", "===", conversationId),
-            where("isForFollowUp", "===", true),
+            where("conversationId", "==", conversationId),
+            where("isForFollowUp", "==", true),
             orderBy("timestamp", "asc")
         );
     } else {
         // כל ההודעות לטיפול
         q = query(
             messagesRef,
-            where("isForFollowUp", "===", true),
+            where("isForFollowUp", "==", true),
             orderBy("timestamp", "desc")
         );
     }
-
+    
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-// =============================================
+// ========================================
 // פונקציות עזר לעדכון שיחות
-// =============================================
+// ========================================
 
 /**
  * עדכון שיחה עם הודעה חדשה וחישוב הודעות לא נקראות
@@ -241,33 +241,33 @@ export const getPendingMessages = async (conversationId = null) => {
 export const updateConversationWithNewMessage = async (conversationId, newMessage) => {
     const conversationRef = doc(db, 'conversations', conversationId);
     const conversationDoc = await getDoc(conversationRef);
-
+    
     if (!conversationDoc.exists()) {
         throw new Error("Conversation not found!");
     }
-
+    
     const conversation = conversationDoc.data();
-
+    
     // חישוב הודעות לא נקראות
     let unreadCountBySystem = conversation.unreadCountBySystem || 0;
     let unreadCountByUser = conversation.unreadCountByUser || 0;
-
+    
     if (newMessage.role === 'user') {
         unreadCountBySystem += 1;
     } else if (newMessage.role === 'system') {
         unreadCountByUser += 1;
     }
-
+    
     // בדיקה אם יש הודעות לטיפול בהמשך
     const messagesRef = collection(db, "messages");
     const pendingQuery = query(
         messagesRef,
-        where("conversationId", "===", conversationId),
-        where("isForFollowUp", "===", true)
+        where("conversationId", "==", conversationId),
+        where("isForFollowUp", "==", true)
     );
     const pendingSnapshot = await getDocs(pendingQuery);
     const hasPendingMessages = pendingSnapshot.size > 0;
-
+    
     // עדכון השיחה
     await updateDoc(conversationRef, {
         lastMessage: newMessage,
@@ -277,7 +277,7 @@ export const updateConversationWithNewMessage = async (conversationId, newMessag
         hasPendingMessages,
         updatedAt: Timestamp.now()
     });
-
+    
     return { conversationId, unreadCountBySystem, unreadCountByUser, hasPendingMessages };
 };
 
@@ -289,52 +289,52 @@ export const recalculateUnreadCount = async (conversationId) => {
     if (!conversationDoc.exists()) {
         throw new Error("Conversation not found!");
     }
-
+    
     const conversation = conversationDoc.data();
     const messagesRef = collection(db, "messages");
-
+    
     // ספירת הודעות משתמש שלא נקראו במערכת
     let unreadBySystemQuery;
     if (conversation.lastReadBySystem) {
         unreadBySystemQuery = query(
             messagesRef,
-            where("conversationId", "===", conversationId),
-            where("role", "===", "user"),
+            where("conversationId", "==", conversationId),
+            where("role", "==", "user"),
             where("timestamp", ">", conversation.lastReadBySystem)
         );
     } else {
         unreadBySystemQuery = query(
             messagesRef,
-            where("conversationId", "===", conversationId),
-            where("role", "===", "user")
+            where("conversationId", "==", conversationId),
+            where("role", "==", "user")
         );
     }
-
+    
     // ספירת הודעות מערכת שלא נקראו במשתמש
     let unreadByUserQuery;
     if (conversation.lastReadByUser) {
         unreadByUserQuery = query(
             messagesRef,
-            where("conversationId", "===", conversationId),
-            where("role", "===", "system"),
+            where("conversationId", "==", conversationId),
+            where("role", "==", "system"),
             where("timestamp", ">", conversation.lastReadByUser)
         );
     } else {
         unreadByUserQuery = query(
             messagesRef,
-            where("conversationId", "===", conversationId),
-            where("role", "===", "system")
+            where("conversationId", "==", conversationId),
+            where("role", "==", "system")
         );
     }
-
+    
     const [unreadBySystemSnapshot, unreadByUserSnapshot] = await Promise.all([
         getDocs(unreadBySystemQuery),
         getDocs(unreadByUserQuery)
     ]);
-
+    
     const unreadCountBySystem = unreadBySystemSnapshot.size;
     const unreadCountByUser = unreadByUserSnapshot.size;
-
+    
     // עדכון השיחה
     const conversationRef = doc(db, 'conversations', conversationId);
     await updateDoc(conversationRef, {
@@ -342,6 +342,6 @@ export const recalculateUnreadCount = async (conversationId) => {
         unreadCountByUser,
         updatedAt: Timestamp.now()
     });
-
+    
     return { conversationId, unreadCountBySystem, unreadCountByUser };
 };

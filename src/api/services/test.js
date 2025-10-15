@@ -36,7 +36,7 @@ export const getLastOrdersByUpdate = async () => {
 
 export const getProductWithQuantityForShipping = async () => {
 
-    const p = query(collection(db, "products"), where("isQuantityForShipping", "===", true));
+    const p = query(collection(db, "products"), where("isQuantityForShipping", "==", true));
     const querySnapshot = await getDocs(p);
     const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -100,11 +100,11 @@ export const getOpenCollectionGroups = async () => {
 
 
 export const updateCollectionGroups = async () => {
-    const collectionGroups = await getDocs(query(collection(db, "collectionsGroups"), where("status", "===", 2)));
+    const collectionGroups = await getDocs(query(collection(db, "collectionsGroups"), where("status", "==", 2)));
     const collectionData = collectionGroups.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const fData = await Promise.all(collectionData.map(async (collectionGroup) => {
-        const countOrderProducts = await getCountFromServer(query(collection(db, "orderProducts"), where("collectionGroupId", "===", collectionGroup.id), where("status", "===", 2)));
+        const countOrderProducts = await getCountFromServer(query(collection(db, "orderProducts"), where("collectionGroupId", "==", collectionGroup.id), where("status", "==", 2)));
         return { ...collectionGroup, countOrderProducts: countOrderProducts.data().count };
     }));
 
@@ -112,7 +112,7 @@ export const updateCollectionGroups = async () => {
 
     const batch = writeBatch(db);
     fData.forEach(collectionGroup => {
-        if (collectionGroup.countOrderProducts !== 0) {
+        if (collectionGroup.countOrderProducts != 0) {
             console.log("Collection group with products:", collectionGroup);
             return;
         }

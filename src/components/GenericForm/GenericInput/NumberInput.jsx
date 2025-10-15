@@ -86,10 +86,10 @@ const NumberInput = ({
                 if (isFloat && !isNumber(v)) return;
 
                 setValueState(v);
-                // if (v === "0" || v === "") return
-                if (v.charAt(v.length - 1) === "." || v.slice(-2) === ".0" || v === "-") return;
+                // if (v == "0" || v == "") return
+                if (v.charAt(v.length - 1) == "." || v.slice(-2) == ".0" || v == "-") return;
 
-                if (v === "") v = 0;
+                if (v == "") v = 0;
 
                 v = isFloat ? Number(parseFloat(v).toFixed(toFixed)) : Number(v);
 
@@ -129,7 +129,7 @@ const NumberInput = ({
             handleBlur={(e) => {
                 let v = valueState;
 
-                if (v === "") v = "0";
+                if (v == "") v = "0";
 
                 if (isFloat) v = parseFloat(v).toFixed(toFixed);
 
