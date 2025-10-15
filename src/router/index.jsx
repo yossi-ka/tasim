@@ -43,7 +43,7 @@ const ProjectRoutes = () => {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
-                <Route index element={<Navigate to="/orders" replace />} />
+                <Route index element={<Navigate to="/rentals" replace />} />
                 <Route path="employees" element={<Employees />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="collection-groups" element={<CollectionGroups />} />
@@ -56,12 +56,14 @@ const ProjectRoutes = () => {
                 <Route path="suppliers" element={<Suppliers />} />
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="reports" element={<Report />} />
+
                 <Route path="rentals" element={<Rentals />} />
                 <Route path="rentals-history" element={<Rentals />} />
                 <Route path="devices" element={<Devices />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="revenues" element={<Revenues />} />
                 <Route path="il-numbers" element={<ILNumbers />} />
+
                 {/* <Route path="mistake-orders" element={<MistakeOrders />} /> */}
             </Route>
         </Routes>
