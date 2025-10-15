@@ -3,19 +3,6 @@
 const Theme = (colors) => {
     const { blue, red, gold, cyan, green, grey, orange } = colors;
 
-    const ktzdaka = {
-        0: '#f2e0d4',
-        1: '#e6c6b7',
-        2: '#dbaca1',
-        3: '#cf938a',
-        4: '#c47a74',
-        5: '#b8615e',
-        6: '#ac4849',
-        7: '#a02f33',
-        8: '#94161e',
-        9: '#890d08',
-    }
-
     const tasim = {
         0: '#d9e8f7',
         1: '#b3d1ef',
