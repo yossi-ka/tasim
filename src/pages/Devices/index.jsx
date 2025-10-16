@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Checkbox } from "@mui/material";
@@ -11,6 +11,7 @@ import { search } from "../../utils/search";
 import { getAllDevices, deleteDevice } from "../../api/services/devices";
 import AddOrEditDevice from "./AddOrEdit";
 import Search from "./Search";
+import DeleteDevice from "./DeleteDevice";
 
 const Devices = () => {
   const { getLookupName, popup, confirm } = React.useContext(Context);
@@ -55,24 +56,9 @@ const Devices = () => {
     }
   }, [filteredData]);
 
-  const handleDeleteDevice = (row) => {
-    console.log('Device deleted successfully!');
-  };
-
   const filteredDataLength = React.useMemo(() => filteredData ? filteredData.length : 0, [filteredData]);
 
   const columns = [
-    {
-      cb: (row) => <Checkbox
-        checked={selected.some((s) => s.id === row.id)}
-        onChange={(e) => handleSelectRow(row, e.target.checked)}
-      />,
-      label: <Checkbox
-        checked={filteredData && filteredData.length > 0 && selected.length === filteredDataLength && filteredDataLength > 0}
-        onChange={(e) => handleSelectAll(e.target.checked)}
-        indeterminate={selected.length > 0 && selected.length < filteredDataLength}
-      />,
-    },
     {
       actionBtn: [
         {
@@ -84,9 +70,23 @@ const Devices = () => {
         },
         {
           icon: <DeleteIcon color='error' />,
-          onClick: ({ row }) => handleDeleteDevice(row)
+          onClick: ({ row }) => popup({
+            title: "מחיקת מכשיר",
+            content: <DeleteDevice row={row} refetch={refetchAll} />,
+          })
         }
       ]
+    },
+    {
+      cb: (row) => <Checkbox
+        checked={selected.some((s) => s.id === row.id)}
+        onChange={(e) => handleSelectRow(row, e.target.checked)}
+      />,
+      label: <Checkbox
+        checked={filteredData && filteredData.length > 0 && selected.length === filteredDataLength && filteredDataLength > 0}
+        onChange={(e) => handleSelectAll(e.target.checked)}
+        indeterminate={selected.length > 0 && selected.length < filteredDataLength}
+      />,
     },
     ...terms.table(),
   ];

@@ -23,7 +23,8 @@ export const addDevice = async (deviceData) => {
         const docRef = await addDoc(collection(db, 'devices'), {
             ...deviceData,
             createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
+            updatedAt: Timestamp.now(),
+            statusId: 'HtNkG0cT6i9RZATzL95d'
         });
 
         return docRef.id;
