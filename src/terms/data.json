@@ -1149,21 +1149,15 @@
             "type": "text"
         },
         {
-            "name": "modelId",
-            "label": "דגם",
-            "type": "lookup",
-            "lookup": "deviceModels"
-        },
-        {
             "name": "purchaseDate",
             "label": "תאריך רכישה",
             "type": "date"
         },
         {
-            "name": "statusId",
-            "label": "סטטוס",
+            "name": "modelId",
+            "label": "דגם",
             "type": "lookup",
-            "lookup": "deviceStatuses"
+            "lookup": "deviceModels"
         }
     ]
 }

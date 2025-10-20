@@ -4,11 +4,9 @@ import { getDocs, query, collection, orderBy, where, updateDoc, doc, addDoc, Tim
 
 export const getLookupData = async () => {
 
-    const deviceStatusesQ = query(collection(db, 'deviceStatuses'), orderBy("name"));
     const deviceModelsQ = query(collection(db, 'deviceModels'), orderBy("name"));
 
     const res = await Promise.all([
-        getDocs(deviceStatusesQ).then((res) => convertFirebaseData(res, "name", "deviceStatuses", null)),
         getDocs(deviceModelsQ).then((res) => convertFirebaseData(res, "name", "deviceModels", null)),
     ])
 

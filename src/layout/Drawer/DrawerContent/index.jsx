@@ -16,6 +16,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
@@ -39,6 +40,7 @@ const DrawerContent = () => {
         { title: "מספרים ישראליים", to: "il-numbers", icon: <InventoryIcon color='primary' /> },
         { title: "הוצאות", to: "expenses", icon: <TrendingDownIcon color='primary' /> },
         { title: "הכנסות", to: "revenues", icon: <TrendingUpIcon color='primary' /> },
+        { title: "הגדרות", to: "settings", icon: <SettingsIcon color='primary' /> },
     ]
 
 

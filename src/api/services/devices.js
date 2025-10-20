@@ -24,7 +24,7 @@ export const addDevice = async (deviceData) => {
             ...deviceData,
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
-            statusId: 'HtNkG0cT6i9RZATzL95d'
+            status: 1
         });
 
         return docRef.id;
@@ -46,19 +46,6 @@ export const updateDevice = async (deviceId, deviceData) => {
         return deviceId;
     } catch (error) {
         console.error("Error updating device:", error);
-        throw error;
-    }
-};
-
-// מחיקת מכשיר
-export const deleteDevice = async (deviceId) => {
-    try {
-        const deviceRef = doc(db, 'devices', deviceId);
-        await deleteDoc(deviceRef);
-
-        return deviceId;
-    } catch (error) {
-        console.error("Error deleting device:", error);
         throw error;
     }
 };
