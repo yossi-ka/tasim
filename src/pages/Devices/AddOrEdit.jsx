@@ -6,7 +6,7 @@ import useTerms from "../../terms";
 import GenericForm from "../../components/GenericForm";
 import { addDevice, updateDevice } from "../../api/services/devices";
 
-const AddOrEditDevice = ({ row, refetch }) => {
+const AddOrEditDevice = ({ row, refetch, statuses }) => {
     const { user, snackbar, closePopup } = React.useContext(Context);
     const [initInputs, setInitInputs] = React.useState(row || {});
 
@@ -24,15 +24,7 @@ const AddOrEditDevice = ({ row, refetch }) => {
         }
     });
 
-    const options = React.useMemo(() => {
-        return [
-            { value: 1, label: "זמין" },
-            { value: 3, label: "תקול" },
-            { value: 4, label: "נאבד" }
-        ];
-    }, []);
-
-    const fields = [
+    const fields = row ? [
         term.field("sheetsId", { variant: "outlined", size: 12, required: true }),
         term.field("purchaseDate", { variant: "outlined", size: 12 }),
         term.field("modelId", { variant: "outlined", size: 12 }),
@@ -42,10 +34,15 @@ const AddOrEditDevice = ({ row, refetch }) => {
             size: 12,
             label: "העברה לסטטוס",
             type: "select",
-            options: options,
+            options: statuses,
             required: true,
             display: row
         },
+        { type: 'submit', label: row ? "עדכן מכשיר" : "הוסף מכשיר", variant: "contained", disabled: update.isLoading }
+    ] : [
+        term.field("sheetsId", { variant: "outlined", size: 12, required: true }),
+        term.field("purchaseDate", { variant: "outlined", size: 12 }),
+        term.field("modelId", { variant: "outlined", size: 12 }),
         { type: 'submit', label: row ? "עדכן מכשיר" : "הוסף מכשיר", variant: "contained", disabled: update.isLoading }
     ]
 

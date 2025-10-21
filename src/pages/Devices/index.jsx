@@ -18,19 +18,18 @@ const Devices = () => {
   const [params, setParams] = React.useState({});
   const [filteredData, setFilteredData] = React.useState([]);
   const [selected, setSelected] = React.useState([]);
+  const [showBrokenDevices, setShowBrokenDevices] = React.useState(false);
 
   const { data, status, refetch } = useQuery("devicesTable", getAllDevices, {
     refetchOnWindowFocus: false,
   });
 
-  const statuses = React.useMemo(() => {
-    return [
-      { label: "זמין", id: 1, key: "available" },
-      { label: "בשימוש", id: 2, key: "in_use" },
-      { label: "תקול", id: 3, key: "faulty" },
-      { label: "נאבד", id: 4, key: "lost" },
-    ]
-  }, [])
+  const statuses = [
+    { label: "זמין", id: 1, key: "available", value: 1 },
+    { label: "בשימוש", id: 2, key: "in_use", value: 2 },
+    { label: "תקול", id: 3, key: "faulty", value: 3 },
+    { label: "נאבד", id: 4, key: "lost", value: 4 },
+  ];
 
   React.useEffect(() => {
     if (Object.keys(params).length === 0) return setFilteredData(data || []);
@@ -42,6 +41,8 @@ const Devices = () => {
       terms: [...terms.terms]
     });
   }, [params, data, getLookupName, terms.terms]);
+
+
 
   const refetchAll = React.useCallback(() => {
     refetch();
@@ -83,7 +84,7 @@ const Devices = () => {
           icon: <EditIcon color='primary' />,
           onClick: ({ row }) => popup({
             title: "עריכת מכשיר",
-            content: <AddOrEditDevice row={row} refetch={refetchAll} />,
+            content: <AddOrEditDevice row={row} refetch={refetchAll} statuses={statuses} />,
           })
         }
       ]
@@ -101,7 +102,7 @@ const Devices = () => {
   return (
     <GenericTable
       height="main"
-      data={status === "loading" ? [] : filteredData}
+      data={showBrokenDevices ? filteredData : filteredData.filter(d => d.status !== 3 && d.status !== 4)}
       columns={columns}
       loading={status === "loading"}
       title="מכשירים"
@@ -110,6 +111,9 @@ const Devices = () => {
         setParams={setParams}
         refetch={refetchAll}
         selected={selected}
+        showBrokenDevices={showBrokenDevices}
+        setShowBrokenDevices={setShowBrokenDevices}
+        options={statuses}
       />}
       innerPagination
     />
