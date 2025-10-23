@@ -1159,5 +1159,39 @@
             "type": "lookup",
             "lookup": "deviceModels"
         }
+    ],
+    "rentalsTable": [
+        {
+            "name": "sheetsId",
+            "label": "מס' השכרה",
+            "type": "text"
+        },
+        {
+            "name": "customerId",
+            "label": "לקוח",
+            "type": "lookup",
+            "lookup": "customers"
+        },
+        {
+            "name": "deviceId",
+            "label": "מכשיר",
+            "type": "lookup",
+            "lookup": "devices"
+        },
+        {
+            "name": "startDate",
+            "label": "מתאריך",
+            "type": "date"
+        },
+        {
+            "name": "status",
+            "label": "סטטוס",
+            "type": "number"
+        },
+        {
+            "name": "endDate",
+            "label": "עד תאריך",
+            "type": "date"
+        }
     ]
 }

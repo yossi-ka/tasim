@@ -1,6 +1,6 @@
 import { db } from '../../firebase-config'
 
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, limit } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, where, writeBatch, getCountFromServer, limit, deleteDoc } from "firebase/firestore";
 
 export const getActiveRentalsByStatus = async (status) => {
     const rentalsRef = collection(db, "rentals");
@@ -8,6 +8,13 @@ export const getActiveRentalsByStatus = async (status) => {
         where("isActive", "==", true),
         where("rentalStatus", "==", status),
         orderBy("fromDate", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export const getActiveRentals = async () => {
+    const rentalsRef = collection(db, "rentals");
+    const q = query(rentalsRef, where("isActive", "==", true), orderBy("fromDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }

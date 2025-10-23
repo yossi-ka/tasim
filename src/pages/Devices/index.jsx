@@ -32,15 +32,25 @@ const Devices = () => {
   ];
 
   React.useEffect(() => {
-    if (Object.keys(params).length === 0) return setFilteredData(data || []);
-    search({
-      params,
-      data,
-      setData: setFilteredData,
-      getLookupName,
-      terms: [...terms.terms]
-    });
-  }, [params, data, getLookupName, terms.terms]);
+    if (!data) return setFilteredData([]);
+
+    // מסנן את הנתונים לפי הפרמטרים
+    const filteredByParams = Object.keys(params).length === 0
+      ? data
+      : search({
+        params,
+        data,
+        getLookupName,
+        terms: [...terms.terms]
+      });
+
+    // מסנן החוצה מכשירים תקולים או שאבדו (סטטוס 3 ו-4)
+    const filteredByStatus = showBrokenDevices
+      ? filteredByParams
+      : filteredByParams.filter(device => device.status !== 3 && device.status !== 4);
+
+    setFilteredData(filteredByStatus);
+  }, [params, data, getLookupName, terms.terms, showBrokenDevices]);
 
 
 
@@ -102,7 +112,7 @@ const Devices = () => {
   return (
     <GenericTable
       height="main"
-      data={showBrokenDevices ? filteredData : filteredData.filter(d => d.status !== 3 && d.status !== 4)}
+      data={filteredData}
       columns={columns}
       loading={status === "loading"}
       title="מכשירים"
@@ -110,10 +120,11 @@ const Devices = () => {
         params={params}
         setParams={setParams}
         refetch={refetchAll}
-        selected={selected}
         showBrokenDevices={showBrokenDevices}
         setShowBrokenDevices={setShowBrokenDevices}
-        options={statuses}
+        setFilteredData={setFilteredData}
+        allData={data || []}
+        statuses={statuses}
       />}
       innerPagination
     />

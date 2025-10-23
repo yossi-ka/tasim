@@ -8,8 +8,18 @@ import Context from "../../context";
 import GlobalSearch from "../../global/GlobalSearch";
 import AddOrEditDevice from "./AddOrEdit";
 
-const Search = ({ params, setParams, refetch, selected, showBrokenDevices, setShowBrokenDevices, statuses }) => {
+const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDevices, setFilteredData, allData, statuses }) => {
     const { popup } = React.useContext(Context);
+
+    const toggleBrokenDevices = React.useCallback(() => {
+        const newShowBrokenDevices = !showBrokenDevices;
+        setShowBrokenDevices(newShowBrokenDevices);
+        const newFilteredData = newShowBrokenDevices
+            ? allData
+            : allData.filter(device => device.status !== 3 && device.status !== 4);
+
+        setFilteredData(newFilteredData);
+    }, [showBrokenDevices, allData, setShowBrokenDevices, setFilteredData]);
 
     return <GlobalSearch
         quickSearchFields={[
@@ -35,7 +45,7 @@ const Search = ({ params, setParams, refetch, selected, showBrokenDevices, setSh
             {
                 title: showBrokenDevices ? "הסתר מכשירים תקולים" : "הצג הכל",
                 icon: showBrokenDevices ? <VisibilityOffIcon color='primary' /> : <VisibilityIcon color='primary' />,
-                onClick: () => setShowBrokenDevices(!showBrokenDevices)
+                onClick: toggleBrokenDevices
             }
         ]}
     />;
