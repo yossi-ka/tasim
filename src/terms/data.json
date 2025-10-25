@@ -1167,16 +1167,21 @@
             "type": "text"
         },
         {
-            "name": "customerId",
+            "name": "customerName",
             "label": "לקוח",
-            "type": "lookup",
-            "lookup": "customers"
+            "type": "text"
         },
         {
             "name": "deviceId",
             "label": "מכשיר",
             "type": "lookup",
-            "lookup": "devices"
+            "lookup": "globalDevices"
+        },
+        {
+            "name": "stateId",
+            "label": "מדינה",
+            "type": "lookup",
+            "lookup": "globalStates"
         },
         {
             "name": "startDate",
@@ -1184,14 +1189,19 @@
             "type": "date"
         },
         {
-            "name": "status",
-            "label": "סטטוס",
-            "type": "number"
-        },
-        {
             "name": "endDate",
             "label": "עד תאריך",
             "type": "date"
+        },
+        {
+            "name": "price",
+            "label": "מחיר השכרה",
+            "type": "currency"
+        },
+        {
+            "name": "rentalStatus",
+            "label": "סטטוס",
+            "type": "number"
         }
     ]
 }

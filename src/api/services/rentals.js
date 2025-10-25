@@ -14,9 +14,26 @@ export const getActiveRentalsByStatus = async (status) => {
 
 export const getActiveRentals = async () => {
     const rentalsRef = collection(db, "rentals");
-    const q = query(rentalsRef, where("isActive", "==", true), orderBy("fromDate", "desc"));
+    const q = query(rentalsRef, where("rentalStatus", "!=", 5));
+
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (querySnapshot.empty) {
+        return [];
+    }
+
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    await Promise.all(
+        data.map(async (rental) => {
+            if (rental.regularCustomerId) {
+                const customerRef = doc(db, "customers", rental.regularCustomerId);
+                const customerSnap = await getDoc(customerRef);
+                rental.customerName = customerSnap.data().name;
+            }
+        })
+    );
+
+    return data;
 }
 
 export const getHistoricalRentals = async () => {
