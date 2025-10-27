@@ -14,7 +14,7 @@ export const getActiveRentalsByStatus = async (status) => {
 
 export const getActiveRentals = async () => {
     const rentalsRef = collection(db, "rentals");
-    const q = query(rentalsRef, where("rentalStatus", "!=", 5));
+    const q = query(rentalsRef, where("isActive", "==", true));
 
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) {
@@ -52,7 +52,7 @@ export const createRental = async (data, userId) => {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         isActive: true,
-        rentalstatus: 1, // סטטוס התחלתי
+        rentalStatus: 1, // סטטוס התחלתי
     };
     const docRef = await addDoc(rentalsRef, newRental);
     return { id: docRef.id, ...newRental };

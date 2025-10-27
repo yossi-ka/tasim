@@ -7,12 +7,14 @@ export const getLookupData = async () => {
     const deviceModelsQ = query(collection(db, 'deviceModels'), orderBy("name"));
     const globalDevicesQ = query(collection(db, 'devices'), orderBy("name"));
     const statesQ = query(collection(db, 'states'), orderBy("name"));
+    const agentsQ = query(collection(db, 'agents'), orderBy("name"));
 
 
     const res = await Promise.all([
         getDocs(deviceModelsQ).then((res) => convertFirebaseData(res, "name", "deviceModels", null)),
         getDocs(globalDevicesQ).then((res) => convertFirebaseData(res, "name", "globalDevices", null)),
         getDocs(statesQ).then((res) => convertFirebaseData(res, "name", "globalStates", null)),
+        getDocs(agentsQ).then((res) => convertFirebaseData(res, "name", "globalAgents", null)),
     ])
 
     return res.reduce((acc, val) => acc.concat(val), []);
