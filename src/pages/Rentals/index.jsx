@@ -7,14 +7,18 @@ import Search from './Search';
 import AddOrEditRental from './AddOrEdit';
 import EditIcon from '@mui/icons-material/Edit';
 import Context from '../../context';
+import { Checkbox } from '@mui/material';
 
 function Rentals() {
 
-  const {popup} = useContext(Context);
+  const { popup } = useContext(Context);
   const [selected, setSelected] = React.useState([]);
+  const [params, setParams] = React.useState({})
 
-  const terms = useTerms("rentalsTable");
-  
+
+  const term = useTerms("rentalsTable");
+  const [viewColumn, setViewColumn] = React.useState(term.getTerms().map(t => t.name));
+
   const statuses = [
     { label: "פעיל", id: 1, key: "active", value: 1 },
     { label: "הסתיים", id: 2, key: "completed", value: 2 },
@@ -27,35 +31,35 @@ function Rentals() {
     refetchOnWindowFocus: false,
   });
 
-   const handleSelectRow = React.useCallback((row, isChecked) => {
-      if (isChecked) {
-        setSelected((prev) => [...prev, row]);
-      } else {
-        setSelected((prev) => prev.filter((s) => s.id !== row.id));
-      }
-    }, []);
-  
-    const handleSelectAll = React.useCallback((isChecked) => {
-      if (isChecked) {
-        setSelected(filteredData || []);
-      } else {
-        setSelected([]);
-      }
-    }, [filteredData]);
+  const handleSelectRow = React.useCallback((row, isChecked) => {
+    if (isChecked) {
+      setSelected((prev) => [...prev, row]);
+    } else {
+      setSelected((prev) => prev.filter((s) => s.id !== row.id));
+    }
+  }, []);
+
+  const handleSelectAll = React.useCallback((isChecked) => {
+    if (isChecked) {
+      setSelected(data || []);
+    } else {
+      setSelected([]);
+    }
+  }, [data]);
 
 
   const columns = [
-    // {
-    //   cb: (row) => <Checkbox
-    //     checked={selected.some((s) => s.id === row.id)}
-    //     onChange={(e) => handleSelectRow(row, e.target.checked)}
-    //   />,
-    //   label: <Checkbox
-    //     checked={filteredData && filteredData.length > 0 && selected.length === filteredDataLength && filteredDataLength > 0}
-    //     onChange={(e) => handleSelectAll(e.target.checked)}
-    //     indeterminate={selected.length > 0 && selected.length < filteredDataLength}
-    //   />,
-    // },
+    {
+      cb: (row) => <Checkbox
+        checked={selected.some((s) => s.id === row.id)}
+        onChange={(e) => handleSelectRow(row, e.target.checked)}
+      />,
+      label: <Checkbox
+        checked={data && data.length > 0 && selected.length === data.length && data.length > 0}
+        onChange={(e) => handleSelectAll(e.target.checked)}
+        indeterminate={selected.length > 0 && selected.length < data.length}
+      />,
+    },
     {
       actionBtn: [
         {
@@ -67,7 +71,7 @@ function Rentals() {
         }
       ]
     },
-    ...terms.table(),
+    ...term.table(viewColumn),
     {
       label: "סטטוס",
       cb: (row) => {
@@ -88,6 +92,14 @@ function Rentals() {
       columns={columns}
       header={<Search
         refetch={refetch}
+        termsForExcel={term.excel(viewColumn)}
+        dataForExcel={data}
+        terms={term}
+        params={params}
+        setParams={setParams}
+        viewColumn={viewColumn}
+        setViewColumn={setViewColumn}
+        allColumns={term.getTerms()}
       />}
     />
   )
