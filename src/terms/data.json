@@ -47,11 +47,6 @@
     ],
     "rentalsTable": [
         {
-            "name": "sheetsId",
-            "label": "מס' השכרה",
-            "type": "text"
-        },
-        {
             "name": "customerName",
             "label": "לקוח",
             "type": "text"
@@ -93,6 +88,11 @@
             "name": "note",
             "label": "הערות",
             "type": "text"
+        },
+        {
+            "name": "sheetsId",
+            "label": "מס' השכרה",
+            "type": "number"
         }
     ],
     "addOrEditRentalForm": [

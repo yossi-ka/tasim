@@ -4,10 +4,12 @@ import GenericForm from '../../components/GenericForm';
 import { useMutation } from 'react-query';
 import { createRental, updateRental } from '../../api/services/rentals';
 import Context from '../../context';
+import LanguageIcon from '@mui/icons-material/Language';
+import { Tooltip, IconButton } from '@mui/material';
 
 function AddOrEditRental({ row, refetch, statuses }) {
 
-    const { user, snackbar, closePopup } = React.useContext(Context)
+    const { user, snackbar, closePopup, popup } = React.useContext(Context)
 
 
     const [initInputs, setInitInputs] = React.useState(row || {});
@@ -35,6 +37,21 @@ function AddOrEditRental({ row, refetch, statuses }) {
         term.field("startDate", { variant: "outlined", size: 6 }),
         term.field("endDate", { variant: "outlined", size: 6 }),
         term.field("stateId", { variant: "outlined", size: 6 }),
+        {
+            cb: () =>
+                <Tooltip
+                    title={"הוספת מדינה"}
+                    arrow>
+                    <span>
+                        <IconButton
+                            onClick={() => popup({ title: "הוספת מדינה", content: "ggg" })}
+                        >
+                            <LanguageIcon color={"primary"} />
+                        </IconButton>
+                    </span>
+                </Tooltip>,
+            size: 1
+        },
         term.field("deviceId", { variant: "outlined", size: 6 }),
         term.field("price", { variant: "outlined", size: 6 }),
         { type: "line", label: "פרטים נוספים" },
@@ -60,7 +77,8 @@ function AddOrEditRental({ row, refetch, statuses }) {
                     agentId: data.agentId || "",
                     deviceId: data.deviceId || 0,
                     note: data.note || '',
-                    stateId: data.stateId || ''
+                    stateId: data.stateId || '',
+                    sheetsId: data.sheetsId || 0
                 };
 
                 update.mutate(obj);
