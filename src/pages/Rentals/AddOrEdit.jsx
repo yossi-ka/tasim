@@ -1,7 +1,6 @@
 import React from 'react'
 import useTerms from '../../terms'
 import GenericForm from '../../components/GenericForm';
-import { outlinedInputClasses } from '@mui/material';
 import { useMutation } from 'react-query';
 import { createRental, updateRental } from '../../api/services/rentals';
 import Context from '../../context';

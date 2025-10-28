@@ -22,7 +22,7 @@ const ProjectRoutes = () => {
         if (user === null && path !== '/login') {
             navigate('/login')
         }
-    }, [user, path])
+    }, [user, path, navigate])
 
     if (user === 'loading' && path !== '/login') return <LoadingData />
 

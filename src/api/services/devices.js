@@ -1,5 +1,5 @@
 import { db } from '../../firebase-config'
-import { getDocs, query, collection, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore'
+import { getDocs, query, collection, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore'
 
 // קבלת כל המכשירים
 export const getAllDevices = async () => {

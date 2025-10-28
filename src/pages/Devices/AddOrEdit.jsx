@@ -6,7 +6,7 @@ import useTerms from "../../terms";
 import GenericForm from "../../components/GenericForm";
 import { addDevice, updateDevice } from "../../api/services/devices";
 
-const AddOrEditDevice = ({ row, refetch, statuses }) => {
+const AddOrEditDevice = ({ row, statuses }) => {
     const { user, snackbar, closePopup } = React.useContext(Context);
     const [initInputs, setInitInputs] = React.useState(row || {});
 

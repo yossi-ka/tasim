@@ -36,7 +36,7 @@ const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDe
                 icon: <AddIcon color='primary' />,
                 onClick: () => popup({
                     title: "הוסף מכשיר חדש",
-                    content: <AddOrEditDevice refetch={refetch} statuses={statuses} />,
+                    content: <AddOrEditDevice statuses={statuses} />,
                 })
             },
             {
@@ -54,7 +54,7 @@ const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDe
                 icon: <AppSettingsAltIcon color='primary' />,
                 onClick: () => popup({
                     title: "הוסף דגם חדש",
-                    content: <AddDeviceModel refetch={refetch} />,
+                    content: <AddDeviceModel />,
                 })
             }
         ]}

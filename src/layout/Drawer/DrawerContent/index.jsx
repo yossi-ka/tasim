@@ -4,15 +4,8 @@ import React from 'react';
 import { Box, MenuList, MenuItem, ListItemText, ListItemIcon, Collapse, Typography } from '@mui/material';
 
 import GroupsIcon from '@mui/icons-material/Groups';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PermPhoneMsgIcon from '@mui/icons-material/PermPhoneMsg';
-import EngineeringIcon from '@mui/icons-material/Engineering';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import RouteIcon from '@mui/icons-material/Route';
 import GradingIcon from '@mui/icons-material/Grading';
-import DescriptionIcon from '@mui/icons-material/Description';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
@@ -20,7 +13,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 // project imports
 import SubItemMenu from './SubItemMenu';
-import Context from '../../../context';
 
 
 const DrawerContent = () => {
