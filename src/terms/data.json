@@ -154,5 +154,17 @@
             "label": "הערות",
             "type": "text"
         }
+    ],
+    "addDeviceModel": [
+        {
+            "name": "name",
+            "label": "שם הדגם",
+            "type": "text"
+        },
+        {
+            "name": "worksIn",
+            "label": "עובד ב-",
+            "type": "text"
+        }
     ]
 }

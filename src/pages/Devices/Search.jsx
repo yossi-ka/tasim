@@ -3,10 +3,12 @@ import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import AppSettingsAltIcon from '@mui/icons-material/AppSettingsAlt';
 
 import Context from "../../context";
 import GlobalSearch from "../../global/GlobalSearch";
 import AddOrEditDevice from "./AddOrEdit";
+import AddDeviceModel from "./AddDeviceModel";
 
 const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDevices, setFilteredData, allData, statuses }) => {
     const { popup } = React.useContext(Context);
@@ -46,6 +48,14 @@ const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDe
                 title: showBrokenDevices ? "הסתר מכשירים תקולים" : "הצג הכל",
                 icon: showBrokenDevices ? <VisibilityOffIcon color='primary' /> : <VisibilityIcon color='primary' />,
                 onClick: toggleBrokenDevices
+            },
+            {
+                title: "הוסף דגם",
+                icon: <AppSettingsAltIcon color='primary' />,
+                onClick: () => popup({
+                    title: "הוסף דגם חדש",
+                    content: <AddDeviceModel refetch={refetch} />,
+                })
             }
         ]}
     />;

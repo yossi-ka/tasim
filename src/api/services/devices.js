@@ -51,3 +51,18 @@ export const updateDevice = async (deviceId, deviceData) => {
         throw error;
     }
 };
+
+export const addDeviceModel = async (modelData, userId) => {
+    try {
+        const docRef = await addDoc(collection(db, 'deviceModels'), {
+            ...modelData,
+            createdAt: Timestamp.now(),
+            createBy: userId,
+        });
+
+        return docRef.id;
+    } catch (error) {
+        console.error("Error adding new model:", error);
+        throw error;
+    }
+};

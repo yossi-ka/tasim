@@ -16,7 +16,7 @@ const AddOrEditDevice = ({ row, refetch, statuses }) => {
         onSuccess: (data) => {
             closePopup();
             snackbar("עדכון בוצע בהצלחה", "success");
-            refetch();
+            window.location.reload();
         },
         onError: (error) => {
             console.error("Error updating supplier:", error);

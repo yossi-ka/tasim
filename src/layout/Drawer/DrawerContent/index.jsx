@@ -40,7 +40,7 @@ const DrawerContent = () => {
         { title: "מספרים ישראליים", to: "il-numbers", icon: <InventoryIcon color='primary' /> },
         { title: "הוצאות", to: "expenses", icon: <TrendingDownIcon color='primary' /> },
         { title: "הכנסות", to: "revenues", icon: <TrendingUpIcon color='primary' /> },
-        { title: "הגדרות", to: "settings", icon: <SettingsIcon color='primary' /> },
+        { title: "הגדרות האתר", to: "settings", icon: <SettingsIcon color='primary' /> },
     ]
 
 
