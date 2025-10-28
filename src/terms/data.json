@@ -1,138 +1,4 @@
 {
-    "customersTable": [
-        {
-            "name": "customerNumber",
-            "label": "מספר לקוח",
-            "type": "copy"
-        },
-        {
-            "name": "deliveryIndex",
-            "label": "מספר במסלול",
-            "type": "number"
-        },
-        {
-            "name": "lastName",
-            "label": "שם משפחה",
-            "type": "text"
-        },
-        {
-            "name": "firstName",
-            "label": "שם פרטי",
-            "type": "text"
-        },
-        {
-            "name": "idNumber",
-            "label": "ת.ז",
-            "type": "text"
-        },
-        {
-            "name": "birthDate",
-            "label": "ת.לידה",
-            "type": "date"
-        },
-        {
-            "name": "spouseName",
-            "label": "שם בן/בת זוג",
-            "type": "text"
-        },
-        {
-            "name": "spouseIdNumber",
-            "label": "ת.ז בן/בת זוג",
-            "type": "text"
-        },
-        {
-            "name": "spouseBirthDate",
-            "label": "ת.לידה בן/בת זוג",
-            "type": "date"
-        },
-        {
-            "name": "city",
-            "label": "עיר",
-            "type": "text"
-        },
-        {
-            "name": "street",
-            "label": "רחוב",
-            "type": "text"
-        },
-        {
-            "name": "houseNumber",
-            "label": "בית",
-            "type": "text"
-        },
-        {
-            "name": "entrance",
-            "label": "כניסה",
-            "type": "text"
-        },
-        {
-            "name": "apartment",
-            "label": "דירה",
-            "type": "text"
-        },
-        {
-            "name": "floor",
-            "label": "קומה",
-            "type": "text"
-        },
-        {
-            "name": "zipCode",
-            "label": "מיקוד",
-            "type": "text"
-        },
-        {
-            "name": "neighborhood",
-            "label": "שכונה",
-            "type": "text"
-        },
-        {
-            "name": "email",
-            "label": "דואר אלקטרוני",
-            "type": "text"
-        },
-        {
-            "name": "credit",
-            "label": "זיכוי",
-            "type": "number"
-        },
-        {
-            "name": "registrationDate",
-            "label": "ת. הרשמה",
-            "type": "date"
-        },
-        {
-            "name": "customerNote",
-            "label": "הערת לקוח",
-            "type": "text"
-        },
-        {
-            "name": "savedPaymentMethod",
-            "label": "א. תשלום שמור",
-            "type": "text"
-        },
-        {
-            "name": "phones",
-            "label": "טלפון",
-            "type": "array"
-        },
-        {
-            "name": "tags",
-            "label": "תיוג",
-            "type": "text"
-        }
-    ],
-    "customersSearch": [
-        {
-            "name": "startdeliveryIndex",
-            "label": "ממספר במסלול",
-            "type": "text"
-        },
-        {
-            "name": "enddeliveryIndex",
-            "label": "עד מספר במסלול",
-            "type": "text"
-        }
-    ],
     "printOrdersTable": [
         {
             "name": "nbsOrderId",
@@ -163,7 +29,7 @@
     ],
     "devicesTable": [
         {
-            "name": "sheetsId",
+            "name": "name",
             "label": "מס' מכשיר",
             "type": "text"
         },
@@ -222,6 +88,11 @@
             "label": "סוכן",
             "type": "lookup",
             "lookup": "globalAgents"
+        },
+        {
+            "name": "note",
+            "label": "הערות",
+            "type": "text"
         }
     ],
     "addOrEditRentalForm": [
@@ -241,6 +112,11 @@
             "type": "text"
         },
         {
+            "name": "sheetsId",
+            "label": "מס' השכרה באקסל (אופציונלי)",
+            "type": "number"
+        },
+        {
             "name": "stateId",
             "label": "מדינה",
             "type": "lookup",
@@ -255,7 +131,7 @@
         {
             "name": "price",
             "label": "מחיר",
-            "type": "number"
+            "type": "currency"
         },
         {
             "name": "startDate",

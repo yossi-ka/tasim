@@ -4,13 +4,15 @@ import { getDocs, query, collection, orderBy, addDoc, updateDoc, deleteDoc, doc,
 // קבלת כל המכשירים
 export const getAllDevices = async () => {
     try {
-        const q = query(collection(db, 'devices'), orderBy("sheetsId"));
+        const q = query(collection(db, 'devices'), orderBy("name"));
         const querySnapshot = await getDocs(q);
 
-        return querySnapshot.docs.map(doc => ({
+        const result = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        return result;
+
     } catch (error) {
         console.error("Error getting devices:", error);
         throw error;

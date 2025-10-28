@@ -77,17 +77,18 @@ const Devices = () => {
   const filteredDataLength = React.useMemo(() => filteredData ? filteredData.length : 0, [filteredData]);
 
   const columns = [
-    {
-      cb: (row) => <Checkbox
-        checked={selected.some((s) => s.id === row.id)}
-        onChange={(e) => handleSelectRow(row, e.target.checked)}
-      />,
-      label: <Checkbox
-        checked={filteredData && filteredData.length > 0 && selected.length === filteredDataLength && filteredDataLength > 0}
-        onChange={(e) => handleSelectAll(e.target.checked)}
-        indeterminate={selected.length > 0 && selected.length < filteredDataLength}
-      />,
-    },
+    //  צ'קבוקסים לבחירה מרובה
+    // {
+    //   cb: (row) => <Checkbox
+    //     checked={selected.some((s) => s.id === row.id)}
+    //     onChange={(e) => handleSelectRow(row, e.target.checked)}
+    //   />,
+    //   label: <Checkbox
+    //     checked={filteredData && filteredData.length > 0 && selected.length === filteredDataLength && filteredDataLength > 0}
+    //     onChange={(e) => handleSelectAll(e.target.checked)}
+    //     indeterminate={selected.length > 0 && selected.length < filteredDataLength}
+    //   />,
+    // },
     {
       actionBtn: [
         {

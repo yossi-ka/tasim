@@ -9,6 +9,7 @@ import Devices from "../pages/Devices";
 import Expenses from "../pages/Expenses";
 import Revenues from "../pages/Revenues";
 import ILNumbers from "../pages/Il-numbers";
+import Settings from "../pages/Settings"
 
 
 const ProjectRoutes = () => {
@@ -30,15 +31,14 @@ const ProjectRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
                 <Route index element={<Navigate to="/rentals" replace />} />
-
                 <Route path="rentals" element={<Rentals />} />
                 <Route path="rentals-history" element={<Rentals />} />
                 <Route path="devices" element={<Devices />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="revenues" element={<Revenues />} />
                 <Route path="il-numbers" element={<ILNumbers />} />
+                <Route path="settings" element={<Settings />} />
 
-                {/* <Route path="mistake-orders" element={<MistakeOrders />} /> */}
             </Route>
         </Routes>
     )

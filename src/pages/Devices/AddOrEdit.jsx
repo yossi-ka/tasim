@@ -25,7 +25,7 @@ const AddOrEditDevice = ({ row, refetch, statuses }) => {
     });
 
     const fields = row ? [
-        term.field("sheetsId", { variant: "outlined", size: 12, required: true }),
+        term.field("name", { variant: "outlined", size: 12, required: true }),
         term.field("purchaseDate", { variant: "outlined", size: 12 }),
         term.field("modelId", { variant: "outlined", size: 12 }),
         {
@@ -40,7 +40,7 @@ const AddOrEditDevice = ({ row, refetch, statuses }) => {
         },
         { type: 'submit', label: row ? "עדכן מכשיר" : "הוסף מכשיר", variant: "contained", disabled: update.isLoading }
     ] : [
-        term.field("sheetsId", { variant: "outlined", size: 12, required: true }),
+        term.field("name", { variant: "outlined", size: 12, required: true }),
         term.field("purchaseDate", { variant: "outlined", size: 12 }),
         term.field("modelId", { variant: "outlined", size: 12 }),
         { type: 'submit', label: row ? "עדכן מכשיר" : "הוסף מכשיר", variant: "contained", disabled: update.isLoading }

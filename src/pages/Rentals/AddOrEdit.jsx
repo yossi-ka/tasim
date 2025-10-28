@@ -31,6 +31,7 @@ function AddOrEditRental({ row, refetch, statuses }) {
         term.field("customerName", { variant: "outlined", size: 6 }),
         term.field("city", { variant: "outlined", size: 6 }),
         term.field("phone", { variant: "outlined", size: 6 }),
+        term.field("sheetsId", { variant: "outlined", size: 6 }),
         { type: 'line', label: "פרטי נסיעה" },
         term.field("startDate", { variant: "outlined", size: 6 }),
         term.field("endDate", { variant: "outlined", size: 6 }),
