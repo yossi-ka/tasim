@@ -36,7 +36,7 @@ const Search = ({ params, setParams, refetch, showBrokenDevices, setShowBrokenDe
                 icon: <AddIcon color='primary' />,
                 onClick: () => popup({
                     title: "הוסף מכשיר חדש",
-                    content: <AddOrEditDevice statuses={statuses} />,
+                    content: <AddOrEditDevice statuses={statuses} refetch={refetch} />,
                 })
             },
             {

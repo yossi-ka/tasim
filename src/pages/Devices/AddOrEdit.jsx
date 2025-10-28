@@ -6,7 +6,7 @@ import useTerms from "../../terms";
 import GenericForm from "../../components/GenericForm";
 import { addDevice, updateDevice } from "../../api/services/devices";
 
-const AddOrEditDevice = ({ row, statuses }) => {
+const AddOrEditDevice = ({ row, refetch, statuses }) => {
     const { user, snackbar, closePopup } = React.useContext(Context);
     const [initInputs, setInitInputs] = React.useState(row || {});
 
@@ -16,7 +16,7 @@ const AddOrEditDevice = ({ row, statuses }) => {
         onSuccess: (data) => {
             closePopup();
             snackbar("עדכון בוצע בהצלחה", "success");
-            window.location.reload();
+            row ? refetch() : window.location.reload();
         },
         onError: (error) => {
             console.error("Error updating supplier:", error);
