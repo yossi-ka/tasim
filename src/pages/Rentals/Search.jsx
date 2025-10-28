@@ -3,13 +3,16 @@ import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import { List, ListItem, ListItemText, ListSubheader, Popover, Switch } from '@mui/material';
+import PrintIcon from '@mui/icons-material/Print';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { exportExcel } from "../../utils/excel";
 
 import Context from "../../context";
 import GlobalSearch from "../../global/GlobalSearch";
 import AddOrEditRental from "./AddOrEdit";
 
 const Search = ({ dataForExcel, termsForExcel, params, setParams, viewColumn, setViewColumn, allColumns, refetch }) => {
-    const { popup } = React.useContext(Context);
+    const { popup, convertArray } = React.useContext(Context);
     const [columnPopover, setColumnPopover] = React.useState(null);
     const openColumnPopover = Boolean(columnPopover);
 
@@ -35,7 +38,7 @@ const Search = ({ dataForExcel, termsForExcel, params, setParams, viewColumn, se
             setParams={setParams}
             actions={[
                 {
-                    title: "הוסף מכשיר חדש",
+                    title: "הוסף השכרה חדשה",
                     icon: <AddIcon color='primary' />,
                     onClick: () => popup({
                         title: "הוסף השכרה חדשה",
@@ -54,9 +57,21 @@ const Search = ({ dataForExcel, termsForExcel, params, setParams, viewColumn, se
                         handleColumnPopover(e)
                     }
                 },
+                {
+                    title: "הפקת אקסל",
+                    icon: <FileDownloadIcon color="primary" />,
+                    onClick: (e) => {
+                        exportExcel(convertArray(dataForExcel, termsForExcel), "השכרות", termsForExcel);
+                    }
+                },
+                {
+                    title: "הדפס",
+                    icon: <PrintIcon color="primary" />,
+                    onClick: (e) => { }
+                },
             ]}
         />
-          <Popover
+        <Popover
             open={openColumnPopover}
             anchorEl={columnPopover}
             onClose={() => setColumnPopover(null)}

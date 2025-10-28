@@ -69,13 +69,24 @@ export const updateRental = async (id, data, userId) => {
     return { id, ...updatedRental };
 }
 
+export const updateRentals = async (ids, data, userId) => {
+    ids.forEach(async id => {
+        const rentalRef = doc(db, "rentals", id);
+        const updatedRental = {
+            ...data,
+            updatedBy: userId,
+            updatedAt: Timestamp.now()
+        };
+        await updateDoc(rentalRef, updatedRental);
+    })
+    return { ids };
+}
+
 export const deleteRental = async (id) => {
     const rentalRef = doc(db, "rentals", id);
     await deleteDoc(rentalRef);
     return { id };
 }
-
-
 
 export const getrentalsByStatus = async (status) => {
     console.log('Fetching rentals with status:', status);
@@ -94,8 +105,6 @@ export const getrentalsByStatus = async (status) => {
         }
     });
 }
-
-
 
 export const updaterental = async (id, data, userId) => {
     const docRef = doc(db, 'rentals', id);
@@ -236,99 +245,6 @@ export const getSummaryByStatus = async () => {
         console.error('Error getting summary by status:', error);
         throw new Error(`שגיאה בקבלת סיכום לפי סטטוס: ${error.message}`);
     }
-}
-
-export const changerentalsStatus = async (ids, data, userId) => {
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-        throw new Error("ids must be a non-empty array");
-    }
-
-    const FIRESTORE_BATCH_SIZE = 500;
-    const updatedrentals = [];
-    // קבלת collectionIndex הגבוה ביותר של השבוע הנוכחי
-    // נחפש את כל המסמכים שיש להם collectionIndex ונוצרו/עודכנו השבוע (updateStatus בשבוע הנוכחי)
-    // ואז נמצא את הערך המקסימלי כדי שנוכל להקצות max+1
-    let collectionIndexCounterStart = 0;
-    try {
-        // חשב התחלת השבוע (יום ראשון 00:00) לפי זמן מקומי/UTC כפי שמתועד ב-Timestamp
-        const now = new Date();
-        const day = now.getDay(); // 0 = Sunday
-        // חישוב תאריך יום ראשון של השבוע הנוכחי
-        const diffToSunday = day; // days since Sunday
-        const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToSunday);
-        sunday.setHours(0, 0, 0, 0);
-
-        // שאילתה: כל ההזמנות שיש להן collectionIndex וש- updateStatus >= תחילת השבוע
-        const rentalsRef = collection(db, 'rentals');
-        const q = query(rentalsRef,
-            where('updateStatus', '>=', Timestamp.fromDate(sunday)),
-            orderBy('collectionIndex', 'desc'),
-            limit(1)
-        );
-        const snapshot = await getDocs(q);
-        collectionIndexCounterStart = snapshot.empty ? 0 : snapshot.docs[0].data().collectionIndex || 0;
-    } catch (err) {
-        console.error('Error computing collectionIndex max:', err);
-        // לא נזרוק שגיאה כי נשמור על עבודה רגילה בלי collectionIndex
-        collectionIndexCounterStart = 0;
-    }
-
-    // נשתמש במונה מקומי כדי להקצות collectionIndex ייחודי לכל מסמך שצריך
-    let collectionIndexCounter = collectionIndexCounterStart;
-
-    for (let i = 0; i < ids.length; i += FIRESTORE_BATCH_SIZE) {
-        const batch = writeBatch(db);
-        const batchIds = ids.slice(i, i + FIRESTORE_BATCH_SIZE);
-        let batchHasOps = false;
-
-        for (const id of batchIds) {
-            const docRef = doc(db, 'rentals', id);
-            const rentalDoc = await getDoc(docRef);
-            if (!rentalDoc.exists()) {
-                console.warn(`rental ${id} not found, skipping`);
-                continue;
-            }
-
-            const rentalData = rentalDoc.data();
-
-            const objToUpdate = {
-                ...data,
-                updateBy: userId,
-                // הערכים של תאריכים
-                updateDate: Timestamp.now(),
-                updateStatus: Timestamp.now(),
-            };
-
-            // תנאים להוספת collectionIndex:
-            // - סטטוס קודם היה 1
-            // - סטטוס חדש (data.rentalstatus) הוא 2
-            // - במסמך עדיין אין collectionIndex
-            try {
-                const prevStatus = rentalData.rentalstatus;
-                const newStatus = data.rentalstatus;
-                const hasCollectionIndex = rentalData.collectionIndex !== undefined && rentalData.collectionIndex !== null;
-
-                if (prevStatus === 1 && newStatus === 2 && !hasCollectionIndex) {
-                    collectionIndexCounter += 1;
-                    objToUpdate.collectionIndex = collectionIndexCounter;
-                }
-            } catch (e) {
-                // במקרה של בעיה בקריאת נתוני המסמך, רק נמשיך בלי collectionIndex
-                console.warn('Error checking collectionIndex conditions for rental', id, e);
-            }
-
-            batch.update(docRef, objToUpdate);
-            batchHasOps = true;
-            updatedrentals.push(id);
-        }
-
-        if (batchHasOps) {
-            await batch.commit();
-        }
-    }
-
-    return { updatedrentalIds: updatedrentals, ...data };
 }
 
 export const getLatestImportStatus = async () => {

@@ -8,6 +8,7 @@ import AddOrEditRental from './AddOrEdit';
 import EditIcon from '@mui/icons-material/Edit';
 import Context from '../../context';
 import { Checkbox } from '@mui/material';
+import ChangeStatus from './ChangeStatus';
 
 function Rentals() {
 
@@ -20,12 +21,16 @@ function Rentals() {
   const [viewColumn, setViewColumn] = React.useState(term.getTerms().map(t => t.name));
 
   const statuses = [
-    { label: "פעיל", id: 1, key: "active", value: 1 },
-    { label: "הסתיים", id: 2, key: "completed", value: 2 },
+    { label: "הזמנה", id: 1, key: "order", value: 1 },
+    { label: "פעיל", id: 2, key: "active", value: 2 },
     { label: "מבוטל", id: 3, key: "canceled", value: 3 },
-    { label: "מושהה", id: 4, key: "paused", value: 4 },
-    { label: "הושלם עם בעיות", id: 5, key: "completed_with_issues", value: 5 },
+    { label: "הסתיים", id: 4, key: "finished", value: 4 },
   ];
+
+  const getStatusId = (key) => {
+    const status = statuses.find((s) => s.key === key);
+    return status ? status.id : null;
+  }
 
   const { data, status, refetch } = useQuery("rentalsTable", getActiveRentals, {
     refetchOnWindowFocus: false,
@@ -101,6 +106,23 @@ function Rentals() {
         setViewColumn={setViewColumn}
         allColumns={term.getTerms()}
       />}
+      actions={selected.length > 0 ? [
+        {
+          label: `שינוי סטטוס ל ${selected.length} השכרות`,
+          onClick: () => popup({
+            title: "שנה סטטוס השכרות",
+            content: <ChangeStatus
+              options={statuses}
+              status={getStatusId(statuses)}
+              rows={selected}
+              refetch={() => {
+                refetch();
+                setSelected([])
+              }} />
+          }),
+          count: selected.length,
+        }
+      ] : null}
     />
   )
 }

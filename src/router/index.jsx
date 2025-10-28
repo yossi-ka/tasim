@@ -4,9 +4,6 @@ import Layout from "../layout";
 import Context from "../context";
 import LoadingData from "../components/LoadingData";
 import Login from "../pages/Login";
-import Customers from "../pages/Customers";
-import Test from "../pages/Test";
-import RouteOrders from "../pages/RouteOrders";
 import Rentals from "../pages/Rentals";
 import Devices from "../pages/Devices";
 import Expenses from "../pages/Expenses";
@@ -33,9 +30,6 @@ const ProjectRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />} >
                 <Route index element={<Navigate to="/rentals" replace />} />
-                <Route path="customers" element={<Customers />} />
-                <Route path="route-orders" element={<RouteOrders />} />
-                <Route path="test" element={<Test />} />
 
                 <Route path="rentals" element={<Rentals />} />
                 <Route path="rentals-history" element={<Rentals />} />
